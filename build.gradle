@@ -1,0 +1,45 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+group = 'org.terasology'
+version = '0.1.0'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// We use both Maven Central and our own Artifactory instance, which contains module builds, extra libs, and so on
+repositories {
+    mavenCentral()
+    maven {
+        url "http://www.movingblocks.net:8081/artifactory/repo"
+    }
+}
+
+dependencies {
+// For now, the following deps. must be fulfilled, but gradle does not know about these projects :-((
+
+//    compile project(':engine')
+//    compile project(':Cities')
+//    compile project(':PolyWorld')
+//    compile project(':TeraMath')
+}
+
+task sourceJar(type: Jar) {
+    description = "Create a JAR with all sources"
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    description = "Create a JAR with the JavaDoc for the java sources"
+    from javadoc.destinationDir
+    classifier = 'javadoc'
+}
+
+// Define the artifacts we want to publish (the .pom will also be included since the Maven plugin is active)
+artifacts {
+    archives sourceJar
+    archives javadocJar
+}
