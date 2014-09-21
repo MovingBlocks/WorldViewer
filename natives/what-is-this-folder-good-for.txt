@@ -1,0 +1,3 @@
+We need this folder to trick PathManager: it tries to find the TS root folder by searching for a folder "natives"
+
+TODO: change PathManager so that the root folder can be specified explicitly
