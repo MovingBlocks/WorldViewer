@@ -19,6 +19,7 @@ package org.terasology.mapviewer.cities;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.math.RoundingMode;
 
 import javax.swing.JComponent;
 import javax.vecmath.Point2i;
@@ -31,6 +32,8 @@ import org.terasology.mapviewer.camera.Camera;
 import org.terasology.mapviewer.camera.CameraListener;
 import org.terasology.math.geom.ImmutableVector2i;
 import org.terasology.world.chunks.ChunkConstants;
+
+import com.google.common.math.DoubleMath;
 
 /**
  * A JComponent that displays the rasterized images using a virtual camera
@@ -45,13 +48,11 @@ public class CitiesViewer extends JComponent {
 
     private Camera camera;
 
-    public CitiesViewer(String seed, Camera camera)
-    {
+    public CitiesViewer(String seed, Camera camera) {
         this.camera = camera;
 
-        camera.addListener(new CameraListener()
-        {
-            @Override
+        camera.addListener(new CameraListener() {
+           @Override
             public void onPosChange() {
                 CitiesViewer.this.repaint();
             }
@@ -72,34 +73,38 @@ public class CitiesViewer extends JComponent {
 
         Graphics2D g = (Graphics2D) g1;
 
-        int scale = 1;
-
         g.setColor(Color.BLACK);
 
-        g.scale(scale, scale);
+        double zoom = camera.getZoom();
+        g.scale(zoom, zoom);
         ImmutableVector2i cameraPos = camera.getPos();
         g.translate(cameraPos.x(), cameraPos.y());
 
-        int camChunkOffX = (int) Math.floor(cameraPos.x() / (double) ChunkConstants.SIZE_X);
-        int camChunkOffZ = (int) Math.floor(cameraPos.y() / (double) ChunkConstants.SIZE_Z);
+        double sizeX = ChunkConstants.SIZE_X;
+        double sizeZ = ChunkConstants.SIZE_Z;
+        int camChunkMinX = DoubleMath.roundToInt(cameraPos.x() / sizeX, RoundingMode.FLOOR);
+        int camChunkMinZ = DoubleMath.roundToInt(cameraPos.y() / sizeZ, RoundingMode.FLOOR);
 
-        int numChunkX = getWidth() / (ChunkConstants.SIZE_X * scale) + 1;
-        int numChunkZ = getHeight() / (ChunkConstants.SIZE_Z * scale) + 1;
+        int camChunkMaxX = DoubleMath.roundToInt((cameraPos.x() + getWidth()) / (sizeX * zoom), RoundingMode.CEILING);
+        int camChunkMaxZ = DoubleMath.roundToInt((cameraPos.y() + getHeight()) / (sizeZ * zoom), RoundingMode.CEILING);
+
+        int numChunkX = camChunkMaxX - camChunkMinX;
+        int numChunkZ = camChunkMaxZ - camChunkMinZ;
 
         logger.debug("Drawing {}x{} chunks", numChunkX + 1, numChunkZ + 1);
 
         for (int z = -1; z < numChunkZ; z++) {
             for (int x = -1; x < numChunkX; x++) {
-                Point2i coord = new Point2i(x - camChunkOffX, z - camChunkOffZ);
+                Point2i coord = new Point2i(x - camChunkMinX, z - camChunkMinZ);
                 rasterizer.rasterizeChunk(g, coord);
             }
         }
 
-        int camOffX = (int) Math.floor(cameraPos.x() / (double) Sector.SIZE);
-        int camOffZ = (int) Math.floor(cameraPos.y() / (double) Sector.SIZE);
+        int camOffX = DoubleMath.roundToInt(cameraPos.x() / (double) Sector.SIZE, RoundingMode.FLOOR);
+        int camOffZ = DoubleMath.roundToInt(cameraPos.y() / (double) Sector.SIZE, RoundingMode.FLOOR);
 
-        int numSecX = getWidth() / (Sector.SIZE * scale) + 1;
-        int numSecZ = getHeight() / (Sector.SIZE * scale) + 1;
+        int numSecX = (int) (getWidth() / (Sector.SIZE * zoom) + 1);
+        int numSecZ = (int) (getHeight() / (Sector.SIZE * zoom) + 1);
 
         logger.debug("Drawing {}x{} sectors", numSecX + 1, numSecZ + 1);
 

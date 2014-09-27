@@ -32,7 +32,7 @@ public class Camera
 {
     private final Vector2i pos = new Vector2i();
     private final Collection<CameraListener> listeners = Lists.newLinkedList();
-    private double zoom;
+    private double zoom = 1.0;
 
     public double getZoom()
     {

@@ -22,6 +22,7 @@ import java.util.Collection;
 
 import javax.swing.JComponent;
 
+import org.terasology.mapviewer.camera.Camera;
 import org.terasology.math.geom.Rect2d;
 import org.terasology.polyworld.IslandGenerator;
 import org.terasology.polyworld.voronoi.Graph;
@@ -38,7 +39,6 @@ public final class PolyworldViewer extends JComponent {
 
     private final int width = 512;
     private final int height = 512;
-    private final long seed = 9782985378925l;//System.nanoTime();
     private Rect2d bounds1 = Rect2d.createFromMinAndSize(0, 0, width, height);
     private Rect2d bounds2 = Rect2d.createFromMinAndSize(width, 0, width, height);
     private IslandGenerator sm1 = new IslandGenerator(bounds1, 1234);
@@ -47,6 +47,18 @@ public final class PolyworldViewer extends JComponent {
     private final GraphPainter graphPainter = new GraphPainter();
     private final RiverPainter riverPainter = new RiverPainter();
     private final LavaPainter lavaPainter = new LavaPainter();
+
+    private final Camera camera;
+    private final long seed;
+
+    /**
+     * @param l
+     * @param camera
+     */
+    public PolyworldViewer(long seed, Camera camera) {
+        this.seed = seed;
+        this.camera = camera;
+    }
 
     @Override
     public void paint(Graphics g1) {

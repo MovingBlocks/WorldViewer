@@ -18,6 +18,7 @@ package org.terasology.mapviewer;
 
 import java.awt.BorderLayout;
 import java.awt.event.KeyAdapter;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,6 +27,7 @@ import org.terasology.mapviewer.camera.Camera;
 import org.terasology.mapviewer.camera.CameraKeyController;
 import org.terasology.mapviewer.camera.CameraListener;
 import org.terasology.mapviewer.cities.CitiesViewer;
+import org.terasology.mapviewer.polyworld.PolyworldViewer;
 
 /**
  * The main MapViewer JFrame
@@ -39,7 +41,10 @@ public class MainFrame extends JFrame {
 
     private final Camera camera = new Camera();
 
-    public MainFrame() {
+    public MainFrame() throws IOException {
+//        PolyworldViewer viewer = new PolyworldViewer(9782985378925l, camera);
+
+        SwingEnvironment.setup();
         CitiesViewer viewer = new CitiesViewer("a", camera);
 
         add(viewer, BorderLayout.CENTER);

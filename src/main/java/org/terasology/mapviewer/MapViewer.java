@@ -33,8 +33,6 @@ final class MapViewer {
 
     public static void main(String[] args) throws IOException {
 
-        SwingEnvironment.setup();
-
         final JFrame frame = new MainFrame();
 
         frame.setTitle("MapViewer");
