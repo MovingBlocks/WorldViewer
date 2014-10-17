@@ -4,7 +4,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 
 group = 'org.terasology'
-version = '0.1.0'
+version = getGitDesc()
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -16,6 +16,46 @@ repositories {
         url "http://www.movingblocks.net:8081/artifactory/repo"
     }
 }
+
+import java.text.SimpleDateFormat;
+
+def env = System.getenv()
+def versionInfoFile = new File(sourceSets.main.output.resourcesDir, 'versionInfo.properties')
+	
+def getGitDesc() {
+	def cmd = "git describe --match ?.?* --dirty"
+
+	try {
+		def proc = cmd.execute()
+		proc.waitFor()					// wait for the command to finish
+		return proc.in.text.trim()		// "out" from the process is "in" for gradle
+	} catch (IOException e) {
+		logger.warn("Could not run '$cmd' - using date - {}", e.getLocalizedMessage());
+		return new Date().format('yyyy-MM-dd-HH-mm-ss');
+	}
+}
+
+
+task createVersionFile(type:Copy) {
+	description = 'Creates a java version file based on the template in the resources folder'
+	def version = getGitDesc()
+	
+	inputs.property('version', version)	// trigger executing by setting a property
+
+	from('src/main/resources/GitVersion.template')
+	into('src/main/java/version')
+	rename '(.*).template', '$1.java'
+
+	expand(GIT_VERSION: version)
+	
+	doLast {
+		logger.lifecycle("Updated 'GitVersion.java' to version $version");
+	}
+}
+
+
+compileJava.dependsOn createVersionFile
+eclipseProject.dependsOn createVersionFile
 
 dependencies {
 // For now, the following deps. must be fulfilled, but gradle does not know about these projects :-((

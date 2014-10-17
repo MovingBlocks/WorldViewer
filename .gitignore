@@ -4,6 +4,9 @@
 # Eclipse project files
 .classpath
 .project
+.checkstyle
 .settings/
 /bin
 /build
+
+/src/main/java/version/GitVersion.java
