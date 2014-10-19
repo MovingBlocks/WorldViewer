@@ -18,22 +18,17 @@ package org.terasology.mapviewer;
 
 import java.awt.BorderLayout;
 import java.awt.event.KeyAdapter;
-import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import org.terasology.core.world.generator.worldGenerators.FlatWorldGenerator;
 import org.terasology.engine.SimpleUri;
 import org.terasology.mapviewer.camera.Camera;
 import org.terasology.mapviewer.camera.CameraKeyController;
 import org.terasology.mapviewer.camera.CameraListener;
 import org.terasology.mapviewer.polyworld.WorldViewer;
 import org.terasology.polyworld.IslandWorldGenerator;
-import org.terasology.polyworld.elevation.ElevationProvider;
 import org.terasology.world.generation.World;
-import org.terasology.world.generation.WorldBuilder;
-import org.terasology.world.generator.WorldGenerator;
 
 /**
  * The main MapViewer JFrame
@@ -47,14 +42,16 @@ public class MainFrame extends JFrame {
 
     private final Camera camera = new Camera();
 
-    public MainFrame() throws IOException {
+    private WorldViewer viewer;
+
+    public MainFrame() {
 
         IslandWorldGenerator wg = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
 //        WorldGenerator wg = new FlatWorldGenerator(new SimpleUri("core:flat"));
         wg.setWorldSeed("sdfsfdf"); // 9782985378925l
         World world = wg.getWorld();
 
-        WorldViewer viewer = new WorldViewer(world, camera);
+        viewer = new WorldViewer(world, camera);
 
 //        SwingEnvironment.setup();
 //        CitiesViewer viewer = new CitiesViewer("a", camera);
@@ -79,6 +76,13 @@ public class MainFrame extends JFrame {
         addKeyListener(keyCameraController);
 
         updateLabel();
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+
+        viewer.close();
     }
 
     protected void updateLabel() {
