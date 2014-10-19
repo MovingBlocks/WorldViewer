@@ -19,8 +19,10 @@ package org.terasology.mapviewer.polyworld;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 import org.terasology.math.geom.Rect2d;
 import org.terasology.math.geom.Vector2d;
@@ -28,8 +30,10 @@ import org.terasology.polyworld.voronoi.Corner;
 import org.terasology.polyworld.voronoi.Edge;
 import org.terasology.polyworld.voronoi.Graph;
 import org.terasology.polyworld.voronoi.Region;
+import org.terasology.polyworld.voronoi.Triangle;
 
 import com.google.common.base.Function;
+import com.google.common.math.DoubleMath;
 
 /**
  * Draws the generated graph on a AWT graphics instance
@@ -86,6 +90,41 @@ public class GraphPainter {
         }
     }
 
+    public void drawTriangles(Graphics2D g, Graph graph) {
+        List<Region> regions = graph.getRegions();
+
+        Random r = new Random(12332434);
+
+        for (final Region reg : regions) {
+            for (Triangle t : reg.computeTriangles()) {
+                g.setColor(new Color(r.nextInt(0xFFFFFF)));
+                drawTriangle(g, t);
+            }
+        }
+    }
+
+    public void drawTriangle(Graphics2D g, Triangle tri) {
+
+        RoundingMode mode = RoundingMode.HALF_UP;
+        int[] xPoints = new int[3];
+        int[] yPoints = new int[3];
+
+        Vector2d p0 = tri.getRegion().getCenter();
+        Vector2d p1 = tri.getCorner1().getLocation();
+        Vector2d p2 = tri.getCorner2().getLocation();
+
+        xPoints[0] = DoubleMath.roundToInt(p0.getX(), mode);
+        yPoints[0] = DoubleMath.roundToInt(p0.getY(), mode);
+
+        xPoints[1] = DoubleMath.roundToInt(p1.getX(), mode);
+        yPoints[1] = DoubleMath.roundToInt(p1.getY(), mode);
+
+        xPoints[2] = DoubleMath.roundToInt(p2.getX(), mode);
+        yPoints[2] = DoubleMath.roundToInt(p2.getY(), mode);
+
+        g.fillPolygon(xPoints, yPoints, 3);
+    }
+
     public void drawSites(Graphics2D g, Graph graph) {
         List<Region> centers = graph.getRegions();
 
@@ -113,4 +152,5 @@ public class GraphPainter {
         g.setColor(Color.MAGENTA);
         g.fillRect((int) bounds.minX() + 1, (int) bounds.minY() + 1, (int) bounds.width() - 1, (int) bounds.height() - 1);
     }
+
 }

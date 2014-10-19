@@ -34,19 +34,19 @@ public class CameraKeyController extends KeyAdapter {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        int moveInterval = 50;
+        int moveInterval = 64;
 
         if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-            camera.translate(moveInterval, 0);
-        }
-        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
             camera.translate(-moveInterval, 0);
         }
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            camera.translate(moveInterval, 0);
+        }
         if (e.getKeyCode() == KeyEvent.VK_UP) {
-            camera.translate(0, moveInterval);
+            camera.translate(0, -moveInterval);
         }
         if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            camera.translate(0, -moveInterval);
+            camera.translate(0, moveInterval);
         }
     }
 }
