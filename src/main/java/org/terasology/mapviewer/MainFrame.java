@@ -17,10 +17,15 @@
 package org.terasology.mapviewer;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.terasology.engine.SimpleUri;
 import org.terasology.mapviewer.camera.Camera;
@@ -29,6 +34,8 @@ import org.terasology.mapviewer.camera.CameraListener;
 import org.terasology.mapviewer.polyworld.WorldViewer;
 import org.terasology.polyworld.IslandWorldGenerator;
 import org.terasology.world.generation.World;
+import org.terasology.world.generation.facets.SurfaceHeightFacet;
+import org.terasology.world.generation.facets.base.FieldFacet2D;
 
 /**
  * The main MapViewer JFrame
@@ -56,6 +63,23 @@ public class MainFrame extends JFrame {
 //        SwingEnvironment.setup();
 //        CitiesViewer viewer = new CitiesViewer("a", camera);
 
+        JPanel config = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        final JComboBox<FacetEntry<FieldFacet2D>> facetCombo = new JComboBox<FacetEntry<FieldFacet2D>>();
+        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
+        facetCombo.addItem(new FacetEntry<FieldFacet2D>(SurfaceHeightFacet.class));
+        facetCombo.setFocusable(false);
+        facetCombo.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int index = facetCombo.getSelectedIndex();
+                FacetEntry<FieldFacet2D> itemAt = facetCombo.getItemAt(index);
+                viewer.setFacet(itemAt.getFacet());
+            }
+        });
+        config.add(facetCombo);
+
+        add(config, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
         add(status, BorderLayout.SOUTH);
 
@@ -89,5 +113,35 @@ public class MainFrame extends JFrame {
         status.setText("LEFT, RIGHT, UP, DOWN - Camera: " + camera.getPos().toString());
     }
 
+
+    private static class FacetEntry<T> {
+
+        private final Class<? extends T> clazz;
+
+        public FacetEntry(Class<? extends T> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public String toString() {
+            return clazz.getSimpleName();
+        }
+
+        public Class<? extends T> getFacet() {
+            return clazz;
+        }
+    }
+
+    private static class EmptyFacetEntry<T> extends FacetEntry<T> {
+
+        public EmptyFacetEntry() {
+            super(null);
+        }
+
+        @Override
+        public String toString() {
+            return "Empty";
+        }
+    }
 
 }

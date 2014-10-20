@@ -19,6 +19,7 @@ package org.terasology.mapviewer;
 import java.io.IOException;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
@@ -53,6 +54,15 @@ public final class MapViewer {
         logger.debug("OS: {} {} {}", System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
         logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
 
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                createAndShowGUI();
+            }
+        });
+    }
+
+    static void createAndShowGUI() {
         final JFrame frame = new MainFrame();
 
         frame.setTitle("MapViewer " + GitVersion.getVersion());
@@ -66,6 +76,5 @@ public final class MapViewer {
 //        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 //        int screenWidth = gd.getDisplayMode().getWidth();
 //        frame.setLocation(screenWidth - frame.getWidth(), 40);
-
     }
 }

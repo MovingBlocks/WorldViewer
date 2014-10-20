@@ -43,6 +43,7 @@ import org.terasology.world.generation.World;
 import org.terasology.world.generation.facets.SurfaceHeightFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -86,6 +87,8 @@ public final class WorldViewer extends JComponent implements AutoCloseable {
 
     private final Camera camera;
     private final World world;
+
+    private Class<? extends FieldFacet2D> facetClass;
 
     /**
      * @param world
@@ -152,6 +155,9 @@ public final class WorldViewer extends JComponent implements AutoCloseable {
 
     private BufferedImage createImage(Vector2i chunkPos) {
 
+        if (facetClass == null)
+            return dummyImg;
+
         Stopwatch sw = Stopwatch.createStarted();
 
         int minX = chunkPos.x * TILE_SIZE_X;
@@ -159,7 +165,10 @@ public final class WorldViewer extends JComponent implements AutoCloseable {
         Region3i area3d = Region3i.createFromMinAndSize(new Vector3i(minX, 0, minZ), new Vector3i(TILE_SIZE_X, 1, TILE_SIZE_Y));
         Region region = world.getWorldData(area3d);
 
-        FieldFacet2D facet = region.getFacet(SurfaceHeightFacet.class);
+        FieldFacet2D facet = region.getFacet(facetClass);
+
+        if (facet == null)
+            return dummyImg;
 
         BufferedImage img = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
 
@@ -179,8 +188,19 @@ public final class WorldViewer extends JComponent implements AutoCloseable {
     }
 
     private int mapFloat(float val) {
-        int g = TeraMath.clamp((int)(val * 255), 0, 255);
+        int g = TeraMath.clamp((int)(val * 4), 0, 255);
         return g | (g << 8) | (g << 16);
+    }
+
+    public void setFacet(Class<? extends FieldFacet2D> clazz)
+    {
+        if (Objects.equal(facetClass, clazz)) {
+            return;
+        }
+
+        this.facetClass = clazz;
+        imageCache.invalidateAll();
+        repaint();
     }
 
     @Override
