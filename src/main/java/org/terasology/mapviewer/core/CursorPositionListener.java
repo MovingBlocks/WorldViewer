@@ -14,31 +14,39 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.polyworld;
+package org.terasology.mapviewer.core;
 
-import java.awt.Component;
-
-import org.terasology.mapviewer.camera.CameraListener;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
- * Repaints a component when the camera moves
- * or changes zoom.
+ * Stores the last known cursor position
  * @author Martin Steiger
  */
-public class CameraBasedRepaint implements CameraListener {
-    private Component comp;
+public class CursorPositionListener extends MouseAdapter {
 
-    public CameraBasedRepaint(Component comp) {
-        this.comp = comp;
+    private Point curPos;
+
+    /**
+     * @return the cursor position or <code>null</code> if outside
+     */
+    public Point getCursorPosition() {
+        return curPos;
     }
 
     @Override
-    public void onZoomChange() {
-        comp.repaint();
+    public void mouseMoved(MouseEvent e) {
+        curPos = e.getPoint();
     }
 
     @Override
-    public void onPosChange() {
-        comp.repaint();
+    public void mouseDragged(MouseEvent e) {
+        curPos = e.getPoint();
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        curPos = null;
     }
 }

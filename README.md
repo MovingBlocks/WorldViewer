@@ -1,4 +1,4 @@
-MapViewer
+WorldViewer
 =========
 
 A world-generator based map viewer for Terasology

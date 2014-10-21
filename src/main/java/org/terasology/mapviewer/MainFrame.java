@@ -17,17 +17,12 @@
 package org.terasology.mapviewer;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -35,13 +30,8 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import org.terasology.engine.SimpleUri;
-import org.terasology.mapviewer.camera.Camera;
-import org.terasology.mapviewer.camera.CameraKeyController;
-import org.terasology.mapviewer.camera.CameraListener;
-import org.terasology.mapviewer.camera.CameraMouseController;
-import org.terasology.mapviewer.polyworld.WorldViewer;
+import org.terasology.mapviewer.core.Viewer;
 import org.terasology.polyworld.IslandWorldGenerator;
-import org.terasology.world.generation.World;
 import org.terasology.world.generation.facets.SurfaceHeightFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 
@@ -55,23 +45,25 @@ public class MainFrame extends JFrame {
 
     private final JPanel statusBar = new JPanel();
 
-    private WorldViewer viewer;
+    private Viewer viewer;
 
     public MainFrame() {
 
         IslandWorldGenerator wg = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
 //        WorldGenerator wg = new FlatWorldGenerator(new SimpleUri("core:flat"));
-        wg.setWorldSeed("sdfsfdf"); // 9782985378925l
-        World world = wg.getWorld();
 
-        viewer = new WorldViewer(world);
+        viewer = new Viewer(wg);
 
 //        SwingEnvironment.setup();
 //        CitiesViewer viewer = new CitiesViewer("a", camera);
 
-        JPanel config = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        JPanel config = new JPanel();
+        BoxLayout layout = new BoxLayout(config, BoxLayout.LINE_AXIS);
+        config.setLayout(layout);
+        config.setBorder(new EmptyBorder(2, 5, 2, 5));
+
         final JComboBox<FacetEntry<FieldFacet2D>> facetCombo = new JComboBox<FacetEntry<FieldFacet2D>>();
-//        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
+        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
         facetCombo.addItem(new FacetEntry<FieldFacet2D>(SurfaceHeightFacet.class));
         facetCombo.setFocusable(false);
         facetCombo.addActionListener(new ActionListener() {
@@ -83,8 +75,21 @@ public class MainFrame extends JFrame {
                 viewer.setFacet(itemAt.getFacet());
             }
         });
-        facetCombo.setSelectedIndex(0);
+        facetCombo.setSelectedIndex(facetCombo.getItemCount() - 1);
         config.add(facetCombo);
+
+        config.add(Box.createHorizontalGlue());
+
+        JButton refreshButton = new JButton("Reload");
+        refreshButton.setFocusable(false);
+        refreshButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewer.reload();
+            }
+        });
+        config.add(refreshButton);
 
         add(config, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);

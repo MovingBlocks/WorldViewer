@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.camera;
+package org.terasology.mapviewer.core;
+
+import java.awt.image.BufferedImage;
+
+import org.terasology.world.generation.Region;
+import org.terasology.world.generation.facets.base.FieldFacet2D;
 
 /**
- * Notified when the camera setting changes
+ * TODO Type description
  * @author Martin Steiger
  */
-public interface CameraListener {
+public interface Rasterizer {
 
-    void onPosChange();
+    /**
+     * @param region
+     * @param facetClass
+     * @return
+     */
+    BufferedImage raster(Region region, Class<? extends FieldFacet2D> facetClass);
 
-    void onZoomChange();
 }

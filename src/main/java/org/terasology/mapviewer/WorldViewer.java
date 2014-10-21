@@ -16,8 +16,6 @@
 
 package org.terasology.mapviewer;
 
-import java.io.IOException;
-
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -33,18 +31,18 @@ import ch.qos.logback.core.util.StatusPrinter;
  * Preview generated world in Swing
  * @author Martin Steiger
  */
-public final class MapViewer {
+public final class WorldViewer {
 
-    private static final Logger logger = LoggerFactory.getLogger(MapViewer.class);
+    private static final Logger logger = LoggerFactory.getLogger(WorldViewer.class);
 
-    private MapViewer() {
+    private WorldViewer() {
         // don't create instances
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         // TODO: logback must be a compile-time dependency for this to work -> either change that or comment it out
-        LoggerContext loggerContext = ((ch.qos.logback.classic.Logger)logger).getLoggerContext();
+        LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) logger).getLoggerContext();
         StatusPrinter.print(loggerContext);
 
         logger.info("Starting ...");

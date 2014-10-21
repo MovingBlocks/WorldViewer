@@ -28,36 +28,29 @@ import com.google.common.collect.Lists;
  * Defines a simple camera
  * @author Martin Steiger
  */
-public class Camera
-{
+public class Camera {
     private final Vector2i pos = new Vector2i();
     private final Collection<CameraListener> listeners = Lists.newLinkedList();
     private double zoom = 1.0;
 
-    public double getZoom()
-    {
+    public double getZoom() {
         return zoom;
     }
 
-    public void setZoom(double zoom)
-    {
+    public void setZoom(double zoom) {
         this.zoom = zoom;
-        for (CameraListener listener : listeners)
-        {
+        for (CameraListener listener : listeners) {
             listener.onZoomChange();
         }
     }
 
-    public ImmutableVector2i getPos()
-    {
+    public ImmutableVector2i getPos() {
         return new ImmutableVector2i(pos);
     }
 
-    public void setPos(BaseVector2i npos)
-    {
+    public void setPos(BaseVector2i npos) {
         pos.set(npos);
-        for (CameraListener listener : listeners)
-        {
+        for (CameraListener listener : listeners) {
             listener.onPosChange();
         }
     }
@@ -66,23 +59,19 @@ public class Camera
      * @param dx the x translation
      * @param dy the y translation
      */
-    public void translate(int dx, int dy)
-    {
+    public void translate(int dx, int dy) {
         this.pos.addX(dx);
         this.pos.addY(dy);
-        for (CameraListener listener : listeners)
-        {
+        for (CameraListener listener : listeners) {
             listener.onPosChange();
         }
     }
 
-    public void addListener(CameraListener listener)
-    {
+    public void addListener(CameraListener listener) {
         listeners.add(listener);
     }
 
-    public void removeListener(CameraListener listener)
-    {
+    public void removeListener(CameraListener listener) {
         listeners.remove(listener);
     }
 

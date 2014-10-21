@@ -14,46 +14,65 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.camera;
+package org.terasology.mapviewer.core;
 
-import java.awt.Point;
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import javax.swing.SwingUtilities;
+import java.awt.event.MouseWheelEvent;
 
 /**
- * Controls a camera based on mouse interaction
+ * Triggers a repaint on any mouse interaction
  * @author Martin Steiger
  */
-public class CameraMouseController extends MouseAdapter {
+public class RepaintingMouseListener extends MouseAdapter {
 
-    private Point draggedPoint;
-    private final Camera camera;
+    private final Component comp;
 
-    public CameraMouseController(Camera camera) {
-        this.camera = camera;
+    /**
+     * @param comp
+     */
+    public RepaintingMouseListener(Component comp) {
+        this.comp = comp;
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        comp.repaint();
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (draggedPoint != null) {
-            int dx = draggedPoint.x - e.getX();
-            int dy = draggedPoint.y - e.getY();
-            draggedPoint.setLocation(e.getPoint());
-            camera.translate(dx, dy);
-        }
+        comp.repaint();
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        comp.repaint();
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        comp.repaint();
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (SwingUtilities.isRightMouseButton(e)) {
-            draggedPoint = e.getPoint();
-        }
+        comp.repaint();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        draggedPoint = null;
+        comp.repaint();
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        comp.repaint();
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        comp.repaint();
     }
 }

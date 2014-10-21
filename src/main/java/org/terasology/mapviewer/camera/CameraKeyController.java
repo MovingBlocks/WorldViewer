@@ -27,8 +27,7 @@ public class CameraKeyController extends KeyAdapter {
 
     private final Camera camera;
 
-    public CameraKeyController(Camera camera)
-    {
+    public CameraKeyController(Camera camera) {
         this.camera = camera;
     }
 
