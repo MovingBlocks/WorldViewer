@@ -18,15 +18,21 @@ package org.terasology.mapviewer;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 
 import org.terasology.engine.SimpleUri;
 import org.terasology.mapviewer.camera.Camera;
@@ -47,9 +53,7 @@ public class MainFrame extends JFrame {
 
     private static final long serialVersionUID = -8474971565041036025L;
 
-    private final JLabel status = new JLabel();
-
-    private final Camera camera = new Camera();
+    private final JPanel statusBar = new JPanel();
 
     private WorldViewer viewer;
 
@@ -60,14 +64,14 @@ public class MainFrame extends JFrame {
         wg.setWorldSeed("sdfsfdf"); // 9782985378925l
         World world = wg.getWorld();
 
-        viewer = new WorldViewer(world, camera);
+        viewer = new WorldViewer(world);
 
 //        SwingEnvironment.setup();
 //        CitiesViewer viewer = new CitiesViewer("a", camera);
 
         JPanel config = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         final JComboBox<FacetEntry<FieldFacet2D>> facetCombo = new JComboBox<FacetEntry<FieldFacet2D>>();
-        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
+//        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
         facetCombo.addItem(new FacetEntry<FieldFacet2D>(SurfaceHeightFacet.class));
         facetCombo.setFocusable(false);
         facetCombo.addActionListener(new ActionListener() {
@@ -79,32 +83,18 @@ public class MainFrame extends JFrame {
                 viewer.setFacet(itemAt.getFacet());
             }
         });
+        facetCombo.setSelectedIndex(0);
         config.add(facetCombo);
 
         add(config, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
-        add(status, BorderLayout.SOUTH);
+        add(statusBar, BorderLayout.SOUTH);
 
-        KeyAdapter keyCameraController = new CameraKeyController(camera);
-        MouseAdapter mouseCameraController = new CameraMouseController(camera);
-        camera.addListener(new CameraListener() {
-
-            @Override
-            public void onPosChange() {
-                updateLabel();
-            }
-
-            @Override
-            public void onZoomChange() {
-                updateLabel();
-            }
-        });
-
-        addKeyListener(keyCameraController);
-        addMouseListener(mouseCameraController);
-        addMouseMotionListener(mouseCameraController);
-
-        updateLabel();
+        statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.LINE_AXIS));
+        statusBar.add(new JLabel("Ready"));
+        statusBar.add(Box.createHorizontalGlue());
+        statusBar.add(new JLabel("Use cursor arrows or drag with right mouse button to navigate"));
+        statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
     }
 
     @Override
@@ -113,11 +103,6 @@ public class MainFrame extends JFrame {
 
         viewer.close();
     }
-
-    protected void updateLabel() {
-        status.setText("LEFT, RIGHT, UP, DOWN - Camera: " + camera.getPos().toString());
-    }
-
 
     private static class FacetEntry<T> {
 
