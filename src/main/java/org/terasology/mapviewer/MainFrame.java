@@ -30,10 +30,15 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import org.terasology.engine.SimpleUri;
+import org.terasology.mapviewer.core.FacetTrait;
+import org.terasology.mapviewer.core.FieldFacetTrait;
+import org.terasology.mapviewer.core.NominalFacetTrait;
 import org.terasology.mapviewer.core.Viewer;
 import org.terasology.polyworld.IslandWorldGenerator;
+import org.terasology.polyworld.biome.WhittakerBiome;
+import org.terasology.polyworld.biome.WhittakerBiomeColors;
+import org.terasology.polyworld.biome.WhittakerBiomeFacet;
 import org.terasology.world.generation.facets.SurfaceHeightFacet;
-import org.terasology.world.generation.facets.base.FieldFacet2D;
 
 /**
  * The main MapViewer JFrame
@@ -62,17 +67,18 @@ public class MainFrame extends JFrame {
         config.setLayout(layout);
         config.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        final JComboBox<FacetEntry<FieldFacet2D>> facetCombo = new JComboBox<FacetEntry<FieldFacet2D>>();
-        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
-        facetCombo.addItem(new FacetEntry<FieldFacet2D>(SurfaceHeightFacet.class));
+        final JComboBox<FacetTrait> facetCombo = new JComboBox<FacetTrait>();
+//        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
+        facetCombo.addItem(new FieldFacetTrait(SurfaceHeightFacet.class, 0, 4));
+        facetCombo.addItem(new NominalFacetTrait<WhittakerBiome>(WhittakerBiomeFacet.class, new WhittakerBiomeColors()));
         facetCombo.setFocusable(false);
         facetCombo.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 int index = facetCombo.getSelectedIndex();
-                FacetEntry<FieldFacet2D> itemAt = facetCombo.getItemAt(index);
-                viewer.setFacet(itemAt.getFacet());
+                FacetTrait item = facetCombo.getItemAt(index);
+                viewer.setFacetTrait(item);
             }
         });
         facetCombo.setSelectedIndex(facetCombo.getItemCount() - 1);
@@ -107,36 +113,6 @@ public class MainFrame extends JFrame {
         super.dispose();
 
         viewer.close();
-    }
-
-    private static class FacetEntry<T> {
-
-        private final Class<? extends T> clazz;
-
-        public FacetEntry(Class<? extends T> clazz) {
-            this.clazz = clazz;
-        }
-
-        @Override
-        public String toString() {
-            return clazz.getSimpleName();
-        }
-
-        public Class<? extends T> getFacet() {
-            return clazz;
-        }
-    }
-
-    private static class EmptyFacetEntry<T> extends FacetEntry<T> {
-
-        public EmptyFacetEntry() {
-            super(null);
-        }
-
-        @Override
-        public String toString() {
-            return "Empty";
-        }
     }
 
 }

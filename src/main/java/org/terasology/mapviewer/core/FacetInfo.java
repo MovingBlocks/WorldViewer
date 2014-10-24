@@ -16,22 +16,14 @@
 
 package org.terasology.mapviewer.core;
 
-import java.awt.image.BufferedImage;
-
-import org.terasology.world.generation.Region;
-import org.terasology.world.generation.facets.base.FieldFacet2D;
-
 /**
  * TODO Type description
  * @author Martin Steiger
  */
-public interface Rasterizer {
+public interface FacetInfo {
 
-    /**
-     * @param region
-     * @param facetClass
-     * @return
-     */
-    BufferedImage raster(Region region, Class<? extends FieldFacet2D> facetClass);
+    int getRGB(int x, int z);
+
+    String getWorldText(int wx, int wy);
 
 }

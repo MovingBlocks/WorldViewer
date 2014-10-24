@@ -28,7 +28,6 @@ import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 
@@ -40,17 +39,14 @@ import org.terasology.mapviewer.camera.CameraMouseController;
 import org.terasology.mapviewer.camera.RepaintingCameraListener;
 import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
-import org.terasology.math.TeraMath;
 import org.terasology.math.Vector2i;
 import org.terasology.math.Vector3i;
 import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
-import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generator.WorldGenerator;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -73,7 +69,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private ExecutorService threadPool = Executors.newCachedThreadPool();
 
-    private Rasterizer rasterizer = new FieldRasterizer();
+    private TraitRenderer rasterizer = new TraitRenderer();
+
+    private FacetTrait facetTrait;
 
     private final LoadingCache<Vector2i, CacheEntry> tileCache = CacheBuilder.newBuilder().build(new CacheLoader<Vector2i, CacheEntry>() {
 
@@ -86,7 +84,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
                 @Override
                 public void run() {
                     Region region = createRegion(tilePos);
-                    BufferedImage image = (facetClass == null) ? dummyImg : rasterizer.raster(region, facetClass);
+                    BufferedImage image = (facetTrait == null) ? dummyImg : rasterizer.raster(region, facetTrait);
                     CacheEntry entry = new CacheEntry(image, region);
                     tileCache.put(tilePos, entry);
                     repaint();
@@ -99,8 +97,6 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final Camera camera = new Camera();
     private final WorldGenerator worldGen;
-
-    private Class<? extends FieldFacet2D> facetClass;
 
     private CursorPositionListener curPosListener;
 
@@ -185,7 +181,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         // draw tooltip
         Point curPos = curPosListener.getCursorPosition();
-        if (facetClass != null && curPos != null) {
+        if (facetTrait != null && curPos != null) {
             int wx = minX + curPos.x;
             int wy = minY + curPos.y;
 
@@ -194,10 +190,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
             CacheEntry entry = tileCache.getUnchecked(new Vector2i(tileX, tileY));
             Region region = entry.getRegion();
-            FieldFacet2D facet = region.getFacet(facetClass);
-            float value = facet.getWorld(wx, wy);
+            String facetVal = facetTrait.getFacetInfo(region).getWorldText(wx, wy);
 
-            String text = String.format("%d / %d\n%.2f", wx, wy, value);
+            String text = String.format("%d / %d\n%s", wx, wy, facetVal);
             Tooltip.draw(g, wx, wy, text);
         }
 
@@ -214,12 +209,12 @@ public final class Viewer extends JComponent implements AutoCloseable {
         return region;
     }
 
-    public void setFacet(Class<? extends FieldFacet2D> clazz) {
-        if (Objects.equal(facetClass, clazz)) {
+    public void setFacetTrait(FacetTrait facetTrait) {
+        if (Objects.equal(this.facetTrait, facetTrait)) {
             return;
         }
 
-        this.facetClass = clazz;
+        this.facetTrait = facetTrait;
 
         tileCache.invalidateAll();
         repaint();

@@ -21,10 +21,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.math.TeraMath;
 import org.terasology.math.Vector3i;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.facets.base.FieldFacet2D;
 
 import com.google.common.base.Stopwatch;
 
@@ -32,16 +30,15 @@ import com.google.common.base.Stopwatch;
  * TODO Type description
  * @author Martin Steiger
  */
-public class FieldRasterizer implements Rasterizer {
+public class TraitRenderer {
 
-    private static final Logger logger = LoggerFactory.getLogger(FieldRasterizer.class);
+    private static final Logger logger = LoggerFactory.getLogger(TraitRenderer.class);
 
-    @Override
-    public BufferedImage raster(Region region, Class<? extends FieldFacet2D> facetClass) {
-
-        FieldFacet2D facet = region.getFacet(facetClass);
+    public BufferedImage raster(Region region, FacetTrait trait) {
 
         Stopwatch sw = Stopwatch.createStarted();
+
+        FacetInfo info = trait.getFacetInfo(region);
 
         Vector3i extent = region.getRegion().size();
         int width = extent.x;
@@ -51,8 +48,7 @@ public class FieldRasterizer implements Rasterizer {
 
         for (int z = 0; z < width; z++) {
             for (int x = 0; x < height; x++) {
-                float val = facet.get(x, z);
-                int c = mapFloat(val);
+                int c = info.getRGB(x, z);
                 img.setRGB(x, z, c);
             }
         }
@@ -63,10 +59,4 @@ public class FieldRasterizer implements Rasterizer {
 
         return img;
     }
-
-    private int mapFloat(float val) {
-        int g = TeraMath.clamp((int) (val * 4), 0, 255);
-        return g | (g << 8) | (g << 16);
-    }
-
 }
