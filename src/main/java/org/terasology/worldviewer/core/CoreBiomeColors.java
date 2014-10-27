@@ -48,7 +48,8 @@ public class CoreBiomeColors implements Function<CoreBiome, Color> {
     }
 
     /**
-     * @param map
+     * @param biome the biome
+     * @param color the new color
      */
     public void setBiomeColor(Biome biome, Color color) {
         this.biomeColors.put(biome, color);

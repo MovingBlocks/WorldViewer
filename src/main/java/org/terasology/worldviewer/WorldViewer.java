@@ -39,6 +39,9 @@ public final class WorldViewer {
         // don't create instances
     }
 
+    /**
+     * @param args (ignored)
+     */
     public static void main(String[] args) {
 
         // TODO: logback must be a compile-time dependency for this to work -> either change that or comment it out

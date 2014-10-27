@@ -30,7 +30,7 @@ public class RepaintingMouseListener extends MouseAdapter {
     private final Component comp;
 
     /**
-     * @param comp
+     * @param comp the component to repaint
      */
     public RepaintingMouseListener(Component comp) {
         this.comp = comp;

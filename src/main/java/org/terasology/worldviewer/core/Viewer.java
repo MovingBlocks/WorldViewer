@@ -31,8 +31,6 @@ import java.util.concurrent.Executors;
 
 import javax.swing.JComponent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
 import org.terasology.math.Vector2i;
@@ -57,8 +55,6 @@ import com.google.common.math.IntMath;
  * @author Martin Steiger
  */
 public final class Viewer extends JComponent implements AutoCloseable {
-
-    private static final Logger logger = LoggerFactory.getLogger(Viewer.class);
 
     private static final int TILE_SIZE_X = ChunkConstants.SIZE_X * 4;
     private static final int TILE_SIZE_Y = ChunkConstants.SIZE_Z * 4;
@@ -103,8 +99,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
     private GridRenderer gridRenderer;
 
     /**
-     * @param wg
-     * @param camera
+     * @param wg the world generator to use
      */
     public Viewer(WorldGenerator wg) {
         this.worldGen = wg;
@@ -209,6 +204,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
         return region;
     }
 
+    /**
+     * @param facetTrait the facet to show
+     */
     public void setFacetTrait(FacetTrait facetTrait) {
         if (Objects.equal(this.facetTrait, facetTrait)) {
             return;
@@ -240,10 +238,6 @@ public final class Viewer extends JComponent implements AutoCloseable {
         private final BufferedImage image;
         private final Region region;
 
-        /**
-         * @param image
-         * @param region
-         */
         public CacheEntry(BufferedImage image, Region region) {
             this.image = image;
             this.region = region;

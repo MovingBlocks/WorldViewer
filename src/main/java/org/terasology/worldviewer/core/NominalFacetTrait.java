@@ -24,7 +24,8 @@ import org.terasology.world.generation.facets.base.ObjectFacet2D;
 import com.google.common.base.Function;
 
 /**
- * TODO Type description
+ * Provides info about an {@link ObjectFacet2D}.
+ * @param <E> the object type
  * @author Martin Steiger
  */
 public class NominalFacetTrait<E> implements FacetTrait {

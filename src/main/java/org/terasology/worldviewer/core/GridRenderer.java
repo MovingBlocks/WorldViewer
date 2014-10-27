@@ -34,11 +34,6 @@ public class GridRenderer {
     private int tileSizeX;
     private int tileSizeY;
 
-
-    /**
-     * @param tileSizeX
-     * @param tileSizeY
-     */
     public GridRenderer(int tileSizeX, int tileSizeY) {
         this.tileSizeX = tileSizeX;
         this.tileSizeY = tileSizeY;

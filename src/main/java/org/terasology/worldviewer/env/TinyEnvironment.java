@@ -36,7 +36,6 @@ public final class TinyEnvironment {
 
     /**
      * Default setup order
-     * @throws IOException
      */
     public static void setup() {
 

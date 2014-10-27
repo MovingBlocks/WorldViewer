@@ -76,7 +76,8 @@ public final class FullEnvironment {
 
     /**
      * Default setup order
-     * @throws IOException
+     * @param worldGen the world generator to set up
+     * @throws IOException if the home path cannot be set
      */
     public static void setup(WorldGenerator worldGen) throws IOException {
 
