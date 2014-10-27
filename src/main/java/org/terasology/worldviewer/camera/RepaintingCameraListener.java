@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.camera;
+package org.terasology.worldviewer.camera;
+
+import java.awt.Component;
 
 /**
- * Notified when the camera setting changes
+ * Repaints a component when the camera moves
+ * or changes zoom.
  * @author Martin Steiger
  */
-public interface CameraListener {
+public class RepaintingCameraListener implements CameraListener {
+    private Component comp;
 
-    void onPosChange();
+    public RepaintingCameraListener(Component comp) {
+        this.comp = comp;
+    }
 
-    void onZoomChange();
+    @Override
+    public void onZoomChange() {
+        comp.repaint();
+    }
+
+    @Override
+    public void onPosChange() {
+        comp.repaint();
+    }
 }

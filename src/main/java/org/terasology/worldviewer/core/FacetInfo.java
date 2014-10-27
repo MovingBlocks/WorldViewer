@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.core;
+package org.terasology.worldviewer.core;
 
 /**
  * TODO Type description

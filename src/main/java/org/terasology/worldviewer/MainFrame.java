@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer;
+package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -33,14 +33,14 @@ import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator;
 import org.terasology.engine.SimpleUri;
-import org.terasology.mapviewer.core.CoreBiomeColors;
-import org.terasology.mapviewer.core.FacetTrait;
-import org.terasology.mapviewer.core.FieldFacetTrait;
-import org.terasology.mapviewer.core.NominalFacetTrait;
-import org.terasology.mapviewer.core.Viewer;
-import org.terasology.mapviewer.env.TinyEnvironment;
 import org.terasology.world.generation.facets.SurfaceHeightFacet;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.core.CoreBiomeColors;
+import org.terasology.worldviewer.core.FacetTrait;
+import org.terasology.worldviewer.core.FieldFacetTrait;
+import org.terasology.worldviewer.core.NominalFacetTrait;
+import org.terasology.worldviewer.core.Viewer;
+import org.terasology.worldviewer.env.TinyEnvironment;
 
 /**
  * The main MapViewer JFrame

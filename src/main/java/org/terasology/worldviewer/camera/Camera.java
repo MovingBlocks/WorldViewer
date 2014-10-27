@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.camera;
+package org.terasology.worldviewer.camera;
 
 import java.util.Collection;
 

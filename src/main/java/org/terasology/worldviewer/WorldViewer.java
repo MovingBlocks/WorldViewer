@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer;
+package org.terasology.worldviewer;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;

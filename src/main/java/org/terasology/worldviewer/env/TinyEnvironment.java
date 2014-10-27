@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.env;
+package org.terasology.worldviewer.env;
 
 import java.util.Collections;
 import java.util.List;

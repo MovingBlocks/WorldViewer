@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer.core;
+package org.terasology.worldviewer.core;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -33,10 +33,6 @@ import javax.swing.JComponent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.mapviewer.camera.Camera;
-import org.terasology.mapviewer.camera.CameraKeyController;
-import org.terasology.mapviewer.camera.CameraMouseController;
-import org.terasology.mapviewer.camera.RepaintingCameraListener;
 import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
 import org.terasology.math.Vector2i;
@@ -45,6 +41,10 @@ import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.camera.Camera;
+import org.terasology.worldviewer.camera.CameraKeyController;
+import org.terasology.worldviewer.camera.CameraMouseController;
+import org.terasology.worldviewer.camera.RepaintingCameraListener;
 
 import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
