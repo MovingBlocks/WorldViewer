@@ -29,16 +29,18 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.terasology.core.world.CoreBiome;
+import org.terasology.core.world.generator.facets.BiomeFacet;
+import org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator;
 import org.terasology.engine.SimpleUri;
+import org.terasology.mapviewer.core.CoreBiomeColors;
 import org.terasology.mapviewer.core.FacetTrait;
 import org.terasology.mapviewer.core.FieldFacetTrait;
 import org.terasology.mapviewer.core.NominalFacetTrait;
 import org.terasology.mapviewer.core.Viewer;
-import org.terasology.polyworld.IslandWorldGenerator;
-import org.terasology.polyworld.biome.WhittakerBiome;
-import org.terasology.polyworld.biome.WhittakerBiomeColors;
-import org.terasology.polyworld.biome.WhittakerBiomeFacet;
+import org.terasology.mapviewer.env.TinyEnvironment;
 import org.terasology.world.generation.facets.SurfaceHeightFacet;
+import org.terasology.world.generator.WorldGenerator;
 
 /**
  * The main MapViewer JFrame
@@ -54,13 +56,14 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
 
-        IslandWorldGenerator wg = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
-//        WorldGenerator wg = new FlatWorldGenerator(new SimpleUri("core:flat"));
+//        FullEnvironment.setup();
+        TinyEnvironment.setup();
+
+//      IslandWorldGenerator wg = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
+//      WorldGenerator wg = new FlatWorldGenerator(new SimpleUri("core:flat"));
+        WorldGenerator wg = new PerlinFacetedWorldGenerator(new SimpleUri("core:perlin"));
 
         viewer = new Viewer(wg);
-
-//        SwingEnvironment.setup();
-//        CitiesViewer viewer = new CitiesViewer("a", camera);
 
         JPanel config = new JPanel();
         BoxLayout layout = new BoxLayout(config, BoxLayout.LINE_AXIS);
@@ -68,9 +71,9 @@ public class MainFrame extends JFrame {
         config.setBorder(new EmptyBorder(2, 5, 2, 5));
 
         final JComboBox<FacetTrait> facetCombo = new JComboBox<FacetTrait>();
-//        facetCombo.addItem(new EmptyFacetEntry<FieldFacet2D>());
-        facetCombo.addItem(new FieldFacetTrait(SurfaceHeightFacet.class, 0, 4));
-        facetCombo.addItem(new NominalFacetTrait<WhittakerBiome>(WhittakerBiomeFacet.class, new WhittakerBiomeColors()));
+        facetCombo.addItem(new FieldFacetTrait(SurfaceHeightFacet.class, 0, 3));
+//        facetCombo.addItem(new NominalFacetTrait<WhittakerBiome>(WhittakerBiomeFacet.class, new WhittakerBiomeColors()));
+        facetCombo.addItem(new NominalFacetTrait<CoreBiome>(BiomeFacet.class, new CoreBiomeColors()));
         facetCombo.setFocusable(false);
         facetCombo.addActionListener(new ActionListener() {
 

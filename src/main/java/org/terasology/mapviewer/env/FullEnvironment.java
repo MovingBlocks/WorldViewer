@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.terasology.mapviewer;
-
-import static org.mockito.Mockito.mock;
+package org.terasology.mapviewer.env;
 
 import java.io.IOException;
 import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.asset.Asset;
+import org.terasology.asset.AssetData;
 import org.terasology.asset.AssetFactory;
 import org.terasology.asset.AssetManager;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.nullAudio.NullAudioManager;
-import org.terasology.cities.CityWorldGenerator;
 import org.terasology.config.Config;
 import org.terasology.engine.ComponentSystemManager;
 import org.terasology.engine.SimpleUri;
@@ -61,24 +60,25 @@ import org.terasology.world.block.shapes.BlockShape;
 import org.terasology.world.block.shapes.BlockShapeData;
 import org.terasology.world.block.shapes.BlockShapeImpl;
 import org.terasology.world.generator.WorldConfigurator;
+import org.terasology.world.generator.WorldGenerator;
 
 /**
  * Setup an empty Terasology environment
  * @author Martin Steiger
  */
-final class SwingEnvironment {
+public final class FullEnvironment {
 
-    private static final Logger logger = LoggerFactory.getLogger(SwingEnvironment.class);
+    private static final Logger logger = LoggerFactory.getLogger(FullEnvironment.class);
 
-    private SwingEnvironment() {
+    private FullEnvironment() {
         // empty
     }
 
     /**
      * Default setup order
-     * @throws IOException 
+     * @throws IOException
      */
-    static void setup() throws IOException {
+    public static void setup(WorldGenerator worldGen) throws IOException {
 
         PathManager.getInstance().useDefaultHomePath();
 
@@ -96,7 +96,7 @@ final class SwingEnvironment {
 
         setupComponentManager();
 
-        setupWorldGen();
+        setupWorldGen(worldGen);
     }
 
     private static void setupEntitySystem() {
@@ -127,7 +127,13 @@ final class SwingEnvironment {
 
         // mock an empy asset factory for all asset types
         for (AssetType type : AssetType.values()) {
-            assetManager.setAssetFactory(type, mock(AssetFactory.class));
+            assetManager.setAssetFactory(type, new AssetFactory<AssetData, Asset<AssetData>>() {
+
+                @Override
+                public Asset<AssetData> buildAsset(AssetUri uri, AssetData data) {
+                    return null;
+                }
+            });
         }
 
         CoreRegistry.put(AssetManager.class, assetManager);
@@ -194,13 +200,12 @@ final class SwingEnvironment {
         CoreRegistry.put(ComponentSystemManager.class, componentSystemManager);
     }
 
-    private static void setupWorldGen() {
+    private static void setupWorldGen(WorldGenerator worldGen) {
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef worldEntity = entityManager.create();
         worldEntity.addComponent(new WorldComponent());
 
         SimpleUri uri = new SimpleUri("cities:city");
-        CityWorldGenerator worldGen = new CityWorldGenerator(null);
 
         Config config = CoreRegistry.get(Config.class);
 

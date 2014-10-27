@@ -6,14 +6,14 @@ apply plugin: 'idea'
 group = 'org.terasology'
 version = getGitDesc()
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // We use both Maven Central and our own Artifactory instance, which contains module builds, extra libs, and so on
 repositories {
     mavenCentral()
     maven {
-        url "http://www.movingblocks.net:8081/artifactory/repo"
+        url "http://artifactory.terasology.org/artifactory/repo"
     }
 }
 
@@ -58,12 +58,12 @@ compileJava.dependsOn createVersionFile
 eclipseProject.dependsOn createVersionFile
 
 dependencies {
-// For now, the following deps. must be fulfilled, but gradle does not know about these projects :-((
+    compile (group: 'org.terasology.engine', name: 'engine', version: '0.1.42')
+	compile (group: 'org.terasology.modules', name: 'Core', version: '0.1.42')
+    compile (group: 'org.terasology', name: 'TeraMath', version: '+')
 
-//    compile project(':engine')
-//    compile project(':Cities')
-//    compile project(':PolyWorld')
-//    compile project(':TeraMath')
+//	compile(group: 'org.terasology.modules', name: 'PolyWorld', version: '+')	
+//	compile(group: 'org.terasology.modules', name: 'CommonWorld', version: '+')
 }
 
 task sourceJar(type: Jar) {
