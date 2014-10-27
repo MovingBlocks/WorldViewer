@@ -2,12 +2,15 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin: 'application'
 
 group = 'org.terasology'
 version = getGitDesc()
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+mainClassName = 'org.terasology.worldviewer.WorldViewer'
 
 // We use both Maven Central and our own Artifactory instance, which contains module builds, extra libs, and so on
 repositories {
@@ -21,36 +24,36 @@ import java.text.SimpleDateFormat;
 
 def env = System.getenv()
 def versionInfoFile = new File(sourceSets.main.output.resourcesDir, 'versionInfo.properties')
-	
+    
 def getGitDesc() {
-	def cmd = "git describe --match ?.?* --dirty"
+    def cmd = "git describe --match ?.?* --dirty"
 
-	try {
-		def proc = cmd.execute()
-		proc.waitFor()					// wait for the command to finish
-		return proc.in.text.trim()		// "out" from the process is "in" for gradle
-	} catch (IOException e) {
-		logger.warn("Could not run '$cmd' - using date - {}", e.getLocalizedMessage());
-		return new Date().format('yyyy-MM-dd-HH-mm-ss');
-	}
+    try {
+        def proc = cmd.execute()
+        proc.waitFor()                    // wait for the command to finish
+        return proc.in.text.trim()        // "out" from the process is "in" for gradle
+    } catch (IOException e) {
+        logger.warn("Could not run '$cmd' - using date - {}", e.getLocalizedMessage());
+        return new Date().format('yyyy-MM-dd-HH-mm-ss');
+    }
 }
 
 
 task createVersionFile(type:Copy) {
-	description = 'Creates a java version file based on the template in the resources folder'
-	def version = getGitDesc()
-	
-	inputs.property('version', version)	// trigger executing by setting a property
+    description = 'Creates a java version file based on the template in the resources folder'
+    def version = getGitDesc()
+    
+    inputs.property('version', version)    // trigger executing by setting a property
 
-	from('src/main/resources/GitVersion.template')
-	into('src/main/java/version')
-	rename '(.*).template', '$1.java'
+    from('src/main/resources/GitVersion.template')
+    into('src/main/java/version')
+    rename '(.*).template', '$1.java'
 
-	expand(GIT_VERSION: version)
-	
-	doLast {
-		logger.lifecycle("Updated 'GitVersion.java' to version $version");
-	}
+    expand(GIT_VERSION: version)
+    
+    doLast {
+        logger.lifecycle("Updated 'GitVersion.java' to version $version");
+    }
 }
 
 
@@ -58,12 +61,12 @@ compileJava.dependsOn createVersionFile
 eclipseProject.dependsOn createVersionFile
 
 dependencies {
-    compile (group: 'org.terasology.engine', name: 'engine', version: '0.1.42')
-	compile (group: 'org.terasology.modules', name: 'Core', version: '0.1.42')
+    compile (group: 'org.terasology.engine', name: 'engine', version: '+')
+    compile (group: 'org.terasology.modules', name: 'Core', version: '+')
     compile (group: 'org.terasology', name: 'TeraMath', version: '+')
 
-//	compile(group: 'org.terasology.modules', name: 'PolyWorld', version: '+')	
-//	compile(group: 'org.terasology.modules', name: 'CommonWorld', version: '+')
+//    compile(group: 'org.terasology.modules', name: 'PolyWorld', version: '+')    
+//    compile(group: 'org.terasology.modules', name: 'CommonWorld', version: '+')
 }
 
 task sourceJar(type: Jar) {
