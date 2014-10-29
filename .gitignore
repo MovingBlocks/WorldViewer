@@ -1,12 +1,19 @@
 # Gradle files
-.gradle
+/.gradle
+/build
 
 # Eclipse project files
 .classpath
 .project
-.checkstyle
 .settings/
 /bin
-/build
+
+# CheckStyle
+.checkstyle
+
+# PMD and eclipse-PMD
+/.eclipse-pmd
+/.pmd
+/.ruleset
 
 /src/main/java/version/

@@ -2,6 +2,9 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+apply plugin: 'findbugs'
 apply plugin: 'application'
 
 group = 'org.terasology'
@@ -81,8 +84,26 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
 }
 
+
+
 // Define the artifacts we want to publish (the .pom will also be included since the Maven plugin is active)
 artifacts {
     archives sourceJar
     archives javadocJar
+}
+
+checkstyle {
+    ignoreFailures = true
+    configProperties.samedir = checkstyle.configFile.parentFile
+}
+
+pmd {
+    ignoreFailures = true
+    ruleSetFiles = files("config/pmd/pmd.xml")
+}
+
+findbugs {
+    ignoreFailures = true
+    effort = 'max'
+    reportLevel = 'medium'
 }
