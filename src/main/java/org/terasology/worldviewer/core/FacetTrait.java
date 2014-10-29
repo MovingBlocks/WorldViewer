@@ -17,12 +17,15 @@
 package org.terasology.worldviewer.core;
 
 import org.terasology.world.generation.Region;
+import org.terasology.world.generation.WorldFacet;
 
 /**
  * TODO Type description
  * @author Martin Steiger
  */
 public interface FacetTrait  {
+
+    Class<? extends WorldFacet> getFacetClass();
 
     FacetInfo getFacetInfo(Region r);
 }

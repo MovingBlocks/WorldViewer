@@ -20,6 +20,7 @@ import java.math.RoundingMode;
 
 import org.terasology.math.TeraMath;
 import org.terasology.world.generation.Region;
+import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 
 import com.google.common.math.DoubleMath;
@@ -30,9 +31,10 @@ import com.google.common.math.DoubleMath;
  */
 public class FieldFacetTrait implements FacetTrait {
 
-    private final double offset;
-    private final double scale;
-    private Class<? extends FieldFacet2D> clazz;
+    private final Class<? extends FieldFacet2D> clazz;
+
+    private double offset;
+    private double scale;
 
     public FieldFacetTrait(Class<? extends FieldFacet2D> clazz, double offset, double scale) {
         this.clazz = clazz;
@@ -63,7 +65,27 @@ public class FieldFacetTrait implements FacetTrait {
     }
 
     @Override
+    public Class<? extends WorldFacet> getFacetClass() {
+        return clazz;
+    }
+
+    public double getOffset() {
+        return offset;
+    }
+
+    public double getScale() {
+        return scale;
+    }
+
+    @Override
     public String toString() {
-        return clazz.getSimpleName() + " - > " + offset + " + " + scale + " * value";
+        return clazz.getSimpleName() + " - > linear function";
+    }
+
+    /**
+     * @param scale the new scale factor
+     */
+    public void setScale(double scale) {
+        this.scale = scale;
     }
 }
