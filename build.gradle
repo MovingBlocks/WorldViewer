@@ -42,7 +42,7 @@ def getGitDesc() {
 }
 
 
-task createVersionFile(type:Copy) {
+task createVersionJavaFile(type:Copy) {
     description = 'Creates a java version file based on the template in the resources folder'
     def version = getGitDesc()
     
@@ -60,13 +60,23 @@ task createVersionFile(type:Copy) {
 }
 
 
-compileJava.dependsOn createVersionFile
-eclipseProject.dependsOn createVersionFile
+compileJava.dependsOn createVersionJavaFile
+eclipseProject.dependsOn createVersionJavaFile
+
+// by default gradle will check for updates (deps. with changing flag) every 24h
+configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
 
 dependencies {
-    compile (group: 'org.terasology.engine', name: 'engine', version: '+')
-    compile (group: 'org.terasology.modules', name: 'Core', version: '+')
-    compile (group: 'org.terasology', name: 'TeraMath', version: '+')
+    
+    // the deps. without a fixed version number are flagged with 'changing: true'
+    // to indicate that gradle should check for updates
+
+    compile (group: 'org.terasology.engine', name: 'engine', version: '+', changing: true)
+    compile (group: 'org.terasology.modules', name: 'Core', version: '+', changing: true)
+    compile (group: 'org.terasology', name: 'TeraMath', version: '+', changing: true)
 
 //    compile(group: 'org.terasology.modules', name: 'PolyWorld', version: '+')    
 //    compile(group: 'org.terasology.modules', name: 'CommonWorld', version: '+')
@@ -90,6 +100,24 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives sourceJar
     archives javadocJar
+}
+
+task createVersionInfoFile {
+    File infoFile = new File(buildDir, "version.txt")
+    outputs.file infoFile
+    doLast {
+        infoFile.write("Version $version")
+    }
+}
+
+applicationDistribution.from(createVersionInfoFile) {
+//    into "docs"
+}
+
+distZip {
+    // remove the version number from the zip file name
+    // the name of the zip file will thus be independent from the version
+    version = ''
 }
 
 checkstyle {
