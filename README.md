@@ -6,6 +6,13 @@ A world-generator based map viewer for Terasology
 ![image1](images/2014-10-27_version0-3-0.png "Screenshot of surface height facet rendering of PerlinFacetedWorld")
 
 
+Download
+-----------
+
+[![Build Status](http://jenkins.terasology.org/job/WorldViewerNightly/badge/icon)](http://jenkins.terasology.org/job/WorldViewerNightly/)
+
+You can download the [latest nightly build](http://jenkins.terasology.org/job/WorldViewerNightly/lastSuccessfulBuild/artifact/build/distributions/WorldViewer.zip) from our Jenkins server.
+
 Overview
 -----------
 
