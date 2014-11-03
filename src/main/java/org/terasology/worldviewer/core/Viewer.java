@@ -43,6 +43,7 @@ import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
+import org.terasology.worldviewer.config.ViewConfig;
 
 import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
@@ -63,11 +64,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final BufferedImage dummyImg = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
 
-    private ExecutorService threadPool = Executors.newCachedThreadPool();
+    private final ExecutorService threadPool = Executors.newCachedThreadPool();
 
-    private TraitRenderer rasterizer = new TraitRenderer();
-
-    private FacetTrait facetTrait;
+    private final TraitRenderer rasterizer = new TraitRenderer();
 
     private final LoadingCache<Vector2i, CacheEntry> tileCache = CacheBuilder.newBuilder().build(new CacheLoader<Vector2i, CacheEntry>() {
 
@@ -94,20 +93,27 @@ public final class Viewer extends JComponent implements AutoCloseable {
     private final Camera camera = new Camera();
     private final WorldGenerator worldGen;
 
-    private CursorPositionListener curPosListener;
+    private final CursorPositionListener curPosListener;
 
-    private GridRenderer gridRenderer;
+    private final GridRenderer gridRenderer;
+    private final ViewConfig viewConfig;
+
+    private FacetTrait facetTrait;
 
     /**
      * @param wg the world generator to use
+     * @param viewConfig
      */
-    public Viewer(WorldGenerator wg) {
+    public Viewer(WorldGenerator wg, ViewConfig viewConfig) {
         this.worldGen = wg;
+        this.viewConfig = viewConfig;
+
         worldGen.setWorldSeed("sdfsfdf");
         worldGen.getWorld();   // force world generation now (and in a single thread)
 
         camera.addListener(new RepaintingCameraListener(this));
-        camera.translate(512, 512);
+        Vector2i camPos = viewConfig.getCamPos();
+        camera.translate(camPos.getX(), camPos.getY());
 
         gridRenderer = new GridRenderer(TILE_SIZE_X, TILE_SIZE_Y);
 
@@ -231,6 +237,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     @Override
     public void close() {
+        // TODO: TeraMath compatibility fix
+        viewConfig.setCamPos(new Vector2i(camera.getPos().getX(), camera.getPos().getY()));
+
         threadPool.shutdownNow();
     }
 

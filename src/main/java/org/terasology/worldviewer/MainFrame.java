@@ -19,6 +19,8 @@ package org.terasology.worldviewer;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -45,6 +47,8 @@ import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.config.Config;
+import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.FacetTrait;
 import org.terasology.worldviewer.core.FieldFacetTrait;
 import org.terasology.worldviewer.core.NominalFacetTrait;
@@ -64,27 +68,35 @@ public class MainFrame extends JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
 
+    private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".worldviewer.json");
+
     private final JPanel statusBar = new JPanel();
 
-    private Viewer viewer;
+    private final Config config;
+
+    private final Viewer viewer;
+
+    private final JComboBox<FacetTrait> facetCombo;
 
     public MainFrame() {
 
 //        FullEnvironment.setup();
         TinyEnvironment.setup();
 
+        config = ConfigStore.load(CONFIG_PATH);
+
 //      IslandWorldGenerator wg = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
 //      WorldGenerator wg = new FlatWorldGenerator(new SimpleUri("core:flat"));
         WorldGenerator wg = new PerlinFacetedWorldGenerator(new SimpleUri("core:perlin"));
 
-        viewer = new Viewer(wg);
+        viewer = new Viewer(wg, config.getViewConfig());
 
         JPanel configPanel = new JPanel();
         BoxLayout layout = new BoxLayout(configPanel, BoxLayout.LINE_AXIS);
         configPanel.setLayout(layout);
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        final JComboBox<FacetTrait> facetCombo = createFacetCombo(wg.getWorld().getAllFacets());
+        facetCombo = createFacetCombo(wg.getWorld().getAllFacets());
 
 //        facetCombo.addItem(new NominalFacetTrait<WhittakerBiome>(WhittakerBiomeFacet.class, new WhittakerBiomeColors()));
 //        facetCombo.addItem(new NominalFacetTrait<CoreBiome>(BiomeFacet.class, new CoreBiomeColors()));
@@ -136,7 +148,11 @@ public class MainFrame extends JFrame {
                 }
             }
         });
-        facetCombo.setSelectedIndex(facetCombo.getItemCount() - 1);
+
+        String defFacet = config.getWorldConfig().getDefaultFacetClass();
+        int defIndex = findTraitFor(facetCombo, defFacet);
+
+        facetCombo.setSelectedIndex(defIndex >= 0 ? defIndex : facetCombo.getItemCount() - 1);
 
         JButton refreshButton = new JButton("Reload");
         refreshButton.setFocusable(false);
@@ -160,11 +176,22 @@ public class MainFrame extends JFrame {
         statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
     }
 
+    private static int findTraitFor(JComboBox<FacetTrait> facetCombo, String defFacet) {
+        for (int i = 0; i < facetCombo.getItemCount(); i++) {
+            Class<?> facetClass = facetCombo.getItemAt(i).getFacetClass();
+            if (facetClass.getName().equals(defFacet)) {
+                return i;
+            }
+        }
+
+        return  -1;
+    }
+
     /**
      * @param allFacets
      * @return
      */
-    private JComboBox<FacetTrait> createFacetCombo(Set<Class<? extends WorldFacet>> facets) {
+    private static JComboBox<FacetTrait> createFacetCombo(Set<Class<? extends WorldFacet>> facets) {
         JComboBox<FacetTrait> facetCombo = new JComboBox<FacetTrait>();
 
         List<FacetTrait> traits = Lists.newArrayList();
@@ -194,7 +221,7 @@ public class MainFrame extends JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    private FacetTrait getTrait(Class<? extends WorldFacet> facetClass) {
+    private static FacetTrait getTrait(Class<? extends WorldFacet> facetClass) {
         if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
             Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
             return new FieldFacetTrait(cast, 0, 3);
@@ -213,6 +240,18 @@ public class MainFrame extends JFrame {
         super.dispose();
 
         viewer.close();
+
+        int selectedIndex = facetCombo.getSelectedIndex();
+        if (selectedIndex >= 0) {
+            FacetTrait trait = facetCombo.getItemAt(selectedIndex);
+            String name = trait.getFacetClass().getName();
+            config.getWorldConfig().setDefaultFacetClass(name);
+        }
+
+        ConfigStore.save(CONFIG_PATH, config);
+
+        // just in case some other thread is still running
+        System.exit(0);
     }
 
 }

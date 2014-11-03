@@ -69,7 +69,7 @@ public final class WorldViewer {
         frame.setTitle("MapViewer " + GitVersion.getVersion());
         frame.setVisible(true);
         frame.setSize(800, 600);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 //        frame.setAlwaysOnTop(true);
 
