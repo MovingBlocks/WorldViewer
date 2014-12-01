@@ -57,9 +57,14 @@ public class FieldFacetTrait implements FacetTrait {
             @Override
             public int getRGB(int x, int z) {
                 double value = facet.get(x, z);
-                int round = DoubleMath.roundToInt(offset + scale * value, RoundingMode.HALF_UP);
-                int g = TeraMath.clamp(round, 0, 255);
-                return g | (g << 8) | (g << 16);
+                if (Double.isFinite(value)) {
+                    int round = DoubleMath.roundToInt(offset + scale * value, RoundingMode.HALF_UP);
+                    int g = TeraMath.clamp(round, 0, 255);
+                    return g | (g << 8) | (g << 16);
+                } else {
+                    return 0xFF00FF;
+                }
+
             }
         };
     }
