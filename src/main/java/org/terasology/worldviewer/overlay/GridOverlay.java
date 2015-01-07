@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.overlay;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.math.RoundingMode;
+
+import org.terasology.math.Rect2i;
+
+import com.google.common.math.IntMath;
 
 /**
- * Renders a grid
+ * Renders a grid that is aligned along tile borders
  * @author Martin Steiger
  */
-public class GridRenderer {
+public class GridOverlay implements Overlay {
 
     private Color majorGridColor = new Color(128, 128, 128, 192);
     private Color minorGridColor = new Color(128, 128, 128, 64);
@@ -34,13 +39,20 @@ public class GridRenderer {
     private int tileSizeX;
     private int tileSizeY;
 
-    public GridRenderer(int tileSizeX, int tileSizeY) {
+    public GridOverlay(int tileSizeX, int tileSizeY) {
         this.tileSizeX = tileSizeX;
         this.tileSizeY = tileSizeY;
     }
 
 
-    public void draw(Graphics2D g, int tileMinX, int tileMinZ, int tileMaxX, int tileMaxZ) {
+    @Override
+    public void render(Graphics2D g, Rect2i area) {
+        int tileMinX = IntMath.divide(area.minX(), tileSizeX, RoundingMode.FLOOR);
+        int tileMinZ = IntMath.divide(area.minY(), tileSizeY, RoundingMode.FLOOR);
+
+        int tileMaxX = IntMath.divide(area.maxX(), tileSizeX, RoundingMode.CEILING);
+        int tileMaxZ = IntMath.divide(area.maxY(), tileSizeY, RoundingMode.CEILING);
+
         g.setStroke(new BasicStroke(0));
 
         for (int z = tileMinZ; z < tileMaxZ; z++) {

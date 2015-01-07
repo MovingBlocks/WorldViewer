@@ -24,8 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import version.GitVersion;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.util.StatusPrinter;
 
 /**
  * Preview generated world in Swing
@@ -45,8 +43,8 @@ public final class WorldViewer {
     public static void main(String[] args) {
 
         // TODO: logback must be a compile-time dependency for this to work -> either change that or comment it out
-        LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) logger).getLoggerContext();
-        StatusPrinter.print(loggerContext);
+//        LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) logger).getLoggerContext();
+//        StatusPrinter.print(loggerContext);
 
         logger.info("Starting ...");
 

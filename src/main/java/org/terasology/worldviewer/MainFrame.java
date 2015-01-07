@@ -85,18 +85,21 @@ public class MainFrame extends JFrame {
 
         config = ConfigStore.load(CONFIG_PATH);
 
-//      IslandWorldGenerator wg = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
-//      WorldGenerator wg = new FlatWorldGenerator(new SimpleUri("core:flat"));
-        WorldGenerator wg = new PerlinFacetedWorldGenerator(new SimpleUri("core:perlin"));
+//        IslandWorldGenerator worldGen = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
+//        WorldGenerator worldGen = new FlatWorldGenerator(new SimpleUri("core:flat"));
+        WorldGenerator worldGen = new PerlinFacetedWorldGenerator(new SimpleUri("core:perlin"));
 
-        viewer = new Viewer(wg, config.getViewConfig());
+        worldGen.setWorldSeed("sdfsfdf");
+        worldGen.initialize();
+
+        viewer = new Viewer(worldGen, config.getViewConfig());
 
         JPanel configPanel = new JPanel();
         BoxLayout layout = new BoxLayout(configPanel, BoxLayout.LINE_AXIS);
         configPanel.setLayout(layout);
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        facetCombo = createFacetCombo(wg.getWorld().getAllFacets());
+        facetCombo = createFacetCombo(worldGen.getWorld().getAllFacets());
 
 //        facetCombo.addItem(new NominalFacetTrait<WhittakerBiome>(WhittakerBiomeFacet.class, new WhittakerBiomeColors()));
 //        facetCombo.addItem(new NominalFacetTrait<CoreBiome>(BiomeFacet.class, new CoreBiomeColors()));

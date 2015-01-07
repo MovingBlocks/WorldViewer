@@ -19,8 +19,10 @@ package org.terasology.worldviewer.env;
 import java.util.Collections;
 import java.util.List;
 
+import org.mockito.Mockito;
 import org.terasology.config.Config;
 import org.terasology.registry.CoreRegistry;
+import org.terasology.world.block.BlockManager;
 import org.terasology.world.generator.plugin.WorldGeneratorPlugin;
 import org.terasology.world.generator.plugin.WorldGeneratorPluginLibrary;
 
@@ -41,12 +43,19 @@ public final class TinyEnvironment {
 
         setupConfig();
 
+        setupBlockManager();
+
         setupWorldGen();
     }
 
     private static void setupConfig() {
         Config config = new Config();
         CoreRegistry.put(Config.class, config);
+    }
+
+    private static void setupBlockManager() {
+        BlockManager blockManager = Mockito.mock(BlockManager.class);
+        CoreRegistry.put(BlockManager.class, blockManager);
     }
 
     private static void setupWorldGen() {

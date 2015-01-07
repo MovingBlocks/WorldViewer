@@ -26,6 +26,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,11 +46,14 @@ import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
 import org.terasology.worldviewer.config.ViewConfig;
+import org.terasology.worldviewer.overlay.GridOverlay;
+import org.terasology.worldviewer.overlay.Overlay;
 
 import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.google.common.math.IntMath;
 
 /**
@@ -64,7 +69,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final BufferedImage dummyImg = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
 
-    private final ExecutorService threadPool = Executors.newCachedThreadPool();
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(4);
 
     private final TraitRenderer rasterizer = new TraitRenderer();
 
@@ -95,8 +100,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final CursorPositionListener curPosListener;
 
-    private final GridRenderer gridRenderer;
     private final ViewConfig viewConfig;
+
+    private final Deque<Overlay> overlays = Lists.newLinkedList();
 
     private FacetTrait facetTrait;
 
@@ -108,14 +114,12 @@ public final class Viewer extends JComponent implements AutoCloseable {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
 
-        worldGen.setWorldSeed("sdfsfdf");
-        worldGen.getWorld();   // force world generation now (and in a single thread)
-
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
         camera.translate(camPos.getX(), camPos.getY());
 
-        gridRenderer = new GridRenderer(TILE_SIZE_X, TILE_SIZE_Y);
+        GridOverlay gridOverlay = new GridOverlay(TILE_SIZE_X, TILE_SIZE_Y);
+        overlays.addLast(gridOverlay);
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -163,6 +167,14 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         g.translate(-minX, -minY);
 
+        drawTiles(g, area);
+
+        drawOverlays(g, area);
+
+        drawTooltip(g, area);
+    }
+
+    private void drawTiles(Graphics2D g, Rect2i area) {
         int camChunkMinX = IntMath.divide(area.minX(), TILE_SIZE_X, RoundingMode.FLOOR);
         int camChunkMinZ = IntMath.divide(area.minY(), TILE_SIZE_Y, RoundingMode.FLOOR);
 
@@ -176,15 +188,19 @@ public final class Viewer extends JComponent implements AutoCloseable {
                 g.drawImage(entry.getImage(), x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
             }
         }
+    }
 
-        // drawGrid
-        gridRenderer.draw(g, camChunkMinX, camChunkMinZ, camChunkMaxX, camChunkMaxZ);
+    private void drawOverlays(Graphics2D g, Rect2i area) {
+        for (Overlay ovly : overlays) {
+            ovly.render(g, area);
+        }
+    }
 
-        // draw tooltip
+    private void drawTooltip(Graphics2D g, Rect2i area) {
         Point curPos = curPosListener.getCursorPosition();
         if (facetTrait != null && curPos != null) {
-            int wx = minX + curPos.x;
-            int wy = minY + curPos.y;
+            int wx = area.minX() + curPos.x;
+            int wy = area.minY() + curPos.y;
 
             int tileX = IntMath.divide(wx, TILE_SIZE_X, RoundingMode.FLOOR);
             int tileY = IntMath.divide(wy, TILE_SIZE_Y, RoundingMode.FLOOR);
@@ -196,7 +212,6 @@ public final class Viewer extends JComponent implements AutoCloseable {
             String text = String.format("%d / %d\n%s", wx, wy, facetVal);
             Tooltip.draw(g, wx, wy, text);
         }
-
     }
 
     private Region createRegion(Vector2i chunkPos) {
