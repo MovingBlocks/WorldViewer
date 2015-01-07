@@ -17,12 +17,11 @@
 package org.terasology.worldviewer.core;
 
 import java.awt.Color;
+import java.util.function.Function;
 
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
-
-import com.google.common.base.Function;
 
 /**
  * Provides info about an {@link ObjectFacet2D}.

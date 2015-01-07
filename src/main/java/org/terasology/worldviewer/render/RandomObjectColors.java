@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.render;
 
 import java.awt.Color;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.AtomicDouble;
 
 /**
- * TODO Type description
+ * Assign a unique color to an object. This assignment is deterministic
+ * and always returns the same color for the same object.
+ * <br/><br/>
+ * Brightness and saturation remain constant while the hue differs.
  * @author Martin Steiger
  */
 public class RandomObjectColors implements Function<Object, Color> {
 
-    private static final double GOLDEN_RATIO_CONGJUGATE = 0.618033988749895;
+    private static final double GOLDEN_RATIO_CONJUGATE = 0.618033988749895;
 
     private final AtomicDouble atomicHue = new AtomicDouble(0);
 
@@ -38,7 +41,7 @@ public class RandomObjectColors implements Function<Object, Color> {
 
         @Override
         public Color load(Object key) throws Exception {
-            float hue = (float) atomicHue.getAndAdd(GOLDEN_RATIO_CONGJUGATE);
+            float hue = (float) atomicHue.getAndAdd(GOLDEN_RATIO_CONJUGATE);
             float saturation = 0.6f;
             float brightness = 0.9f;
             int rgb = Color.HSBtoRGB(hue, saturation, brightness);

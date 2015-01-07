@@ -28,8 +28,10 @@ import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 import javax.swing.JComponent;
 
@@ -37,6 +39,8 @@ import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
 import org.terasology.math.Vector2i;
 import org.terasology.math.Vector3i;
+import org.terasology.polyworld.voronoi.Graph;
+import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
@@ -46,6 +50,7 @@ import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
 import org.terasology.worldviewer.config.ViewConfig;
+import org.terasology.worldviewer.overlay.BoundsOverlay;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 
@@ -234,6 +239,27 @@ public final class Viewer extends JComponent implements AutoCloseable {
         }
 
         this.facetTrait = facetTrait;
+
+//        Function<Rect2i, Collection<Rect2i>> func = rc -> {
+//            Vector3i min = new Vector3i(rc.minX(), 0, rc.minY());
+//            Vector3i size = new Vector3i(rc.width(), 1, rc.height());
+//            Region3i area3d = Region3i.createFromMinAndSize(min, size);
+//            World world = worldGen.getWorld();
+//            Region region = world.getWorldData(area3d);
+//            GraphFacet graphFacet = region.getFacet(GraphFacet.class);
+//
+//            List<Rect2i> rcs = Lists.newArrayList();
+//
+//            if (graphFacet != null) {
+//                for (Graph g : graphFacet.getAllGraphs()) {
+//                    rcs.add(g.getBounds());
+//                }
+//            }
+//
+//            return rcs;
+//        };
+//
+//        overlays.addFirst(new BoundsOverlay(func));
 
         tileCache.invalidateAll();
         repaint();
