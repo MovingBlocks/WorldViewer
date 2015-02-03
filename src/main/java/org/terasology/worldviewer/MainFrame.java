@@ -52,9 +52,9 @@ import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.FacetTrait;
 import org.terasology.worldviewer.core.FieldFacetTrait;
 import org.terasology.worldviewer.core.NominalFacetTrait;
-import org.terasology.worldviewer.core.RandomObjectColors;
 import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
+import org.terasology.worldviewer.render.RandomObjectColors;
 
 import com.google.common.collect.Lists;
 
