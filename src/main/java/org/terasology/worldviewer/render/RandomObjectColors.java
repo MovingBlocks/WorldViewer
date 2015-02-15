@@ -16,9 +16,12 @@
 
 package org.terasology.worldviewer.render;
 
-import java.awt.Color;
-import java.util.function.Function;
+import java.util.List;
 
+import org.terasology.rendering.nui.Color;
+import org.terasology.rendering.nui.layers.mainMenu.CieCamColors;
+
+import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -37,16 +40,15 @@ public class RandomObjectColors implements Function<Object, Color> {
 
     private final AtomicDouble atomicHue = new AtomicDouble(0);
 
-    private final LoadingCache<Object, Color> colors = CacheBuilder.newBuilder().build(new CacheLoader<Object, Color>() {
+    private final LoadingCache<Object, Color> colorCache = CacheBuilder.newBuilder().build(new CacheLoader<Object, Color>() {
+
+        private final List<Color> colors = CieCamColors.L65C65;
 
         @Override
         public Color load(Object key) throws Exception {
-            float hue = (float) atomicHue.getAndAdd(GOLDEN_RATIO_CONJUGATE);
-            float saturation = 0.6f;
-            float brightness = 0.9f;
-            int rgb = Color.HSBtoRGB(hue, saturation, brightness);
-            Color color = new Color(rgb);
-            return color;
+            double hue = atomicHue.getAndAdd(GOLDEN_RATIO_CONJUGATE);
+            int index = (int) (hue * (colors.size())) % colors.size();
+            return colors.get(index);
         }
 
     });
@@ -56,7 +58,7 @@ public class RandomObjectColors implements Function<Object, Color> {
 
     @Override
     public Color apply(Object biome) {
-        Color color = colors.getUnchecked(biome);
+        Color color = colorCache.getUnchecked(biome);
         return color;
     }
 }

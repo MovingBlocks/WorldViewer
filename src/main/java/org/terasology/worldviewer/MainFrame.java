@@ -44,13 +44,20 @@ import javax.swing.event.ChangeListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.core.world.CoreBiome;
+import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.engine.SimpleUri;
+import org.terasology.polyworld.biome.WhittakerBiome;
+import org.terasology.polyworld.biome.WhittakerBiomeColors;
+import org.terasology.polyworld.biome.WhittakerBiomeFacet;
+import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
+import org.terasology.worldviewer.core.CoreBiomeColors;
 import org.terasology.worldviewer.core.FacetTrait;
 import org.terasology.worldviewer.core.FieldFacetTrait;
 import org.terasology.worldviewer.core.NominalFacetTrait;
@@ -58,6 +65,7 @@ import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.render.RandomObjectColors;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -99,9 +107,6 @@ public class MainFrame extends JFrame {
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
         facetCombo = createFacetCombo(worldGen.getWorld().getAllFacets());
-
-//        facetCombo.addItem(new NominalFacetTrait<WhittakerBiome>(WhittakerBiomeFacet.class, new WhittakerBiomeColors()));
-//        facetCombo.addItem(new NominalFacetTrait<CoreBiome>(BiomeFacet.class, new CoreBiomeColors()));
 
         facetCombo.setFocusable(false);
         facetCombo.addActionListener(new ActionListener() {
@@ -227,6 +232,16 @@ public class MainFrame extends JFrame {
         if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
             Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
             return new FieldFacetTrait(cast, 0, 3);
+        }
+
+        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
+            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
+            return new NominalFacetTrait<WhittakerBiome>(cast, WhittakerBiomeColors.INSTANCE);
+        }
+
+        if (BiomeFacet.class.isAssignableFrom(facetClass)) {
+            Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
+            return new NominalFacetTrait<CoreBiome>(cast, new CoreBiomeColors());
         }
 
         if (ObjectFacet2D.class.isAssignableFrom(facetClass)) {

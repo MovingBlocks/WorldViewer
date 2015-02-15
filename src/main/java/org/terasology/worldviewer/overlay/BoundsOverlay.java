@@ -17,13 +17,14 @@
 package org.terasology.worldviewer.overlay;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Collection;
-import java.util.function.Function;
 
 import org.terasology.math.Rect2i;
+import org.terasology.rendering.nui.Color;
 import org.terasology.worldviewer.render.RandomObjectColors;
+
+import com.google.common.base.Function;
 
 /**
  * Renders a collection of colored rectangles
@@ -47,7 +48,7 @@ public class BoundsOverlay implements Overlay {
         g.setStroke(new BasicStroke(sw));
         for (Rect2i rc : func.apply(area)) {
             Color color = colorFunc.apply(rc);
-            g.setColor(color);
+            g.setColor(new java.awt.Color(color.rgba() >> 8));
 
             g.drawRect(rc.minX(), rc.minY(), rc.width() - sw, rc.height() - sw);
         }

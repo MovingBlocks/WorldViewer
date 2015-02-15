@@ -16,10 +16,10 @@
 
 package org.terasology.worldviewer.core;
 
-import java.awt.Color;
 import java.util.Map;
 
 import org.terasology.core.world.CoreBiome;
+import org.terasology.rendering.nui.Color;
 import org.terasology.world.biomes.Biome;
 
 import com.google.common.base.Function;
@@ -34,11 +34,11 @@ public class CoreBiomeColors implements Function<CoreBiome, Color> {
     private final Map<Biome, Color> biomeColors = Maps.newHashMap();
 
     public CoreBiomeColors() {
-        biomeColors.put(CoreBiome.DESERT, new Color(0xa09077));
-        biomeColors.put(CoreBiome.MOUNTAINS, new Color(0x99aa77));
-        biomeColors.put(CoreBiome.PLAINS, new Color(0x889977));
-        biomeColors.put(CoreBiome.SNOW, new Color(0x99ffff));
-        biomeColors.put(CoreBiome.FOREST, new Color(0x337755));
+        biomeColors.put(CoreBiome.DESERT, new Color(0xa09077ff));
+        biomeColors.put(CoreBiome.MOUNTAINS, new Color(0x99aa77ff));
+        biomeColors.put(CoreBiome.PLAINS, new Color(0x889977ff));
+        biomeColors.put(CoreBiome.SNOW, new Color(0x99ffffff));
+        biomeColors.put(CoreBiome.FOREST, new Color(0x337755ff));
     }
 
     @Override
