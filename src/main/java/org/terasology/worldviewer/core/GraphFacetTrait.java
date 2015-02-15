@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.overlay;
+package org.terasology.worldviewer.core;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
@@ -30,8 +31,10 @@ import org.terasology.math.geom.BaseVector2f;
 import org.terasology.polyworld.voronoi.Corner;
 import org.terasology.polyworld.voronoi.Edge;
 import org.terasology.polyworld.voronoi.Graph;
+import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.polyworld.voronoi.Region;
 import org.terasology.polyworld.voronoi.Triangle;
+import org.terasology.world.generation.WorldFacet;
 
 import com.google.common.math.DoubleMath;
 
@@ -39,24 +42,32 @@ import com.google.common.math.DoubleMath;
  * Draws the generated graph on a AWT graphics instance
  * @author Martin Steiger
  */
-public class GraphOverlay implements Overlay {
-
-    private final Function<Rect2i, Collection<Graph>> func;
-
-    /**
-     * @param func the graph to render
-     */
-    public GraphOverlay(Function<Rect2i, Collection<Graph>> func) {
-        this.func = func;
-    }
-
+public class GraphFacetTrait implements FacetLayer {
 
     @Override
-    public void render(Graphics2D g, Rect2i area) {
-        for (Graph graph : func.apply(area)) {
+    public Class<? extends WorldFacet> getFacetClass() {
+        return GraphFacet.class;
+    }
+
+    @Override
+    public void render(BufferedImage img, org.terasology.world.generation.Region region) {
+        GraphFacet graphFacet = region.getFacet(GraphFacet.class);
+
+        Graphics2D g = img.createGraphics();
+        int dx = region.getRegion().minX();
+        int dy = region.getRegion().minZ();
+        g.translate(-dx, -dy);
+        for (Graph graph : graphFacet.getAllGraphs()) {
             drawEdges(g, graph);
             drawBounds(g, graph);
         }
+
+        g.dispose();
+    }
+
+    @Override
+    public String getWorldText(org.terasology.world.generation.Region region, int wx, int wy) {
+        return "";
     }
 
     public static void drawEdges(Graphics2D g, Graph graph) {

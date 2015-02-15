@@ -16,20 +16,38 @@
 
 package org.terasology.worldviewer.core;
 
+import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.math.TeraMath;
+import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.math.DoubleMath;
 
 /**
  * TODO Type description
  * @author Martin Steiger
  */
-public class FieldFacetTrait implements FacetTrait {
+public class FieldFacetTrait implements FacetLayer {
+
+    private static final List<Color> GRAYS = IntStream
+            .range(0, 256)
+            .mapToObj(i -> new Color(i, i, i))
+            .collect(Collectors.toList());
+
+    private static final Color MISSING = Color.MAGENTA;
+
+    private static final Logger logger = LoggerFactory.getLogger(FieldFacetTrait.class);
 
     private final Class<? extends FieldFacet2D> clazz;
 
@@ -43,30 +61,43 @@ public class FieldFacetTrait implements FacetTrait {
     }
 
     @Override
-    public FacetInfo getFacetInfo(Region region) {
+    public String getWorldText(Region region, int wx, int wy) {
+        FieldFacet2D facet = region.getFacet(clazz);
+        double value = facet.getWorld(wx, wy);
+        return String.format("%.2f", value);
+    }
+
+    @Override
+    public void render(BufferedImage img, Region region) {
         FieldFacet2D facet = region.getFacet(clazz);
 
-        return new FacetInfo() {
+        Stopwatch sw = Stopwatch.createStarted();
 
-            @Override
-            public String getWorldText(int wx, int wy) {
-                double value = facet.getWorld(wx, wy);
-                return String.format("%.2f", value);
+        int width = img.getWidth();
+        int height = img.getHeight();
+
+        for (int z = 0; z < width; z++) {
+            for (int x = 0; x < height; x++) {
+                Color src = getColor(facet, x, z);
+                int mix = (src.rgba() >> 8) | (src.a() << 24);
+                img.setRGB(x, z, mix);
             }
+        }
 
-            @Override
-            public int getRGB(int x, int z) {
-                double value = facet.get(x, z);
-                if (Double.isFinite(value)) {
-                    int round = DoubleMath.roundToInt(offset + scale * value, RoundingMode.HALF_UP);
-                    int g = TeraMath.clamp(round, 0, 255);
-                    return g | (g << 8) | (g << 16);
-                } else {
-                    return 0xFF00FF;
-                }
+        if (logger.isTraceEnabled()) {
+            logger.trace("Rendered regions in {}ms.", sw.elapsed(TimeUnit.MILLISECONDS));
+        }
+    }
 
-            }
-        };
+    private Color getColor(FieldFacet2D facet, int x, int z) {
+        double value = facet.get(x, z);
+        if (Double.isFinite(value)) {
+            int round = DoubleMath.roundToInt(offset + scale * value, RoundingMode.HALF_UP);
+            int idx = TeraMath.clamp(round, 0, 255);
+            return GRAYS.get(idx);
+        } else {
+            return MISSING;
+        }
     }
 
     @Override

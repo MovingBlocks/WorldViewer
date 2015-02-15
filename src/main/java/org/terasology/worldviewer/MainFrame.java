@@ -17,41 +17,28 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
+import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
-import org.terasology.engine.SimpleUri;
 import org.terasology.polyworld.biome.WhittakerBiome;
 import org.terasology.polyworld.biome.WhittakerBiomeColors;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
-import org.terasology.rendering.nui.Color;
+import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
@@ -59,16 +46,16 @@ import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.CoreBiomeColors;
-import org.terasology.worldviewer.core.FacetTrait;
+import org.terasology.worldviewer.core.FacetPanel;
+import org.terasology.worldviewer.core.FacetLayer;
 import org.terasology.worldviewer.core.FieldFacetTrait;
+import org.terasology.worldviewer.core.GraphFacetTrait;
 import org.terasology.worldviewer.core.NominalFacetTrait;
 import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.render.RandomObjectColors;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * The main MapViewer JFrame
@@ -78,8 +65,6 @@ public class MainFrame extends JFrame {
 
     private static final long serialVersionUID = -8474971565041036025L;
 
-    private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
-
     private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".worldviewer.json");
 
     private final JPanel statusBar = new JPanel();
@@ -88,7 +73,9 @@ public class MainFrame extends JFrame {
 
     private final Viewer viewer;
 
-    private final JComboBox<FacetTrait> facetCombo;
+    private final TextField seedText;
+
+    private Timer memoryTimer;
 
     public MainFrame(WorldGenerator worldGen) {
 
@@ -97,70 +84,38 @@ public class MainFrame extends JFrame {
 
         config = ConfigStore.load(CONFIG_PATH);
 
-        worldGen.setWorldSeed("sdfsfdf");
+        String seedString = "sdfsfdf";
+        worldGen.setWorldSeed(seedString);
         worldGen.initialize();
-
-        viewer = new Viewer(worldGen, config.getViewConfig());
 
         JPanel configPanel = new JPanel();
         BoxLayout layout = new BoxLayout(configPanel, BoxLayout.LINE_AXIS);
         configPanel.setLayout(layout);
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        facetCombo = createFacetCombo(worldGen.getWorld().getAllFacets());
-
-        facetCombo.setFocusable(false);
-        facetCombo.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int index = facetCombo.getSelectedIndex();
-                FacetTrait item = facetCombo.getItemAt(index);
-                viewer.setFacetTrait(item);
+        Map<Class<? extends WorldFacet>, FacetLayer> facetMap = Maps.newHashMap();
+        for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
+            FacetLayer trait = getTrait(facet);
+            if (trait != null) {
+                facetMap.put(facet, trait);
             }
-        });
-        configPanel.add(facetCombo);
+        }
 
-        configPanel.add(Box.createHorizontalGlue());
+        viewer = new Viewer(worldGen, facetMap, config.getViewConfig());
 
-        final SpinnerNumberModel model = new SpinnerNumberModel(1.0, 0.0, 1000.0, 0.1);
-        final JSpinner scaleSpinner = new JSpinner(model);
-        scaleSpinner.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                int index = facetCombo.getSelectedIndex();
-                FacetTrait item = facetCombo.getItemAt(index);
-                FieldFacetTrait trait = (FieldFacetTrait) item;
-                Double value = (Double) model.getValue();
-                trait.setScale(value.doubleValue());
+        seedText = new TextField(seedString);
+        seedText.setFocusable(false);
+        seedText.addActionListener(event -> {
+                worldGen.setWorldSeed(seedText.getText());
+                worldGen.initialize();
                 viewer.reload();
-            }
-        });
+            });
 
-        configPanel.add(scaleSpinner);
+        configPanel.add(new JLabel("Seed"));
         configPanel.add(Box.createHorizontalStrut(5));
-
-        facetCombo.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int index = facetCombo.getSelectedIndex();
-                FacetTrait item = facetCombo.getItemAt(index);
-                if (item instanceof FieldFacetTrait) {
-                    FieldFacetTrait trait = (FieldFacetTrait) item;
-                    scaleSpinner.setValue(trait.getScale());
-                    scaleSpinner.setEnabled(true);
-                } else {
-                    scaleSpinner.setEnabled(false);
-                }
-            }
-        });
-
-        String defFacet = config.getWorldConfig().getDefaultFacetClass();
-        int defIndex = findTraitFor(facetCombo, defFacet);
-
-        facetCombo.setSelectedIndex(defIndex >= 0 ? defIndex : facetCombo.getItemCount() - 1);
+        configPanel.add(seedText);
+        configPanel.add(Box.createHorizontalGlue());
+        configPanel.add(Box.createHorizontalStrut(5));
 
         JButton refreshButton = new JButton("Reload");
         refreshButton.setFocusable(false);
@@ -173,6 +128,11 @@ public class MainFrame extends JFrame {
         });
         configPanel.add(refreshButton);
 
+        JPanel facetPanel = new FacetPanel(facetMap);
+        JPanel facetPanelWrap = new JPanel();
+        facetPanelWrap.setLayout(new BorderLayout());
+        facetPanelWrap.add(facetPanel, BorderLayout.NORTH);
+        add(facetPanelWrap, BorderLayout.WEST);
         add(configPanel, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
@@ -196,71 +156,31 @@ public class MainFrame extends JFrame {
         statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
     }
 
-    private static int findTraitFor(JComboBox<FacetTrait> facetCombo, String defFacet) {
-        for (int i = 0; i < facetCombo.getItemCount(); i++) {
-            Class<?> facetClass = facetCombo.getItemAt(i).getFacetClass();
-            if (facetClass.getName().equals(defFacet)) {
-                return i;
-            }
-        }
-
-        return  -1;
-    }
-
-    /**
-     * @param allFacets
-     * @return
-     */
-    private static JComboBox<FacetTrait> createFacetCombo(Set<Class<? extends WorldFacet>> facets) {
-        JComboBox<FacetTrait> facetCombo = new JComboBox<FacetTrait>();
-
-        List<FacetTrait> traits = Lists.newArrayList();
-        for (Class<? extends WorldFacet> facetClass : facets) {
-            FacetTrait trait = getTrait(facetClass);
-            if (trait != null) {
-                traits.add(trait);
-            } else {
-                logger.info("Could not find mapping for {}", facetClass);
-            }
-        }
-
-        // sort alphabetically with respect to facet class name
-        Collections.sort(traits, new Comparator<FacetTrait>() {
-
-            @Override
-            public int compare(FacetTrait o1, FacetTrait o2) {
-                return o1.getFacetClass().getName().compareTo(o2.getFacetClass().getName());
-            }
-        });
-
-        for (FacetTrait trait : traits) {
-            facetCombo.addItem(trait);
-        }
-
-        return facetCombo;
-    }
-
     @SuppressWarnings("unchecked")
-    private static FacetTrait getTrait(Class<? extends WorldFacet> facetClass) {
-        if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
-            Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
-            return new FieldFacetTrait(cast, 0, 3);
-        }
+    private static FacetLayer getTrait(Class<? extends WorldFacet> facetClass) {
+//        if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
+//            Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
+//            return new FieldFacetTrait(cast, 0, 5);
+//        }
 
         if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
             Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
             return new NominalFacetTrait<WhittakerBiome>(cast, WhittakerBiomeColors.INSTANCE);
         }
 
-        if (BiomeFacet.class.isAssignableFrom(facetClass)) {
-            Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
-            return new NominalFacetTrait<CoreBiome>(cast, new CoreBiomeColors());
+//        if (BiomeFacet.class.isAssignableFrom(facetClass)) {
+//            Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
+//            return new NominalFacetTrait<CoreBiome>(cast, new CoreBiomeColors());
+//        }
+
+        if (GraphFacet.class.isAssignableFrom(facetClass)) {
+            return new GraphFacetTrait();
         }
 
-        if (ObjectFacet2D.class.isAssignableFrom(facetClass)) {
-            Class<ObjectFacet2D<Object>> cast = (Class<ObjectFacet2D<Object>>) facetClass;
-            return new NominalFacetTrait<Object>(cast, new RandomObjectColors());
-        }
+//        if (ObjectFacet2D.class.isAssignableFrom(facetClass)) {
+//            Class<ObjectFacet2D<Object>> cast = (Class<ObjectFacet2D<Object>>) facetClass;
+//            return new NominalFacetTrait<Object>(cast, new RandomObjectColors());
+//        }
 
         return null;
     }
@@ -269,14 +189,9 @@ public class MainFrame extends JFrame {
     public void dispose() {
         super.dispose();
 
-        viewer.close();
+        memoryTimer.stop();
 
-        int selectedIndex = facetCombo.getSelectedIndex();
-        if (selectedIndex >= 0) {
-            FacetTrait trait = facetCombo.getItemAt(selectedIndex);
-            String name = trait.getFacetClass().getName();
-            config.getWorldConfig().setDefaultFacetClass(name);
-        }
+        viewer.close();
 
         ConfigStore.save(CONFIG_PATH, config);
 

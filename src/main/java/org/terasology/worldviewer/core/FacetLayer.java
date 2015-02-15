@@ -16,14 +16,21 @@
 
 package org.terasology.worldviewer.core;
 
+import java.awt.image.BufferedImage;
+
+import org.terasology.rendering.nui.Color;
+import org.terasology.world.generation.Region;
+import org.terasology.world.generation.WorldFacet;
+
 /**
  * TODO Type description
  * @author Martin Steiger
  */
-public interface FacetInfo {
+public interface FacetLayer  {
 
-    int getRGB(int x, int z);
+    Class<? extends WorldFacet> getFacetClass();
 
-    String getWorldText(int wx, int wy);
+    void render(BufferedImage img, Region r);
 
+    String getWorldText(Region r, int wx, int wy);
 }

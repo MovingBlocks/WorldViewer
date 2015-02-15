@@ -16,19 +16,29 @@
 
 package org.terasology.worldviewer.core;
 
+import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
 
 import com.google.common.base.Function;
+import com.google.common.base.Stopwatch;
 
 /**
  * Provides info about an {@link ObjectFacet2D}.
  * @param <E> the object type
  * @author Martin Steiger
  */
-public class NominalFacetTrait<E> implements FacetTrait {
+public class NominalFacetTrait<E> implements FacetLayer {
+
+
+    private static final Logger logger = LoggerFactory.getLogger(NominalFacetTrait.class);
 
     private final Function<? super E, Color> colorMap;
     private final Class<? extends ObjectFacet2D<E>> facetClass;
@@ -39,23 +49,37 @@ public class NominalFacetTrait<E> implements FacetTrait {
     }
 
     @Override
-    public FacetInfo getFacetInfo(Region r) {
-        ObjectFacet2D<E> facet = r.getFacet(facetClass);
+    public void render(BufferedImage img, Region region) {
+        ObjectFacet2D<E> facet = region.getFacet(facetClass);
 
-        return new FacetInfo() {
+        Stopwatch sw = Stopwatch.createStarted();
 
-            @Override
-            public String getWorldText(int wx, int wy) {
-                E val = facet.getWorld(wx, wy);
-                return val.toString();
+        int width = img.getWidth();
+        int height = img.getHeight();
+
+        for (int z = 0; z < width; z++) {
+            for (int x = 0; x < height; x++) {
+                Color src = getColor(facet, x, z);
+                int mix = (src.rgba() >> 8) | (src.a() << 24);
+                img.setRGB(x, z, mix);
             }
+        }
 
-            @Override
-            public int getRGB(int x, int z) {
-                E val = facet.get(x, z);
-                return colorMap.apply(val).rgba() >> 8;
-            }
-        };
+        if (logger.isTraceEnabled()) {
+            logger.trace("Rendered regions in {}ms.", sw.elapsed(TimeUnit.MILLISECONDS));
+        }
+    }
+
+    private Color getColor(ObjectFacet2D<E> facet, int x, int z) {
+        E val = facet.get(x, z);
+        return colorMap.apply(val);
+    }
+
+    @Override
+    public String getWorldText(Region region, int wx, int wy) {
+        ObjectFacet2D<E> facet = region.getFacet(facetClass);
+        E val = facet.getWorld(wx, wy);
+        return val.toString();
     }
 
     @Override

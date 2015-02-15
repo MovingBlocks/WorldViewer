@@ -26,12 +26,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 
 import javax.swing.JComponent;
 
@@ -39,23 +39,19 @@ import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
 import org.terasology.math.Vector2i;
 import org.terasology.math.Vector3i;
-import org.terasology.polyworld.voronoi.Graph;
-import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
+import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
 import org.terasology.worldviewer.config.ViewConfig;
-import org.terasology.worldviewer.overlay.BoundsOverlay;
-import org.terasology.worldviewer.overlay.GraphOverlay;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 
-import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -77,8 +73,6 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final ExecutorService threadPool = Executors.newFixedThreadPool(4);
 
-    private final TraitRenderer rasterizer = new TraitRenderer();
-
     private final LoadingCache<Vector2i, CacheEntry> tileCache = CacheBuilder.newBuilder().build(new CacheLoader<Vector2i, CacheEntry>() {
 
         @Override
@@ -90,7 +84,16 @@ public final class Viewer extends JComponent implements AutoCloseable {
                 @Override
                 public void run() {
                     Region region = createRegion(tilePos);
-                    BufferedImage image = (facetTrait == null) ? dummyImg : rasterizer.raster(region, facetTrait);
+                    Vector3i extent = region.getRegion().size();
+                    int width = extent.x;
+                    int height = extent.z;
+
+                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                    Graphics2D g = image.createGraphics();
+                    for (FacetLayer trait : facetTraits) {
+                        trait.render(image, region);
+                    }
+                    g.dispose();
                     CacheEntry entry = new CacheEntry(image, region);
                     tileCache.put(tilePos, entry);
                     repaint();
@@ -110,15 +113,25 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final Deque<Overlay> overlays = Lists.newLinkedList();
 
-    private FacetTrait facetTrait;
+    private List<FacetLayer> facetTraits = Lists.newArrayList();
 
     /**
      * @param wg the world generator to use
+     * @param facetMap
      * @param viewConfig
      */
-    public Viewer(WorldGenerator wg, ViewConfig viewConfig) {
+    public Viewer(WorldGenerator wg, Map<Class<? extends WorldFacet>, FacetLayer> facetMap, ViewConfig viewConfig) {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
+        facetTraits.addAll(facetMap.values());
+        facetTraits.sort(new Comparator<FacetLayer>() {
+
+            @Override
+            public int compare(FacetLayer o1, FacetLayer o2) {
+                // TODO: find a proper sorting of facet layers
+                return o1.getFacetClass().getName().compareTo(o2.getFacetClass().getName());
+            }
+        });
 
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
@@ -204,7 +217,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private void drawTooltip(Graphics2D g, Rect2i area) {
         Point curPos = curPosListener.getCursorPosition();
-        if (facetTrait != null && curPos != null) {
+
+        if (curPos != null) {
             int wx = area.minX() + curPos.x;
             int wy = area.minY() + curPos.y;
 
@@ -213,10 +227,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
             CacheEntry entry = tileCache.getUnchecked(new Vector2i(tileX, tileY));
             Region region = entry.getRegion();
-            String facetVal = facetTrait.getFacetInfo(region).getWorldText(wx, wy);
+            String text = "";
 
-            String text = String.format("%d / %d\n%s", wx, wy, facetVal);
-            Tooltip.draw(g, wx, wy, text);
+            for (FacetLayer trait : facetTraits) {
+                String layerText = trait.getWorldText(region, wx, wy);
+                if (!layerText.isEmpty()) {
+                    text += "\n" + layerText;
+                }
+            }
+
+            String tooltip = String.format("%d / %d%s", wx, wy, text);
+            Tooltip.draw(g, wx, wy, tooltip);
         }
     }
 
@@ -231,42 +252,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
         return region;
     }
 
-    /**
-     * @param facetTrait the facet to show
-     */
-    public void setFacetTrait(FacetTrait facetTrait) {
-        if (Objects.equal(this.facetTrait, facetTrait)) {
-            return;
-        }
-
-        this.facetTrait = facetTrait;
-
-        Function<Rect2i, Collection<Graph>> func = rc -> {
-            Vector3i min = new Vector3i(rc.minX(), 0, rc.minY());
-            Vector3i size = new Vector3i(rc.width(), 1, rc.height());
-            Region3i area3d = Region3i.createFromMinAndSize(min, size);
-            World world = worldGen.getWorld();
-            Region region = world.getWorldData(area3d);
-            GraphFacet graphFacet = region.getFacet(GraphFacet.class);
-
-            List<Graph> rcs = Lists.newArrayList();
-
-            if (graphFacet != null) {
-                for (Graph g : graphFacet.getAllGraphs()) {
-                    rcs.add(g);
-                }
-            }
-
-            return rcs;
-        };
-
-        overlays.addFirst(new GraphOverlay(func));
-
-        tileCache.invalidateAll();
-        repaint();
-    }
-
-    /**
+     /**
      * Destroy the world and create a new one. Also reloads all tiles
      */
     public void reload() {
