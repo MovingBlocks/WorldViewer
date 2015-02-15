@@ -38,6 +38,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -176,8 +177,20 @@ public class MainFrame extends JFrame {
         add(viewer, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
 
+        JLabel memoryLabel = new JLabel();
+        memoryTimer = new Timer(500, event -> {
+            Runtime runtime = Runtime.getRuntime();
+            long maxMem = runtime.maxMemory();
+            long totalMemory = runtime.totalMemory();
+            long freeMem = runtime.freeMemory();
+            long allocMemory = (totalMemory - freeMem);
+            memoryLabel.setText(String.format("Memory: %d/%d MB", allocMemory / (1024 * 1024), maxMem / (1024 * 1024)));
+        });
+        memoryTimer.setInitialDelay(0);
+        memoryTimer.start();
+
         statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.LINE_AXIS));
-        statusBar.add(new JLabel("Ready"));
+        statusBar.add(memoryLabel);
         statusBar.add(Box.createHorizontalGlue());
         statusBar.add(new JLabel("Use cursor arrows or drag with right mouse button to navigate"));
         statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
