@@ -51,6 +51,7 @@ import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
 import org.terasology.worldviewer.config.ViewConfig;
 import org.terasology.worldviewer.overlay.BoundsOverlay;
+import org.terasology.worldviewer.overlay.GraphOverlay;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 
@@ -240,26 +241,26 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         this.facetTrait = facetTrait;
 
-//        Function<Rect2i, Collection<Rect2i>> func = rc -> {
-//            Vector3i min = new Vector3i(rc.minX(), 0, rc.minY());
-//            Vector3i size = new Vector3i(rc.width(), 1, rc.height());
-//            Region3i area3d = Region3i.createFromMinAndSize(min, size);
-//            World world = worldGen.getWorld();
-//            Region region = world.getWorldData(area3d);
-//            GraphFacet graphFacet = region.getFacet(GraphFacet.class);
-//
-//            List<Rect2i> rcs = Lists.newArrayList();
-//
-//            if (graphFacet != null) {
-//                for (Graph g : graphFacet.getAllGraphs()) {
-//                    rcs.add(g.getBounds());
-//                }
-//            }
-//
-//            return rcs;
-//        };
-//
-//        overlays.addFirst(new BoundsOverlay(func));
+        Function<Rect2i, Collection<Graph>> func = rc -> {
+            Vector3i min = new Vector3i(rc.minX(), 0, rc.minY());
+            Vector3i size = new Vector3i(rc.width(), 1, rc.height());
+            Region3i area3d = Region3i.createFromMinAndSize(min, size);
+            World world = worldGen.getWorld();
+            Region region = world.getWorldData(area3d);
+            GraphFacet graphFacet = region.getFacet(GraphFacet.class);
+
+            List<Graph> rcs = Lists.newArrayList();
+
+            if (graphFacet != null) {
+                for (Graph g : graphFacet.getAllGraphs()) {
+                    rcs.add(g);
+                }
+            }
+
+            return rcs;
+        };
+
+        overlays.addFirst(new GraphOverlay(func));
 
         tileCache.invalidateAll();
         repaint();

@@ -19,6 +19,8 @@ package org.terasology.worldviewer;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -32,6 +34,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
@@ -41,7 +44,6 @@ import javax.swing.event.ChangeListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator;
 import org.terasology.engine.SimpleUri;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
@@ -56,6 +58,7 @@ import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.render.RandomObjectColors;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -78,16 +81,12 @@ public class MainFrame extends JFrame {
 
     private final JComboBox<FacetTrait> facetCombo;
 
-    public MainFrame() {
+    public MainFrame(WorldGenerator worldGen) {
 
 //        FullEnvironment.setup();
         TinyEnvironment.setup();
 
         config = ConfigStore.load(CONFIG_PATH);
-
-//        IslandWorldGenerator worldGen = new IslandWorldGenerator(new SimpleUri("polyworld:island"));
-//        WorldGenerator worldGen = new FlatWorldGenerator(new SimpleUri("core:flat"));
-        WorldGenerator worldGen = new PerlinFacetedWorldGenerator(new SimpleUri("core:perlin"));
 
         worldGen.setWorldSeed("sdfsfdf");
         worldGen.initialize();
