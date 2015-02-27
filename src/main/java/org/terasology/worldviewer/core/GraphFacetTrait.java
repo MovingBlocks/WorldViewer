@@ -70,6 +70,11 @@ public class GraphFacetTrait implements FacetLayer {
         return "";
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
+
     public static void drawEdges(Graphics2D g, Graph graph) {
         g.setStroke(new BasicStroke(1));
         g.setColor(Color.CYAN);

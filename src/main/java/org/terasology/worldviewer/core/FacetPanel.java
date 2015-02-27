@@ -19,6 +19,8 @@ package org.terasology.worldviewer.core;
 import java.awt.Checkbox;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -40,12 +42,14 @@ public class FacetPanel extends JPanel {
 
     private static final long serialVersionUID = -4395448394330407251L;
 
-    public FacetPanel(Map<Class<? extends WorldFacet>, FacetLayer> facetMap) {
+    public FacetPanel(FacetConfig facetMap) {
         setBorder(BorderFactory.createEtchedBorder());
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        for (Class<? extends WorldFacet> facetType : facetMap.keySet()) {
-            add(new Checkbox(facetType.getSimpleName()));
+        for (FacetLayer facetLayer : facetMap.getLayers()) {
+            Checkbox checkBox = new Checkbox(facetLayer.toString());
+            checkBox.addItemListener(e -> facetMap.setVisible(facetLayer, e.getStateChange() == ItemEvent.SELECTED));
+            add(checkBox);
         }
 
         JPanel configPanel = new JPanel();

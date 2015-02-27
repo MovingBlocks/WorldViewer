@@ -17,6 +17,7 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -32,7 +34,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
+import org.terasology.world.biomes.Biome;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.polyworld.biome.WhittakerBiome;
@@ -46,6 +50,7 @@ import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.CoreBiomeColors;
+import org.terasology.worldviewer.core.FacetConfig;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.FacetLayer;
 import org.terasology.worldviewer.core.FieldFacetTrait;
@@ -93,15 +98,15 @@ public class MainFrame extends JFrame {
         configPanel.setLayout(layout);
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        Map<Class<? extends WorldFacet>, FacetLayer> facetMap = Maps.newHashMap();
+        FacetConfig facetConfig = new FacetConfig();
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
             FacetLayer trait = getTrait(facet);
             if (trait != null) {
-                facetMap.put(facet, trait);
+                facetConfig.put(facet, trait);
             }
         }
 
-        viewer = new Viewer(worldGen, facetMap, config.getViewConfig());
+        viewer = new Viewer(worldGen, facetConfig, config.getViewConfig());
 
         seedText = new TextField(seedString);
         seedText.setFocusable(false);
@@ -128,7 +133,7 @@ public class MainFrame extends JFrame {
         });
         configPanel.add(refreshButton);
 
-        JPanel facetPanel = new FacetPanel(facetMap);
+        JPanel facetPanel = new FacetPanel(facetConfig);
         JPanel facetPanelWrap = new JPanel();
         facetPanelWrap.setLayout(new BorderLayout());
         facetPanelWrap.add(facetPanel, BorderLayout.NORTH);

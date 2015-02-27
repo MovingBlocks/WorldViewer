@@ -91,7 +91,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
                     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
                     Graphics2D g = image.createGraphics();
                     for (FacetLayer trait : facetTraits) {
-                        trait.render(image, region);
+                        if (facetConfig.isVisible(trait)) {
+                            trait.render(image, region);
+                        }
                     }
                     g.dispose();
                     CacheEntry entry = new CacheEntry(image, region);
@@ -113,17 +115,19 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final Deque<Overlay> overlays = Lists.newLinkedList();
 
-    private List<FacetLayer> facetTraits = Lists.newArrayList();
+    private final List<FacetLayer> facetTraits = Lists.newArrayList();
+    private final FacetConfig facetConfig;
 
     /**
      * @param wg the world generator to use
-     * @param facetMap
+     * @param facetConfig
      * @param viewConfig
      */
-    public Viewer(WorldGenerator wg, Map<Class<? extends WorldFacet>, FacetLayer> facetMap, ViewConfig viewConfig) {
+    public Viewer(WorldGenerator wg, FacetConfig facetConfig, ViewConfig viewConfig) {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
-        facetTraits.addAll(facetMap.values());
+        this.facetConfig = facetConfig;
+        facetTraits.addAll(facetConfig.getLayers());
         facetTraits.sort(new Comparator<FacetLayer>() {
 
             @Override
@@ -165,6 +169,12 @@ public final class Viewer extends JComponent implements AutoCloseable {
         g.setColor(Color.WHITE);
         g.drawRect(0, 0, dummyImg.getWidth() - 1, dummyImg.getHeight() - 1);
         g.dispose();
+
+        // clear tile cache and repaint if any of the facet configs has changed
+        facetConfig.addObserver(layer -> {
+            tileCache.invalidateAll();
+            repaint();
+        });
     }
 
     @Override
@@ -230,9 +240,11 @@ public final class Viewer extends JComponent implements AutoCloseable {
             String text = "";
 
             for (FacetLayer trait : facetTraits) {
-                String layerText = trait.getWorldText(region, wx, wy);
-                if (!layerText.isEmpty()) {
-                    text += "\n" + layerText;
+                if (facetConfig.isVisible(trait)) {
+                    String layerText = trait.getWorldText(region, wx, wy);
+                    if (!layerText.isEmpty()) {
+                        text += "\n" + layerText;
+                    }
                 }
             }
 
