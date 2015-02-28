@@ -36,6 +36,8 @@ import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.world.biomes.Biome;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
@@ -158,25 +160,25 @@ public class MainFrame extends JFrame {
         statusBar.add(memoryLabel);
         statusBar.add(Box.createHorizontalGlue());
         statusBar.add(new JLabel("Use cursor arrows or drag with right mouse button to navigate"));
-        statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
+        statusBar.setBorder(BorderFactory.createCompoundBorder(new MatteBorder(1, 0, 0, 0, Color.GRAY), new EmptyBorder(2, 5, 2, 5)));
     }
 
     @SuppressWarnings("unchecked")
     private static FacetLayer getTrait(Class<? extends WorldFacet> facetClass) {
-//        if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
-//            Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
-//            return new FieldFacetTrait(cast, 0, 5);
-//        }
-
-        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
-            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
-            return new NominalFacetTrait<WhittakerBiome>(cast, WhittakerBiomeColors.INSTANCE);
+        if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
+            Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
+            return new FieldFacetTrait(cast, 0, 5);
         }
 
-//        if (BiomeFacet.class.isAssignableFrom(facetClass)) {
-//            Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
-//            return new NominalFacetTrait<CoreBiome>(cast, new CoreBiomeColors());
+//        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
+//            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
+//            return new NominalFacetTrait<Biome>(cast, new WhittakerBiomeColors());
 //        }
+
+        if (BiomeFacet.class.isAssignableFrom(facetClass)) {
+            Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
+            return new NominalFacetTrait<CoreBiome>(cast, new CoreBiomeColors());
+        }
 
         if (GraphFacet.class.isAssignableFrom(facetClass)) {
             return new GraphFacetTrait();

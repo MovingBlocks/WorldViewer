@@ -16,23 +16,28 @@
 
 package org.terasology.worldviewer.core;
 
-import java.awt.Checkbox;
-import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.util.Map;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.DropMode;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.gui.FacetListCellRenderer;
+import org.terasology.worldviewer.gui.ListItemTransferHandler;
 
 /**
  * TODO Type description
@@ -42,36 +47,80 @@ public class FacetPanel extends JPanel {
 
     private static final long serialVersionUID = -4395448394330407251L;
 
-    public FacetPanel(FacetConfig facetMap) {
+    private JPanel configPanel;
+
+    public FacetPanel(FacetConfig facetConfig) {
         setBorder(BorderFactory.createEtchedBorder());
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        for (FacetLayer facetLayer : facetMap.getLayers()) {
-            Checkbox checkBox = new Checkbox(facetLayer.toString());
-            checkBox.addItemListener(e -> facetMap.setVisible(facetLayer, e.getStateChange() == ItemEvent.SELECTED));
-            add(checkBox);
+        DefaultListModel<FacetLayer> listModel = new DefaultListModel<FacetLayer>();
+
+        for (FacetLayer facetLayer : facetConfig.getLayers()) {
+            listModel.addElement(facetLayer);
         }
 
-        JPanel configPanel = new JPanel();
-        configPanel.setLayout(new GridLayout(0, 2));
+        JList<FacetLayer> facetList = new JList<>(listModel);
+        facetList.setBorder(BorderFactory.createEtchedBorder());
+        facetList.setCellRenderer(new FacetListCellRenderer(facetConfig));
+        add(facetList);
+
+        facetList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                // respond to double clicks only
+                if (e.getClickCount() == 2) {
+                    int index = facetList.locationToIndex(e.getPoint());
+                    if (index != -1) {
+                        FacetLayer layer = facetList.getModel().getElementAt(index);
+                        facetConfig.setVisible(layer, !facetConfig.isVisible(layer));
+                    }
+                }
+            }
+        });
+
+        facetConfig.addObserver(layer -> facetList.repaint());
+        facetList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        facetList.setTransferHandler(new ListItemTransferHandler<FacetLayer>());
+        facetList.setDropMode(DropMode.INSERT);
+        facetList.setDragEnabled(true);
+
+        JLabel listInfoText = new JLabel("Double-click to toggle; drag to reorder");
+        listInfoText.setAlignmentX(0.5f);
+        add(listInfoText);
+
+        add(Box.createVerticalStrut(20));
+
+        configPanel = new JPanel();
         configPanel.setBorder(BorderFactory.createTitledBorder("Config"));
-      final SpinnerNumberModel model = new SpinnerNumberModel(1.0, 0.0, 1000.0, 0.1);
-      final JSpinner scaleSpinner = new JSpinner(model);
-//      scaleSpinner.addChangeListener(new ChangeListener() {
-//
-//          @Override
-//          public void stateChanged(ChangeEvent e) {
-//              int index = facetCombo.getSelectedIndex();
-//              FacetTrait item = facetCombo.getItemAt(index);
-//              FieldFacetTrait trait = (FieldFacetTrait) item;
-//              Double value = (Double) model.getValue();
-//              trait.setScale(value.doubleValue());
-//
-//              FacetPanel.this.firePropertyChange("repaint", null, null);
-//          }
-//      });
-      configPanel.add(new JLabel("Scale"));
-      configPanel.add(scaleSpinner);
-      add(configPanel);
+        configPanel.setLayout(new GridLayout(0, 2));
+        add(configPanel);
+
+        facetList.addListSelectionListener(e -> updateConfigs(facetList.getSelectedValue()));
+    }
+
+    protected void updateConfigs(FacetLayer layer)
+    {
+        configPanel.removeAll();
+
+        if (layer instanceof FieldFacetTrait) {
+            FieldFacetTrait fieldLayer = (FieldFacetTrait) layer;
+            double scale = fieldLayer.getScale();
+            final SpinnerNumberModel model = new SpinnerNumberModel(scale, 0.0, 1000.0, 0.1);
+            final JSpinner scaleSpinner = new JSpinner(model);
+            scaleSpinner.addChangeListener(new ChangeListener() {
+
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    Double value = (Double) model.getValue();
+                    fieldLayer.setScale(value.doubleValue());
+//                    FacetPanel.this.firePropertyChange("repaint", null, null);
+                }
+            });
+            configPanel.add(new JLabel("Scale"));
+            configPanel.add(scaleSpinner);
+        }
+
+        configPanel.revalidate();
     }
 }

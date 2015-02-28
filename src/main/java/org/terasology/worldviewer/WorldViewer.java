@@ -101,10 +101,10 @@ public final class WorldViewer {
         final JFrame frame = new MainFrame(worldGen);
 
         frame.setTitle("MapViewer " + GitVersion.getVersion());
-        frame.setVisible(true);
         frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setVisible(true);
 
 //        frame.setAlwaysOnTop(true);
 
