@@ -111,17 +111,11 @@ public class MainFrame extends JFrame {
         viewer = new Viewer(worldGen, facetConfig, config.getViewConfig());
 
         seedText = new TextField(seedString);
-        seedText.setFocusable(false);
-        seedText.addActionListener(event -> {
-                worldGen.setWorldSeed(seedText.getText());
-                worldGen.initialize();
-                viewer.reload();
-            });
 
+        configPanel.add(Box.createHorizontalGlue());
         configPanel.add(new JLabel("Seed"));
         configPanel.add(Box.createHorizontalStrut(5));
         configPanel.add(seedText);
-        configPanel.add(Box.createHorizontalGlue());
         configPanel.add(Box.createHorizontalStrut(5));
 
         JButton refreshButton = new JButton("Reload");
@@ -130,7 +124,9 @@ public class MainFrame extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                viewer.reload();
+                worldGen.setWorldSeed(seedText.getText());
+                worldGen.initialize();
+                viewer.invalidateWorld();
             }
         });
         configPanel.add(refreshButton);

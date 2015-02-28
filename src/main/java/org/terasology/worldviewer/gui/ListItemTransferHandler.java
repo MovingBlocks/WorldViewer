@@ -33,7 +33,7 @@ import javax.swing.TransferHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * Works only for {@link JList} with {@link DefaultListModel}.

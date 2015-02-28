@@ -20,7 +20,6 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
@@ -29,7 +28,6 @@ import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -42,7 +40,6 @@ import org.terasology.math.Vector3i;
 import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.camera.CameraKeyController;
@@ -72,39 +69,49 @@ public final class Viewer extends JComponent implements AutoCloseable {
     private final BufferedImage dummyImg = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
 
     private final ExecutorService threadPool = Executors.newFixedThreadPool(4);
-
-    private final LoadingCache<Vector2i, CacheEntry> tileCache = CacheBuilder.newBuilder().build(new CacheLoader<Vector2i, CacheEntry>() {
+    private final CacheLoader<Vector2i, Region> regionLoader = new CacheLoader<Vector2i, Region>() {
 
         @Override
-        public CacheEntry load(final Vector2i tilePos) throws Exception {
+        public Region load(final Vector2i tilePos) {
+            Region region = createRegion(tilePos);
+            return region;
+        }
+    };
+
+    /**
+     * A cache for regions based on <b>soft-values</b>.
+     */
+    private final LoadingCache<Vector2i, Region> regionCache = CacheBuilder.newBuilder().softValues().build(regionLoader);
+
+    private class UpdateImageCache implements Runnable {
+
+        private Region region;
+
+        public UpdateImageCache(Region region) {
+            this.region = region;
+        }
+
+        @Override
+        public void run() {
+            BufferedImage image = rasterize(region);
+            imageCache.put(region, image);
+            repaint();
+        }
+    }
+
+    private final CacheLoader<Region, BufferedImage> imageLoader = new CacheLoader<Region, BufferedImage>() {
+
+        @Override
+        public BufferedImage load(Region region) throws Exception {
             // msteiger: there should be a more elegent way based on CacheLoader.refresh()
             // that loads missing cache values asynchronously
-            threadPool.execute(new Runnable() {
+            threadPool.execute(new UpdateImageCache(region));
 
-                @Override
-                public void run() {
-                    Region region = createRegion(tilePos);
-                    Vector3i extent = region.getRegion().size();
-                    int width = extent.x;
-                    int height = extent.z;
-
-                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-                    Graphics2D g = image.createGraphics();
-                    for (FacetLayer trait : facetTraits) {
-                        if (facetConfig.isVisible(trait)) {
-                            trait.render(image, region);
-                        }
-                    }
-                    g.dispose();
-                    CacheEntry entry = new CacheEntry(image, region);
-                    tileCache.put(tilePos, entry);
-                    repaint();
-                }
-            });
-
-            return new CacheEntry(dummyImg, createRegion(tilePos));
+            return dummyImg;
         }
-    });
+    };
+
+    private final LoadingCache<Region, BufferedImage> imageCache = CacheBuilder.newBuilder().build(imageLoader);
 
     private final Camera camera = new Camera();
     private final WorldGenerator worldGen;
@@ -164,17 +171,30 @@ public final class Viewer extends JComponent implements AutoCloseable {
         addMouseMotionListener(repaintListener);
 
         Graphics2D g = dummyImg.createGraphics();
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(Color.BLACK);
         g.fillRect(0, 0, dummyImg.getWidth(), dummyImg.getHeight());
-        g.setColor(Color.WHITE);
-        g.drawRect(0, 0, dummyImg.getWidth() - 1, dummyImg.getHeight() - 1);
         g.dispose();
 
         // clear tile cache and repaint if any of the facet configs has changed
         facetConfig.addObserver(layer -> {
-            tileCache.invalidateAll();
-            repaint();
+            updateImageCache();
         });
+    }
+
+    private BufferedImage rasterize(Region region) {
+        Vector3i extent = region.getRegion().size();
+        int width = extent.x;
+        int height = extent.z;
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+        for (FacetLayer trait : facetTraits) {
+            if (facetConfig.isVisible(trait)) {
+                trait.render(image, region);
+            }
+        }
+        g.dispose();
+        return image;
     }
 
     @Override
@@ -213,8 +233,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
         for (int z = camChunkMinZ; z < camChunkMaxZ; z++) {
             for (int x = camChunkMinX; x < camChunkMaxX; x++) {
                 Vector2i pos = new Vector2i(x, z);
-                CacheEntry entry = tileCache.getUnchecked(pos);
-                g.drawImage(entry.getImage(), x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
+                Region region = regionCache.getUnchecked(pos);
+                BufferedImage image = imageCache.getUnchecked(region);
+                g.drawImage(image, x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
             }
         }
     }
@@ -235,8 +256,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
             int tileX = IntMath.divide(wx, TILE_SIZE_X, RoundingMode.FLOOR);
             int tileY = IntMath.divide(wy, TILE_SIZE_Y, RoundingMode.FLOOR);
 
-            CacheEntry entry = tileCache.getUnchecked(new Vector2i(tileX, tileY));
-            Region region = entry.getRegion();
+            Vector2i tilePos = new Vector2i(tileX, tileY);
+            Region region = regionCache.getUnchecked(tilePos);
             String text = "";
 
             for (FacetLayer trait : facetTraits) {
@@ -264,16 +285,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
         return region;
     }
 
-     /**
-     * Destroy the world and create a new one. Also reloads all tiles
-     */
-    public void reload() {
-       worldGen.setWorldSeed("sdfsfdf");
-       worldGen.getWorld();   // force world generation now (and in a single thread)
+    public void invalidateWorld() {
+        regionCache.invalidateAll();
+        imageCache.invalidateAll();
+        repaint();
+     }
 
-       tileCache.invalidateAll();
-       repaint();
-   }
+    private void updateImageCache() {
+        for (Region region : imageCache.asMap().keySet()) {
+            threadPool.execute(new UpdateImageCache(region));
+        }
+    }
 
     @Override
     public void close() {
@@ -282,23 +304,4 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         threadPool.shutdownNow();
     }
-
-    private static class CacheEntry {
-        private final BufferedImage image;
-        private final Region region;
-
-        public CacheEntry(BufferedImage image, Region region) {
-            this.image = image;
-            this.region = region;
-        }
-
-        public Image getImage() {
-            return image;
-        }
-
-        public Region getRegion() {
-            return region;
-        }
-    }
-
 }

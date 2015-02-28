@@ -42,7 +42,7 @@ public class FacetConfig {
         }
     }
 
-    private void notifyObservers(FacetLayer layer)
+    public void notifyObservers(FacetLayer layer)
     {
         for (Observer<FacetLayer> obs : observers) {
             obs.update(layer);

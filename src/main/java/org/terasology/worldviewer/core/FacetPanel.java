@@ -47,11 +47,15 @@ public class FacetPanel extends JPanel {
 
     private static final long serialVersionUID = -4395448394330407251L;
 
-    private JPanel configPanel;
+    private final JPanel configPanel;
+
+    private final FacetConfig facetConfig;
 
     public FacetPanel(FacetConfig facetConfig) {
         setBorder(BorderFactory.createEtchedBorder());
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+        this.facetConfig = facetConfig;
 
         DefaultListModel<FacetLayer> listModel = new DefaultListModel<FacetLayer>();
 
@@ -114,7 +118,7 @@ public class FacetPanel extends JPanel {
                 public void stateChanged(ChangeEvent e) {
                     Double value = (Double) model.getValue();
                     fieldLayer.setScale(value.doubleValue());
-//                    FacetPanel.this.firePropertyChange("repaint", null, null);
+                    facetConfig.notifyObservers(layer);
                 }
             });
             configPanel.add(new JLabel("Scale"));
