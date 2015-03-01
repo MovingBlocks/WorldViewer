@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
-import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
 
 import com.google.common.base.Function;
@@ -35,8 +34,7 @@ import com.google.common.base.Stopwatch;
  * @param <E> the object type
  * @author Martin Steiger
  */
-public class NominalFacetTrait<E> implements FacetLayer {
-
+public class NominalFacetTrait<E> extends AbstractFacetLayer {
 
     private static final Logger logger = LoggerFactory.getLogger(NominalFacetTrait.class);
 

@@ -1,23 +1,34 @@
+/*
+ * Copyright 2015 MovingBlocks
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.terasology.worldviewer.core;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.terasology.world.generation.WorldFacet;
-
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 /**
  * @author Martin Steiger
  */
 public class FacetConfig {
 
-    private final Map<Class<? extends WorldFacet>, FacetLayer> layers = Maps.newHashMap();
-    private final Set<FacetLayer> visibleLayers = Sets.newLinkedHashSet();
+    private final List<FacetLayer> layers = Lists.newArrayList();
     private final Collection<Observer<FacetLayer>> observers = new CopyOnWriteArrayList<>();
 
     public void addObserver(Observer<FacetLayer> obs) {
@@ -28,42 +39,17 @@ public class FacetConfig {
         observers.remove(obs);
     }
 
-    public void setVisible(FacetLayer layer, boolean visible)
-    {
-        boolean update = false;
-        if (visible) { // TODO: check is layer is even valid
-            update = visibleLayers.add(layer);
-        } else {
-            update = visibleLayers.remove(layer);
-        }
-
-        if (update) {
-            notifyObservers(layer);
-        }
-    }
-
-    public void notifyObservers(FacetLayer layer)
-    {
+    public void notifyObservers(FacetLayer layer) {
         for (Observer<FacetLayer> obs : observers) {
             obs.update(layer);
         }
     }
 
-    public Set<Class<? extends WorldFacet>> getFacets() {
-        return Collections.unmodifiableSet(layers.keySet());
+    public void add(FacetLayer trait) {
+        layers.add(trait);
     }
 
-    public void put(Class<? extends WorldFacet> facet, FacetLayer trait) {
-        layers.put(facet, trait);
-    }
-
-    public Collection<? extends FacetLayer> getLayers()
-    {
-        return layers.values();
-    }
-
-    public boolean isVisible(FacetLayer trait)
-    {
-        return visibleLayers.contains(trait);
+    public Collection<? extends FacetLayer> getLayers() {
+        return Collections.unmodifiableList(layers);
     }
 }

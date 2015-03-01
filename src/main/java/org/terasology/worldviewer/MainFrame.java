@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -36,33 +35,23 @@ import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.terasology.world.biomes.Biome;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
-import org.terasology.polyworld.biome.WhittakerBiome;
-import org.terasology.polyworld.biome.WhittakerBiomeColors;
-import org.terasology.polyworld.biome.WhittakerBiomeFacet;
 import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
-import org.terasology.world.generation.facets.base.ObjectFacet2D;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.CoreBiomeColors;
 import org.terasology.worldviewer.core.FacetConfig;
-import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.FacetLayer;
+import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.FieldFacetTrait;
 import org.terasology.worldviewer.core.GraphFacetTrait;
 import org.terasology.worldviewer.core.NominalFacetTrait;
 import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
-import org.terasology.worldviewer.render.RandomObjectColors;
-
-import com.google.common.collect.Maps;
 
 /**
  * The main MapViewer JFrame
@@ -104,7 +93,7 @@ public class MainFrame extends JFrame {
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
             FacetLayer trait = getTrait(facet);
             if (trait != null) {
-                facetConfig.put(facet, trait);
+                facetConfig.add(trait);
             }
         }
 

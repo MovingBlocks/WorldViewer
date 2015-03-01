@@ -33,8 +33,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import org.terasology.worldviewer.gui.FacetListCellRenderer;
 import org.terasology.worldviewer.gui.ListItemTransferHandler;
@@ -65,7 +63,7 @@ public class FacetPanel extends JPanel {
 
         JList<FacetLayer> facetList = new JList<>(listModel);
         facetList.setBorder(BorderFactory.createEtchedBorder());
-        facetList.setCellRenderer(new FacetListCellRenderer(facetConfig));
+        facetList.setCellRenderer(new FacetListCellRenderer());
         add(facetList);
 
         facetList.addMouseListener(new MouseAdapter() {
@@ -77,7 +75,7 @@ public class FacetPanel extends JPanel {
                     int index = facetList.locationToIndex(e.getPoint());
                     if (index != -1) {
                         FacetLayer layer = facetList.getModel().getElementAt(index);
-                        facetConfig.setVisible(layer, !facetConfig.isVisible(layer));
+                        layer.setVisible(!layer.isVisible());
                     }
                 }
             }
@@ -103,8 +101,7 @@ public class FacetPanel extends JPanel {
         facetList.addListSelectionListener(e -> updateConfigs(facetList.getSelectedValue()));
     }
 
-    protected void updateConfigs(FacetLayer layer)
-    {
+    protected void updateConfigs(FacetLayer layer) {
         configPanel.removeAll();
 
         if (layer instanceof FieldFacetTrait) {

@@ -25,9 +25,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
-import java.util.Comparator;
 import java.util.Deque;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -83,30 +81,11 @@ public final class Viewer extends JComponent implements AutoCloseable {
      */
     private final LoadingCache<Vector2i, Region> regionCache = CacheBuilder.newBuilder().softValues().build(regionLoader);
 
-    private class UpdateImageCache implements Runnable {
-
-        private Region region;
-
-        public UpdateImageCache(Region region) {
-            this.region = region;
-        }
-
-        @Override
-        public void run() {
-            BufferedImage image = rasterize(region);
-            imageCache.put(region, image);
-            repaint();
-        }
-    }
-
     private final CacheLoader<Region, BufferedImage> imageLoader = new CacheLoader<Region, BufferedImage>() {
 
         @Override
         public BufferedImage load(Region region) throws Exception {
-            // msteiger: there should be a more elegent way based on CacheLoader.refresh()
-            // that loads missing cache values asynchronously
             threadPool.execute(new UpdateImageCache(region));
-
             return dummyImg;
         }
     };
@@ -122,27 +101,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final Deque<Overlay> overlays = Lists.newLinkedList();
 
-    private final List<FacetLayer> facetTraits = Lists.newArrayList();
     private final FacetConfig facetConfig;
 
     /**
      * @param wg the world generator to use
-     * @param facetConfig
-     * @param viewConfig
+     * @param facetConfig the facet config
+     * @param viewConfig the view config
      */
     public Viewer(WorldGenerator wg, FacetConfig facetConfig, ViewConfig viewConfig) {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
         this.facetConfig = facetConfig;
-        facetTraits.addAll(facetConfig.getLayers());
-        facetTraits.sort(new Comparator<FacetLayer>() {
-
-            @Override
-            public int compare(FacetLayer o1, FacetLayer o2) {
-                // TODO: find a proper sorting of facet layers
-                return o1.getFacetClass().getName().compareTo(o2.getFacetClass().getName());
-            }
-        });
 
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
@@ -188,9 +157,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
-        for (FacetLayer trait : facetTraits) {
-            if (facetConfig.isVisible(trait)) {
-                trait.render(image, region);
+        for (FacetLayer layer : facetConfig.getLayers()) {
+            if (layer.isVisible()) {
+                layer.render(image, region);
             }
         }
         g.dispose();
@@ -260,9 +229,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
             Region region = regionCache.getUnchecked(tilePos);
             String text = "";
 
-            for (FacetLayer trait : facetTraits) {
-                if (facetConfig.isVisible(trait)) {
-                    String layerText = trait.getWorldText(region, wx, wy);
+            for (FacetLayer layer : facetConfig.getLayers()) {
+                if (layer.isVisible()) {
+                    String layerText = layer.getWorldText(region, wx, wy);
                     if (!layerText.isEmpty()) {
                         text += "\n" + layerText;
                     }
@@ -303,5 +272,21 @@ public final class Viewer extends JComponent implements AutoCloseable {
         viewConfig.setCamPos(new Vector2i(camera.getPos().getX(), camera.getPos().getY()));
 
         threadPool.shutdownNow();
+    }
+
+    private class UpdateImageCache implements Runnable {
+
+        private Region region;
+
+        public UpdateImageCache(Region region) {
+            this.region = region;
+        }
+
+        @Override
+        public void run() {
+            BufferedImage image = rasterize(region);
+            imageCache.put(region, image);
+            repaint();
+        }
     }
 }

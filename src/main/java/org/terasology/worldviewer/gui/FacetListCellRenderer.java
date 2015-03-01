@@ -22,26 +22,20 @@ import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-import org.terasology.worldviewer.core.FacetConfig;
 import org.terasology.worldviewer.core.FacetLayer;
 
 /**
  * Renders cells as checkboxes. Interaction does not seem to be possible.
  * @author Martin Steiger
  */
-public class FacetListCellRenderer implements ListCellRenderer<FacetLayer>
-{
-    private final JCheckBox checkBox = new JCheckBox();
-    private final FacetConfig config;
+public class FacetListCellRenderer implements ListCellRenderer<FacetLayer> {
 
-    public FacetListCellRenderer(FacetConfig config) {
-        this.config = config;
-    }
+    private final JCheckBox checkBox = new JCheckBox();
 
     @Override
     public Component getListCellRendererComponent(JList<? extends FacetLayer> list, FacetLayer layer, int index, boolean isSelected, boolean cellHasFocus) {
         checkBox.setText(layer.toString());
-        checkBox.setSelected(config.isVisible(layer));
+        checkBox.setSelected(layer.isVisible());
         checkBox.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
         return checkBox;
     }

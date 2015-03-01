@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 MovingBlocks
+ * Copyright 2015 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,21 @@
 
 package org.terasology.worldviewer.core;
 
-import java.awt.image.BufferedImage;
-
-import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
-
 /**
  * TODO Type description
  * @author Martin Steiger
  */
-public interface FacetLayer  {
+public abstract class AbstractFacetLayer implements FacetLayer {
 
-    Class<? extends WorldFacet> getFacetClass();
+    private boolean isVisible;
 
-    void render(BufferedImage img, Region r);
+    @Override
+    public boolean isVisible() {
+        return isVisible;
+    }
 
-    String getWorldText(Region r, int wx, int wy);
-
-    /**
-     * @return true if visible
-     */
-    boolean isVisible();
-
-    void setVisible(boolean yesno);
+    @Override
+    public void setVisible(boolean yesno) {
+        isVisible = yesno;
+    }
 }

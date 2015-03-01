@@ -42,7 +42,7 @@ import com.google.common.math.DoubleMath;
  * Draws the generated graph on a AWT graphics instance
  * @author Martin Steiger
  */
-public class GraphFacetTrait implements FacetLayer {
+public class GraphFacetTrait extends AbstractFacetLayer {
 
     @Override
     public Class<? extends WorldFacet> getFacetClass() {

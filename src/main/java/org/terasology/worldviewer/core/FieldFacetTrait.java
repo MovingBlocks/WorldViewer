@@ -38,7 +38,7 @@ import com.google.common.math.DoubleMath;
  * TODO Type description
  * @author Martin Steiger
  */
-public class FieldFacetTrait implements FacetLayer {
+public class FieldFacetTrait extends AbstractFacetLayer {
 
     private static final List<Color> GRAYS = IntStream
             .range(0, 256)

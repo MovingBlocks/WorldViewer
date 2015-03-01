@@ -41,19 +41,26 @@ import com.google.common.collect.Lists;
  * @param <T> the item type
  * @author Martin Steiger
  */
-public class ListItemTransferHandler<T> extends TransferHandler
-{
+public class ListItemTransferHandler<T> extends TransferHandler {
     private static final long serialVersionUID = -8755359045727856083L;
 
     private static final Logger logger = LoggerFactory.getLogger(ListItemTransferHandler.class);
 
     private final DataFlavor localObjectFlavor;
 
-    private List<T> transferedObjects = null;
+    private List<T> transferedObjects;
 
-    private int[] indices = null;
-    private int addIndex = -1; // Location where items were added
-    private int addCount = 0; // Number of items added.
+    private int[] indices;
+
+    /**
+     * Location where items were added
+     */
+    private int addIndex = -1;
+
+    /**
+     * Number of items added.
+     */
+    private int addCount;
 
     public ListItemTransferHandler() {
         localObjectFlavor = new ActivationDataFlavor(ArrayList.class, DataFlavor.javaJVMLocalObjectMimeType, "ArrayList of items");
