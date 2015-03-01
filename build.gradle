@@ -29,7 +29,7 @@ def env = System.getenv()
 def versionInfoFile = new File(sourceSets.main.output.resourcesDir, 'versionInfo.properties')
     
 def getGitDesc() {
-    def cmd = "git describe --match ?.?* --dirty"
+    def cmd = "git describe --match ?.?*"
 
     try {
         def proc = cmd.execute()
@@ -60,6 +60,10 @@ task createVersionJavaFile(type:Copy) {
 }
 
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
 compileJava.dependsOn createVersionJavaFile
 eclipseProject.dependsOn createVersionJavaFile
 
@@ -70,6 +74,8 @@ configurations.all {
 }
 
 dependencies {
+
+    checkstyle ('com.puppycrawl.tools:checkstyle:6.3')
     
     // the deps. without a fixed version number are flagged with 'changing: true'
     // to indicate that gradle should check for updates
