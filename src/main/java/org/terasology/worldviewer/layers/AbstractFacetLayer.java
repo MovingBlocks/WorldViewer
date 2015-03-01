@@ -59,4 +59,9 @@ public abstract class AbstractFacetLayer implements FacetLayer {
             obs.update(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

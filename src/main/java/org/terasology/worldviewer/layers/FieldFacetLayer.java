@@ -113,11 +113,6 @@ public class FieldFacetLayer extends AbstractFacetLayer {
         return scale;
     }
 
-    @Override
-    public String toString() {
-        return clazz.getSimpleName() + " - > linear function";
-    }
-
     /**
      * @param scale the new scale factor
      */

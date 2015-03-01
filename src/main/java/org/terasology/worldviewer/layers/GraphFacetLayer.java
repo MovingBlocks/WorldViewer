@@ -28,6 +28,8 @@ import java.util.function.Function;
 
 import org.terasology.math.Rect2i;
 import org.terasology.math.geom.BaseVector2f;
+import org.terasology.math.geom.ImmutableVector2f;
+import org.terasology.math.geom.Vector2f;
 import org.terasology.polyworld.voronoi.Corner;
 import org.terasology.polyworld.voronoi.Edge;
 import org.terasology.polyworld.voronoi.Graph;
@@ -44,6 +46,12 @@ import com.google.common.math.DoubleMath;
  */
 public class GraphFacetLayer extends AbstractFacetLayer {
 
+    private boolean showEdges = true;
+    private boolean showBounds = true;
+    private boolean showCorners = true;
+    private boolean showSites = true;
+    private boolean showTris;
+
     @Override
     public Class<? extends WorldFacet> getFacetClass() {
         return GraphFacet.class;
@@ -58,8 +66,25 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         int dy = region.getRegion().minZ();
         g.translate(-dx, -dy);
         for (Graph graph : graphFacet.getAllGraphs()) {
-            drawEdges(g, graph);
-            drawBounds(g, graph);
+            if (showEdges) {
+                drawEdges(g, graph);
+            }
+
+            if (showTris) {
+                drawTriangles(g, graph);
+            }
+
+            if (showCorners) {
+                drawCorners(g, graph);
+            }
+
+            if (showSites) {
+                drawSites(g, graph);
+            }
+
+            if (showBounds) {
+                drawBounds(g, graph);
+            }
         }
 
         g.dispose();
@@ -67,12 +92,69 @@ public class GraphFacetLayer extends AbstractFacetLayer {
 
     @Override
     public String getWorldText(org.terasology.world.generation.Region region, int wx, int wy) {
+        GraphFacet graphFacet = region.getFacet(GraphFacet.class);
+        for (Graph graph : graphFacet.getAllGraphs()) {
+            if (graph.getBounds().contains(wx, wy)) {
+                return String.format("%d regs, %d corners, %d edges",
+                        graph.getRegions().size(), graph.getCorners().size(), graph.getEdges().size());
+            }
+        }
         return "";
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
+    public boolean isShowEdges() {
+        return showEdges;
+    }
+
+    public void setShowEdges(boolean showEdges) {
+        if (this.showEdges != showEdges) {
+            this.showEdges = showEdges;
+            notifyObservers();
+        }
+    }
+
+    public boolean isShowBounds() {
+        return showBounds;
+    }
+
+    public void setShowBounds(boolean showBounds) {
+        if (this.showBounds != showBounds) {
+            this.showBounds = showBounds;
+            notifyObservers();
+        }
+    }
+
+    public boolean isShowCorners() {
+        return showCorners;
+    }
+
+    public void setShowCorners(boolean showCorners) {
+        if (this.showCorners != showCorners) {
+            this.showCorners = showCorners;
+            notifyObservers();
+        }
+    }
+
+    public boolean isShowSites() {
+        return showSites;
+    }
+
+    public void setShowSites(boolean showSites) {
+        if (this.showSites != showSites) {
+            this.showSites = showSites;
+            notifyObservers();
+        }
+    }
+
+    public boolean isShowTris() {
+        return showTris;
+    }
+
+    public void setShowTris(boolean showTris) {
+        if (this.showTris != showTris) {
+            this.showTris = showTris;
+            notifyObservers();
+        }
     }
 
     public static void drawEdges(Graphics2D g, Graph graph) {
@@ -140,22 +222,24 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         xPoints[2] = DoubleMath.roundToInt(p2.getX(), mode);
         yPoints[2] = DoubleMath.roundToInt(p2.getY(), mode);
 
-        g.fillPolygon(xPoints, yPoints, 3);
+        g.drawPolygon(xPoints, yPoints, 3);
     }
 
     public static void drawSites(Graphics2D g, Graph graph) {
         List<Region> centers = graph.getRegions();
 
         g.setColor(Color.BLACK);
-        for (Region s : centers) {
-            g.fillOval((int) (s.getCenter().getX() - 2), (int) (s.getCenter().getY() - 2), 4, 4);
+        for (Region regs : centers) {
+            Vector2f center = regs.getCenter();
+            g.fillOval((int) (center.getX() - 2), (int) (center.getY() - 2), 4, 4);
         }
     }
 
     public static void drawCorners(Graphics2D g, Graph graph) {
         g.setColor(Color.WHITE);
         for (Corner c : graph.getCorners()) {
-            g.fillOval((int) (c.getLocation().getX() - 2), (int) (c.getLocation().getY() - 2), 4, 4);
+            ImmutableVector2f loc = c.getLocation();
+            g.fillOval((int) (loc.getX() - 2), (int) (loc.getY() - 2), 4, 4);
         }
     }
 

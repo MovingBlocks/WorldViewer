@@ -17,15 +17,22 @@
 package org.terasology.worldviewer.core;
 
 import java.awt.GridLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -39,6 +46,7 @@ import org.terasology.worldviewer.gui.FacetListCellRenderer;
 import org.terasology.worldviewer.gui.ListItemTransferHandler;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
+import org.terasology.worldviewer.layers.GraphFacetLayer;
 
 /**
  * TODO Type description
@@ -105,21 +113,64 @@ public class FacetPanel extends JPanel {
 
         if (layer instanceof FieldFacetLayer) {
             FieldFacetLayer fieldLayer = (FieldFacetLayer) layer;
-            double scale = fieldLayer.getScale();
-            final SpinnerNumberModel model = new SpinnerNumberModel(scale, 0.0, 1000.0, 0.1);
-            final JSpinner scaleSpinner = new JSpinner(model);
-            scaleSpinner.addChangeListener(new ChangeListener() {
+            createSpinner("Scale", 0, 0.1, 100, () -> fieldLayer.getScale(), v -> fieldLayer.setScale(v));
+        }
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    Double value = (Double) model.getValue();
-                    fieldLayer.setScale(value.doubleValue());
-                }
-            });
-            configPanel.add(new JLabel("Scale"));
-            configPanel.add(scaleSpinner);
+        if (layer instanceof GraphFacetLayer) {
+            GraphFacetLayer graphLayer = (GraphFacetLayer) layer;
+            createCheckbox("Edges", () -> graphLayer.isShowEdges(), v -> graphLayer.setShowEdges(v));
+            createCheckbox("Corners", () -> graphLayer.isShowCorners(), v -> graphLayer.setShowCorners(v));
+            createCheckbox("Bounds", () -> graphLayer.isShowBounds(), v -> graphLayer.setShowBounds(v));
+            createCheckbox("Sites", () -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v));
+            createCheckbox("Triangles", () -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v));
         }
 
         configPanel.revalidate();
+    }
+
+    private void createCheckbox(String name, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        JCheckBox checkBox = new JCheckBox("visible");
+        checkBox.setSelected(getter.get());
+        checkBox.addComponentListener(new ComponentAdapter() {
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                checkBox.setSelected(getter.get());
+            }
+        });
+        checkBox.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                setter.accept(checkBox.isSelected());
+            }
+        });
+
+        configPanel.add(new JLabel(name));
+        configPanel.add(checkBox);
+    }
+
+    private void createSpinner(String name, double min, double stepSize, double max, Supplier<Double> getter, Consumer<Double> setter) {
+        double initValue = getter.get().doubleValue();
+
+        final SpinnerNumberModel model = new SpinnerNumberModel(initValue, min, max, stepSize);
+        final JSpinner spinner = new JSpinner(model);
+        spinner.addComponentListener(new ComponentAdapter() {
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                spinner.setValue(getter.get());
+            }
+        });
+        spinner.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                Double value = (Double) model.getValue();
+                setter.accept(value);
+            }
+        });
+        configPanel.add(new JLabel(name));
+        configPanel.add(spinner);
     }
 }

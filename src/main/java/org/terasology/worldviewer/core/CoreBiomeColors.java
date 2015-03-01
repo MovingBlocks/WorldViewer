@@ -17,12 +17,12 @@
 package org.terasology.worldviewer.core;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import org.terasology.core.world.CoreBiome;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.biomes.Biome;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 
 /**

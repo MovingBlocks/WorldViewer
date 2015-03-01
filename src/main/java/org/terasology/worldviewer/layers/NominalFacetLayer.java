@@ -18,6 +18,7 @@ package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,6 @@ import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
 
-import com.google.common.base.Function;
 import com.google.common.base.Stopwatch;
 
 /**
@@ -83,10 +83,5 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
     @Override
     public Class<? extends WorldFacet> getFacetClass() {
         return facetClass;
-    }
-
-    @Override
-    public String toString() {
-        return facetClass.getSimpleName() + " - > Color using " + colorMap.getClass().getSimpleName();
     }
 }

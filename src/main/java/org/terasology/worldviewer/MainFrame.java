@@ -39,6 +39,8 @@ import javax.swing.border.MatteBorder;
 
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
+import org.terasology.polyworld.biome.WhittakerBiome;
+import org.terasology.polyworld.biome.WhittakerBiomeFacet;
 import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
@@ -48,6 +50,7 @@ import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.CoreBiomeColors;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
+import org.terasology.worldviewer.core.WhittakerBiomeColors;
 import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
@@ -158,10 +161,10 @@ public class MainFrame extends JFrame {
             result.add(new FieldFacetLayer(cast, 0, 5));
         }
 
-//        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
-//            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
-//            return new NominalFacetLayer<Biome>(cast, new WhittakerBiomeColors());
-//        }
+        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
+            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
+            result.add(new NominalFacetLayer<WhittakerBiome>(cast, new WhittakerBiomeColors()));
+        }
 
         if (BiomeFacet.class.isAssignableFrom(facetClass)) {
             Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
