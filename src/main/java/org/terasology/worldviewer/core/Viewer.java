@@ -26,6 +26,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -101,17 +102,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final Deque<Overlay> overlays = Lists.newLinkedList();
 
-    private final FacetConfig facetConfig;
+    private final List<FacetLayer> facets;
 
     /**
      * @param wg the world generator to use
      * @param facetConfig the facet config
      * @param viewConfig the view config
      */
-    public Viewer(WorldGenerator wg, FacetConfig facetConfig, ViewConfig viewConfig) {
+    public Viewer(WorldGenerator wg, List<FacetLayer> facetConfig, ViewConfig viewConfig) {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
-        this.facetConfig = facetConfig;
+        this.facets = facetConfig;
 
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
@@ -145,9 +146,9 @@ public final class Viewer extends JComponent implements AutoCloseable {
         g.dispose();
 
         // clear tile cache and repaint if any of the facet configs has changed
-        facetConfig.addObserver(layer -> {
-            updateImageCache();
-        });
+        for (FacetLayer layer : facetConfig) {
+            layer.addObserver(l -> updateImageCache());
+        }
     }
 
     private BufferedImage rasterize(Region region) {
@@ -157,7 +158,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
-        for (FacetLayer layer : facetConfig.getLayers()) {
+        for (FacetLayer layer : facets) {
             if (layer.isVisible()) {
                 layer.render(image, region);
             }
@@ -229,7 +230,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
             Region region = regionCache.getUnchecked(tilePos);
             String text = "";
 
-            for (FacetLayer layer : facetConfig.getLayers()) {
+            for (FacetLayer layer : facets) {
                 if (layer.isVisible()) {
                     String layerText = layer.getWorldText(region, wx, wy);
                     if (!layerText.isEmpty()) {

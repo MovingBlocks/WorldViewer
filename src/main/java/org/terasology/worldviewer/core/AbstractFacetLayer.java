@@ -16,21 +16,45 @@
 
 package org.terasology.worldviewer.core;
 
+import java.util.Collection;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
- * TODO Type description
+ * A set of general implementations for {@link FacetLayer}.
  * @author Martin Steiger
  */
 public abstract class AbstractFacetLayer implements FacetLayer {
 
     private boolean isVisible;
 
+    private final Collection<Observer<FacetLayer>> observers = new CopyOnWriteArrayList<>();
+
     @Override
-    public boolean isVisible() {
+    public final void addObserver(Observer<FacetLayer> obs) {
+        observers.add(obs);
+    }
+
+    @Override
+    public final void removeObserver(Observer<FacetLayer> obs) {
+        observers.remove(obs);
+    }
+
+    @Override
+    public final boolean isVisible() {
         return isVisible;
     }
 
     @Override
-    public void setVisible(boolean yesno) {
-        isVisible = yesno;
+    public final void setVisible(boolean yesno) {
+        if (isVisible != yesno) {
+            isVisible = yesno;
+            notifyObservers();
+        }
+    }
+
+    protected void notifyObservers() {
+        for (Observer<FacetLayer> obs : observers) {
+            obs.update(this);
+        }
     }
 }

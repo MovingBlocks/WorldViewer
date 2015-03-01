@@ -122,6 +122,21 @@ public class FieldFacetTrait extends AbstractFacetLayer {
      * @param scale the new scale factor
      */
     public void setScale(double scale) {
-        this.scale = scale;
+        if (scale != this.scale) {
+            this.scale = scale;
+            notifyObservers();
+        }
     }
+
+    /**
+     * @param offset the new offset
+     */
+    public void setOffset(double offset) {
+        if (offset != this.offset) {
+            this.offset = offset;
+            notifyObservers();
+        }
+    }
+
+
 }

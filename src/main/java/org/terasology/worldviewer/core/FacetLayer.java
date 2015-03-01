@@ -22,7 +22,7 @@ import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 
 /**
- * TODO Type description
+ * A visual representation of a facet class
  * @author Martin Steiger
  */
 public interface FacetLayer  {
@@ -39,4 +39,14 @@ public interface FacetLayer  {
     boolean isVisible();
 
     void setVisible(boolean yesno);
+
+    /**
+     * @param obs the observer to add
+     */
+    void addObserver(Observer<FacetLayer> obs);
+
+    /**
+     * @param obs the observer to remove
+     */
+    void removeObserver(Observer<FacetLayer> obs);
 }

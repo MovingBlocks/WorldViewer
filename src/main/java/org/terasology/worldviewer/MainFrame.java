@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -44,7 +45,6 @@ import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.CoreBiomeColors;
-import org.terasology.worldviewer.core.FacetConfig;
 import org.terasology.worldviewer.core.FacetLayer;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.FieldFacetTrait;
@@ -52,6 +52,8 @@ import org.terasology.worldviewer.core.GraphFacetTrait;
 import org.terasology.worldviewer.core.NominalFacetTrait;
 import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
+
+import com.google.common.collect.Lists;
 
 /**
  * The main MapViewer JFrame
@@ -89,7 +91,7 @@ public class MainFrame extends JFrame {
         configPanel.setLayout(layout);
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        FacetConfig facetConfig = new FacetConfig();
+        List<FacetLayer> facetConfig = Lists.newArrayList();
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
             FacetLayer trait = getTrait(facet);
             if (trait != null) {

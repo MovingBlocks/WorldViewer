@@ -19,6 +19,7 @@ package org.terasology.worldviewer.core;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -47,21 +48,18 @@ public class FacetPanel extends JPanel {
 
     private final JPanel configPanel;
 
-    private final FacetConfig facetConfig;
-
-    public FacetPanel(FacetConfig facetConfig) {
+    public FacetPanel(List<FacetLayer> facets) {
         setBorder(BorderFactory.createEtchedBorder());
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        this.facetConfig = facetConfig;
-
         DefaultListModel<FacetLayer> listModel = new DefaultListModel<FacetLayer>();
+        JList<FacetLayer> facetList = new JList<>(listModel);
 
-        for (FacetLayer facetLayer : facetConfig.getLayers()) {
+        for (FacetLayer facetLayer : facets) {
             listModel.addElement(facetLayer);
+            facetLayer.addObserver(layer -> facetList.repaint());
         }
 
-        JList<FacetLayer> facetList = new JList<>(listModel);
         facetList.setBorder(BorderFactory.createEtchedBorder());
         facetList.setCellRenderer(new FacetListCellRenderer());
         add(facetList);
@@ -81,7 +79,6 @@ public class FacetPanel extends JPanel {
             }
         });
 
-        facetConfig.addObserver(layer -> facetList.repaint());
         facetList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         facetList.setTransferHandler(new ListItemTransferHandler<FacetLayer>());
         facetList.setDropMode(DropMode.INSERT);
@@ -115,7 +112,6 @@ public class FacetPanel extends JPanel {
                 public void stateChanged(ChangeEvent e) {
                     Double value = (Double) model.getValue();
                     fieldLayer.setScale(value.doubleValue());
-                    facetConfig.notifyObservers(layer);
                 }
             });
             configPanel.add(new JLabel("Scale"));
