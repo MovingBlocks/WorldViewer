@@ -40,9 +40,9 @@ public class RandomObjectColors implements Function<Object, Color> {
 
     private final AtomicDouble atomicHue = new AtomicDouble(0);
 
-    private final LoadingCache<Object, Color> colorCache = CacheBuilder.newBuilder().build(new CacheLoader<Object, Color>() {
+    private final List<Color> colors;
 
-        private final List<Color> colors = CieCamColors.L65C65;
+    private final LoadingCache<Object, Color> colorCache = CacheBuilder.newBuilder().build(new CacheLoader<Object, Color>() {
 
         @Override
         public Color load(Object key) throws Exception {
@@ -54,6 +54,11 @@ public class RandomObjectColors implements Function<Object, Color> {
     });
 
     public RandomObjectColors() {
+        this(CieCamColors.L65C65);
+    }
+
+    public RandomObjectColors(List<Color> colors) {
+        this.colors = colors;
     }
 
     @Override

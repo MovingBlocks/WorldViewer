@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.gui;
 
 import java.awt.Color;
 import java.awt.FontMetrics;

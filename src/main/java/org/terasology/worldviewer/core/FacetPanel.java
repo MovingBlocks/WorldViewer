@@ -37,6 +37,8 @@ import javax.swing.event.ChangeListener;
 
 import org.terasology.worldviewer.gui.FacetListCellRenderer;
 import org.terasology.worldviewer.gui.ListItemTransferHandler;
+import org.terasology.worldviewer.layers.FacetLayer;
+import org.terasology.worldviewer.layers.FieldFacetLayer;
 
 /**
  * TODO Type description
@@ -101,8 +103,8 @@ public class FacetPanel extends JPanel {
     protected void updateConfigs(FacetLayer layer) {
         configPanel.removeAll();
 
-        if (layer instanceof FieldFacetTrait) {
-            FieldFacetTrait fieldLayer = (FieldFacetTrait) layer;
+        if (layer instanceof FieldFacetLayer) {
+            FieldFacetLayer fieldLayer = (FieldFacetLayer) layer;
             double scale = fieldLayer.getScale();
             final SpinnerNumberModel model = new SpinnerNumberModel(scale, 0.0, 1000.0, 0.1);
             final JSpinner scaleSpinner = new JSpinner(model);

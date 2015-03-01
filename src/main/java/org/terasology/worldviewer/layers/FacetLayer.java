@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
 
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.core.Observer;
 
 /**
  * A visual representation of a facet class

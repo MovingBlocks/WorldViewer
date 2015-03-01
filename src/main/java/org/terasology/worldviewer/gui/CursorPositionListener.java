@@ -14,65 +14,39 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.gui;
 
-import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 
 /**
- * Triggers a repaint on any mouse interaction
+ * Stores the last known cursor position
  * @author Martin Steiger
  */
-public class RepaintingMouseListener extends MouseAdapter {
+public class CursorPositionListener extends MouseAdapter {
 
-    private final Component comp;
+    private Point curPos;
 
     /**
-     * @param comp the component to repaint
+     * @return the cursor position or <code>null</code> if outside
      */
-    public RepaintingMouseListener(Component comp) {
-        this.comp = comp;
+    public Point getCursorPosition() {
+        return curPos;
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        comp.repaint();
+        curPos = e.getPoint();
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        comp.repaint();
+        curPos = e.getPoint();
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        comp.repaint();
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        comp.repaint();
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        comp.repaint();
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        comp.repaint();
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        comp.repaint();
-    }
-
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        comp.repaint();
+        curPos = null;
     }
 }

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers;
 
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.terasology.worldviewer.core.Observer;
 
 /**
  * A set of general implementations for {@link FacetLayer}.

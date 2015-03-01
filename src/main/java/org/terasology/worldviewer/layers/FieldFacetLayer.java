@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
@@ -38,7 +38,7 @@ import com.google.common.math.DoubleMath;
  * TODO Type description
  * @author Martin Steiger
  */
-public class FieldFacetTrait extends AbstractFacetLayer {
+public class FieldFacetLayer extends AbstractFacetLayer {
 
     private static final List<Color> GRAYS = IntStream
             .range(0, 256)
@@ -47,14 +47,14 @@ public class FieldFacetTrait extends AbstractFacetLayer {
 
     private static final Color MISSING = Color.MAGENTA;
 
-    private static final Logger logger = LoggerFactory.getLogger(FieldFacetTrait.class);
+    private static final Logger logger = LoggerFactory.getLogger(FieldFacetLayer.class);
 
     private final Class<? extends FieldFacet2D> clazz;
 
     private double offset;
     private double scale;
 
-    public FieldFacetTrait(Class<? extends FieldFacet2D> clazz, double offset, double scale) {
+    public FieldFacetLayer(Class<? extends FieldFacet2D> clazz, double offset, double scale) {
         this.clazz = clazz;
         this.offset = offset;
         this.scale = scale;

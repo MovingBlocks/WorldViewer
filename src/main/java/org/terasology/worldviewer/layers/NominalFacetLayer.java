@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
@@ -34,14 +34,14 @@ import com.google.common.base.Stopwatch;
  * @param <E> the object type
  * @author Martin Steiger
  */
-public class NominalFacetTrait<E> extends AbstractFacetLayer {
+public class NominalFacetLayer<E> extends AbstractFacetLayer {
 
-    private static final Logger logger = LoggerFactory.getLogger(NominalFacetTrait.class);
+    private static final Logger logger = LoggerFactory.getLogger(NominalFacetLayer.class);
 
     private final Function<? super E, Color> colorMap;
     private final Class<? extends ObjectFacet2D<E>> facetClass;
 
-    public NominalFacetTrait(Class<? extends ObjectFacet2D<E>> clazz, Function<? super E, Color> colorMap) {
+    public NominalFacetLayer(Class<? extends ObjectFacet2D<E>> clazz, Function<? super E, Color> colorMap) {
         this.colorMap = colorMap;
         this.facetClass = clazz;
     }

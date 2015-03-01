@@ -45,6 +45,10 @@ import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
 import org.terasology.worldviewer.config.ViewConfig;
+import org.terasology.worldviewer.gui.CursorPositionListener;
+import org.terasology.worldviewer.gui.RepaintingMouseListener;
+import org.terasology.worldviewer.gui.Tooltip;
+import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 

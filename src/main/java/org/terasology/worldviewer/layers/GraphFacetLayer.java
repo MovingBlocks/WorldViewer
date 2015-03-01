@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -42,7 +42,7 @@ import com.google.common.math.DoubleMath;
  * Draws the generated graph on a AWT graphics instance
  * @author Martin Steiger
  */
-public class GraphFacetTrait extends AbstractFacetLayer {
+public class GraphFacetLayer extends AbstractFacetLayer {
 
     @Override
     public Class<? extends WorldFacet> getFacetClass() {

@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -45,13 +46,13 @@ import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.CoreBiomeColors;
-import org.terasology.worldviewer.core.FacetLayer;
 import org.terasology.worldviewer.core.FacetPanel;
-import org.terasology.worldviewer.core.FieldFacetTrait;
-import org.terasology.worldviewer.core.GraphFacetTrait;
-import org.terasology.worldviewer.core.NominalFacetTrait;
 import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.env.TinyEnvironment;
+import org.terasology.worldviewer.layers.FacetLayer;
+import org.terasology.worldviewer.layers.FieldFacetLayer;
+import org.terasology.worldviewer.layers.GraphFacetLayer;
+import org.terasology.worldviewer.layers.NominalFacetLayer;
 
 import com.google.common.collect.Lists;
 
@@ -91,15 +92,12 @@ public class MainFrame extends JFrame {
         configPanel.setLayout(layout);
         configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
 
-        List<FacetLayer> facetConfig = Lists.newArrayList();
+        List<FacetLayer> facets = Lists.newArrayList();
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
-            FacetLayer trait = getTrait(facet);
-            if (trait != null) {
-                facetConfig.add(trait);
-            }
+            facets.addAll(getLayers(facet));
         }
 
-        viewer = new Viewer(worldGen, facetConfig, config.getViewConfig());
+        viewer = new Viewer(worldGen, facets, config.getViewConfig());
 
         seedText = new TextField(seedString);
 
@@ -122,7 +120,7 @@ public class MainFrame extends JFrame {
         });
         configPanel.add(refreshButton);
 
-        JPanel facetPanel = new FacetPanel(facetConfig);
+        JPanel facetPanel = new FacetPanel(facets);
         JPanel facetPanelWrap = new JPanel();
         facetPanelWrap.setLayout(new BorderLayout());
         facetPanelWrap.add(facetPanel, BorderLayout.NORTH);
@@ -151,32 +149,35 @@ public class MainFrame extends JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    private static FacetLayer getTrait(Class<? extends WorldFacet> facetClass) {
+    private static Collection<FacetLayer> getLayers(Class<? extends WorldFacet> facetClass) {
+
+        List<FacetLayer> result = Lists.newArrayList();
+
         if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
             Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
-            return new FieldFacetTrait(cast, 0, 5);
+            result.add(new FieldFacetLayer(cast, 0, 5));
         }
 
 //        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
 //            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
-//            return new NominalFacetTrait<Biome>(cast, new WhittakerBiomeColors());
+//            return new NominalFacetLayer<Biome>(cast, new WhittakerBiomeColors());
 //        }
 
         if (BiomeFacet.class.isAssignableFrom(facetClass)) {
             Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
-            return new NominalFacetTrait<CoreBiome>(cast, new CoreBiomeColors());
+            result.add(new NominalFacetLayer<CoreBiome>(cast, new CoreBiomeColors()));
         }
 
         if (GraphFacet.class.isAssignableFrom(facetClass)) {
-            return new GraphFacetTrait();
+            result.add(new GraphFacetLayer());
         }
 
 //        if (ObjectFacet2D.class.isAssignableFrom(facetClass)) {
 //            Class<ObjectFacet2D<Object>> cast = (Class<ObjectFacet2D<Object>>) facetClass;
-//            return new NominalFacetTrait<Object>(cast, new RandomObjectColors());
+//            return new NominalFacetLayer<Object>(cast, new RandomObjectColors());
 //        }
 
-        return null;
+        return result;
     }
 
     @Override
