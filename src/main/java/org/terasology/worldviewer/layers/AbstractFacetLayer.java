@@ -62,6 +62,8 @@ public abstract class AbstractFacetLayer implements FacetLayer {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName();
+        String name = getFacetClass().getSimpleName();
+        name = name.replaceAll("Facet", "").replaceAll("(.)([A-Z])", "$1 $2");
+        return name;
     }
 }

@@ -37,6 +37,8 @@ import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.polyworld.biome.WhittakerBiome;
@@ -66,6 +68,8 @@ import com.google.common.collect.Lists;
 public class MainFrame extends JFrame {
 
     private static final long serialVersionUID = -8474971565041036025L;
+
+    private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
 
     private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".worldviewer.json");
 
@@ -124,10 +128,7 @@ public class MainFrame extends JFrame {
         configPanel.add(refreshButton);
 
         JPanel facetPanel = new FacetPanel(facets);
-        JPanel facetPanelWrap = new JPanel();
-        facetPanelWrap.setLayout(new BorderLayout());
-        facetPanelWrap.add(facetPanel, BorderLayout.NORTH);
-        add(facetPanelWrap, BorderLayout.WEST);
+        add(facetPanel, BorderLayout.WEST);
         add(configPanel, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
@@ -148,7 +149,7 @@ public class MainFrame extends JFrame {
         statusBar.add(memoryLabel);
         statusBar.add(Box.createHorizontalGlue());
         statusBar.add(new JLabel("Use cursor arrows or drag with right mouse button to navigate"));
-        statusBar.setBorder(BorderFactory.createCompoundBorder(new MatteBorder(1, 0, 0, 0, Color.GRAY), new EmptyBorder(2, 5, 2, 5)));
+        statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
     }
 
     @SuppressWarnings("unchecked")
@@ -179,6 +180,10 @@ public class MainFrame extends JFrame {
 //            Class<ObjectFacet2D<Object>> cast = (Class<ObjectFacet2D<Object>>) facetClass;
 //            return new NominalFacetLayer<Object>(cast, new RandomObjectColors());
 //        }
+
+        if (result.isEmpty()) {
+            logger.warn("No layers found for facet {}", facetClass.getName());
+        }
 
         return result;
     }

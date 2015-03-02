@@ -16,7 +16,11 @@
 
 package org.terasology.worldviewer.core;
 
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -60,7 +64,14 @@ public class FacetPanel extends JPanel {
 
     public FacetPanel(List<FacetLayer> facets) {
         setBorder(BorderFactory.createEtchedBorder());
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        add(new JLabel("Layers"), gbc.clone());
 
         DefaultListModel<FacetLayer> listModel = new DefaultListModel<FacetLayer>();
         JList<FacetLayer> facetList = new JList<>(listModel);
@@ -72,7 +83,6 @@ public class FacetPanel extends JPanel {
 
         facetList.setBorder(BorderFactory.createEtchedBorder());
         facetList.setCellRenderer(new FacetListCellRenderer());
-        add(facetList);
 
         facetList.addMouseListener(new MouseAdapter() {
             @Override
@@ -93,17 +103,24 @@ public class FacetPanel extends JPanel {
         facetList.setTransferHandler(new ListItemTransferHandler<FacetLayer>());
         facetList.setDropMode(DropMode.INSERT);
         facetList.setDragEnabled(true);
+        gbc.gridy++;
+        add(facetList, gbc.clone());
 
         JLabel listInfoText = new JLabel("Double-click to toggle; drag to reorder");
         listInfoText.setAlignmentX(0.5f);
-        add(listInfoText);
-
-        add(Box.createVerticalStrut(20));
+        gbc.gridy++;
+        add(listInfoText, gbc.clone());
 
         configPanel = new JPanel();
         configPanel.setBorder(BorderFactory.createTitledBorder("Config"));
         configPanel.setLayout(new GridLayout(0, 2));
-        add(configPanel);
+        gbc.gridy++;
+        gbc.insets.top = 10;
+        add(configPanel, gbc.clone());
+
+        gbc.gridy++;
+        gbc.weighty = 1.0;
+        add(new JPanel(), gbc.clone());
 
         facetList.addListSelectionListener(e -> updateConfigs(facetList.getSelectedValue()));
     }
