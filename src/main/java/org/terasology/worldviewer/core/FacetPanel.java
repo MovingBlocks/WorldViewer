@@ -16,44 +16,33 @@
 
 package org.terasology.worldviewer.core;
 
-import java.awt.Color;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.border.EmptyBorder;
 
 import org.terasology.worldviewer.gui.FacetListCellRenderer;
 import org.terasology.worldviewer.gui.ListItemTransferHandler;
+import org.terasology.worldviewer.gui.UIBindings;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.GraphFacetLayer;
 
 /**
- * TODO Type description
+ * The facet layer configuration panel (at the left)
  * @author Martin Steiger
  */
 public class FacetPanel extends JPanel {
@@ -113,81 +102,50 @@ public class FacetPanel extends JPanel {
 
         configPanel = new JPanel();
         configPanel.setBorder(BorderFactory.createTitledBorder("Config"));
-        configPanel.setLayout(new GridLayout(0, 2));
+        CardLayout cardLayout = new CardLayout();
+        configPanel.setLayout(cardLayout);
         gbc.gridy++;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
         gbc.insets.top = 10;
         add(configPanel, gbc.clone());
 
-        gbc.gridy++;
-        gbc.weighty = 1.0;
-        add(new JPanel(), gbc.clone());
+//        gbc.gridy++;
+//        gbc.weighty = 1.0;
+//        add(new JPanel(), gbc.clone());
 
-        facetList.addListSelectionListener(e -> updateConfigs(facetList.getSelectedValue()));
+        for (FacetLayer layer : facets) {
+            configPanel.add(createConfigs(layer), Integer.toString(System.identityHashCode(layer)));
+        }
+
+        facetList.addListSelectionListener(e -> {
+            FacetLayer layer = facetList.getSelectedValue();
+            String id = Integer.toString(System.identityHashCode(layer));
+            cardLayout.show(configPanel, id);
+        });
     }
 
-    protected void updateConfigs(FacetLayer layer) {
-        configPanel.removeAll();
+    protected JPanel createConfigs(FacetLayer layer) {
+        JPanel panelWrap = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(0, 2));
 
         if (layer instanceof FieldFacetLayer) {
             FieldFacetLayer fieldLayer = (FieldFacetLayer) layer;
-            createSpinner("Scale", 0, 0.1, 100, () -> fieldLayer.getScale(), v -> fieldLayer.setScale(v));
+            UIBindings.createSpinner(panel, "Scale", 0, 0.1, 100, () -> fieldLayer.getScale(), v -> fieldLayer.setScale(v));
         }
 
         if (layer instanceof GraphFacetLayer) {
             GraphFacetLayer graphLayer = (GraphFacetLayer) layer;
-            createCheckbox("Edges", () -> graphLayer.isShowEdges(), v -> graphLayer.setShowEdges(v));
-            createCheckbox("Corners", () -> graphLayer.isShowCorners(), v -> graphLayer.setShowCorners(v));
-            createCheckbox("Bounds", () -> graphLayer.isShowBounds(), v -> graphLayer.setShowBounds(v));
-            createCheckbox("Sites", () -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v));
-            createCheckbox("Triangles", () -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v));
+            UIBindings.createCheckbox(panel, "Edges", () -> graphLayer.isShowEdges(), v -> graphLayer.setShowEdges(v));
+            UIBindings.createCheckbox(panel, "Corners", () -> graphLayer.isShowCorners(), v -> graphLayer.setShowCorners(v));
+            UIBindings.createCheckbox(panel, "Bounds", () -> graphLayer.isShowBounds(), v -> graphLayer.setShowBounds(v));
+            UIBindings.createCheckbox(panel, "Sites", () -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v));
+            UIBindings.createCheckbox(panel, "Triangles", () -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v));
         }
 
-        configPanel.revalidate();
-    }
-
-    private void createCheckbox(String name, Supplier<Boolean> getter, Consumer<Boolean> setter) {
-        JCheckBox checkBox = new JCheckBox("visible");
-        checkBox.setSelected(getter.get());
-        checkBox.addComponentListener(new ComponentAdapter() {
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                checkBox.setSelected(getter.get());
-            }
-        });
-        checkBox.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                setter.accept(checkBox.isSelected());
-            }
-        });
-
-        configPanel.add(new JLabel(name));
-        configPanel.add(checkBox);
-    }
-
-    private void createSpinner(String name, double min, double stepSize, double max, Supplier<Double> getter, Consumer<Double> setter) {
-        double initValue = getter.get().doubleValue();
-
-        final SpinnerNumberModel model = new SpinnerNumberModel(initValue, min, max, stepSize);
-        final JSpinner spinner = new JSpinner(model);
-        spinner.addComponentListener(new ComponentAdapter() {
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                spinner.setValue(getter.get());
-            }
-        });
-        spinner.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                Double value = (Double) model.getValue();
-                setter.accept(value);
-            }
-        });
-        configPanel.add(new JLabel(name));
-        configPanel.add(spinner);
+        panel.setBorder(new EmptyBorder(0, 5, 0, 0));
+        panelWrap.add(panel, BorderLayout.NORTH);
+        return panelWrap;
     }
 }
