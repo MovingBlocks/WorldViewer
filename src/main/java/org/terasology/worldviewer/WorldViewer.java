@@ -33,6 +33,7 @@ import org.terasology.world.generator.WorldGenerator;
 import version.GitVersion;
 
 import com.google.common.collect.ImmutableList;
+import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 
 /**
  * Preview generated world in Swing
@@ -53,8 +54,6 @@ public final class WorldViewer {
 
         logStatus();
 
-        setupLookAndFeel();
-
         List<String> worldGenClassNames = ImmutableList.of(
                 "org.terasology.polyworld.IslandWorldGenerator",
                 "org.terasology.core.world.generator.worldGenerators.FlatWorldGenerator",
@@ -66,6 +65,7 @@ public final class WorldViewer {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
+                    setupLookAndFeel();
                     createAndShowGUI(worldGen);
                 }
             });
@@ -77,7 +77,7 @@ public final class WorldViewer {
 
     private static void setupLookAndFeel() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(new PlasticLookAndFeel());
         } catch (Exception e) {
             // we don't really care about l&f that much, so we just eat the exception
             logger.error("Cannot set look & feel", e);
