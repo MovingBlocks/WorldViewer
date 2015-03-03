@@ -50,4 +50,9 @@ public interface FacetLayer  {
      * @param obs the observer to remove
      */
     void removeObserver(Observer<FacetLayer> obs);
+
+    /**
+     * Fires out a notification event
+     */
+    void notifyObservers();
 }

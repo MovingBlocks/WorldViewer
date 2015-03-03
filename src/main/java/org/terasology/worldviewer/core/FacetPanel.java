@@ -21,21 +21,17 @@ import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableModel;
 
-import org.terasology.worldviewer.gui.FacetListCellRenderer;
-import org.terasology.worldviewer.gui.ListItemTransferHandler;
 import org.terasology.worldviewer.gui.UIBindings;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
@@ -60,38 +56,21 @@ public class FacetPanel extends JPanel {
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        add(new JLabel("Layers"), gbc.clone());
-
-        DefaultListModel<FacetLayer> listModel = new DefaultListModel<FacetLayer>();
-        JList<FacetLayer> facetList = new JList<>(listModel);
+        TableModel listModel = new FacetTableModel(facets);
+        JTable facetList = new JTable(listModel);
 
         for (FacetLayer facetLayer : facets) {
-            listModel.addElement(facetLayer);
             facetLayer.addObserver(layer -> facetList.repaint());
         }
 
-        facetList.setBorder(BorderFactory.createEtchedBorder());
-        facetList.setCellRenderer(new FacetListCellRenderer());
-
-        facetList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-                // respond to double clicks only
-                if (e.getClickCount() == 2) {
-                    int index = facetList.locationToIndex(e.getPoint());
-                    if (index != -1) {
-                        FacetLayer layer = facetList.getModel().getElementAt(index);
-                        layer.setVisible(!layer.isVisible());
-                    }
-                }
-            }
-        });
-
         facetList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        facetList.setTransferHandler(new ListItemTransferHandler<FacetLayer>());
-        facetList.setDropMode(DropMode.INSERT);
+        facetList.setTransferHandler(new TableRowTransferHandler(facetList));
+        facetList.setDropMode(DropMode.INSERT_ROWS);
         facetList.setDragEnabled(true);
+        facetList.getColumnModel().getColumn(0).setMaxWidth(25);
+        facetList.getColumnModel().getColumn(0).setResizable(false);
+        facetList.getTableHeader().setReorderingAllowed(false);
+        add(facetList.getTableHeader(), gbc.clone());
         gbc.gridy++;
         add(facetList, gbc.clone());
 
@@ -110,18 +89,17 @@ public class FacetPanel extends JPanel {
         gbc.insets.top = 10;
         add(configPanel, gbc.clone());
 
-//        gbc.gridy++;
-//        gbc.weighty = 1.0;
-//        add(new JPanel(), gbc.clone());
-
         for (FacetLayer layer : facets) {
             configPanel.add(createConfigs(layer), Integer.toString(System.identityHashCode(layer)));
         }
 
-        facetList.addListSelectionListener(e -> {
-            FacetLayer layer = facetList.getSelectedValue();
-            String id = Integer.toString(System.identityHashCode(layer));
-            cardLayout.show(configPanel, id);
+        facetList.getSelectionModel().addListSelectionListener(e -> {
+            int selIdx = facetList.getSelectedRow();
+            if (selIdx > -1) {
+                FacetLayer layer = facets.get(selIdx);
+                String id = Integer.toString(System.identityHashCode(layer));
+                cardLayout.show(configPanel, id);
+            }
         });
     }
 

@@ -54,7 +54,8 @@ public abstract class AbstractFacetLayer implements FacetLayer {
         }
     }
 
-    protected void notifyObservers() {
+    @Override
+    public void notifyObservers() {
         for (Observer<FacetLayer> obs : observers) {
             obs.update(this);
         }
