@@ -110,16 +110,22 @@ public class FacetPanel extends JPanel {
 
         if (layer instanceof FieldFacetLayer) {
             FieldFacetLayer fieldLayer = (FieldFacetLayer) layer;
-            UIBindings.createSpinner(panel, "Scale", 0, 0.1, 100, () -> fieldLayer.getScale(), v -> fieldLayer.setScale(v));
+            panel.add(new JLabel("Scale"));
+            panel.add(UIBindings.createSpinner(0, 0.1, 100, () -> fieldLayer.getScale(), v -> fieldLayer.setScale(v)));
         }
 
         if (layer instanceof GraphFacetLayer) {
             GraphFacetLayer graphLayer = (GraphFacetLayer) layer;
-            UIBindings.createCheckbox(panel, "Edges", () -> graphLayer.isShowEdges(), v -> graphLayer.setShowEdges(v));
-            UIBindings.createCheckbox(panel, "Corners", () -> graphLayer.isShowCorners(), v -> graphLayer.setShowCorners(v));
-            UIBindings.createCheckbox(panel, "Bounds", () -> graphLayer.isShowBounds(), v -> graphLayer.setShowBounds(v));
-            UIBindings.createCheckbox(panel, "Sites", () -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v));
-            UIBindings.createCheckbox(panel, "Triangles", () -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v));
+            panel.add(new JLabel("Edges"));
+            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowEdges(), v -> graphLayer.setShowEdges(v)));
+            panel.add(new JLabel("Corners"));
+            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowCorners(), v -> graphLayer.setShowCorners(v)));
+            panel.add(new JLabel("Bounds"));
+            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowBounds(), v -> graphLayer.setShowBounds(v)));
+            panel.add(new JLabel("Sites"));
+            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v)));
+            panel.add(new JLabel("Triangles"));
+            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v)));
         }
 
         panel.setBorder(new EmptyBorder(0, 5, 0, 0));

@@ -22,7 +22,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DragSource;
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;

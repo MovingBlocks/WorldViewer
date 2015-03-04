@@ -67,6 +67,7 @@ public final class WorldViewer {
                 public void run() {
                     setupLookAndFeel();
                     createAndShowGUI(worldGen);
+                    configureWorldGen(worldGen);
                 }
             });
         } else {
@@ -85,10 +86,6 @@ public final class WorldViewer {
     }
 
     private static void logStatus() {
-        // TODO: logback must be a compile-time dependency for this to work -> either change that or comment it out
-//      LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) logger).getLoggerContext();
-//      StatusPrinter.print(loggerContext);
-
       logger.info("Starting ...");
 
       logger.debug("Java: {} {} {}", System.getProperty("java.version"), System.getProperty("java.vendor"), System.getProperty("java.home"));
@@ -97,8 +94,18 @@ public final class WorldViewer {
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
     }
 
+    private static void configureWorldGen(WorldGenerator worldGen) {
+        JFrame frame = new ConfigFrame(worldGen);
+
+        frame.setTitle("Configure " + worldGen.getClass().getSimpleName());
+        frame.setSize(300, 600);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setVisible(true);
+    }
+
     private static void createAndShowGUI(WorldGenerator worldGen) {
-        final JFrame frame = new MainFrame(worldGen);
+        JFrame frame = new MainFrame(worldGen);
 
         frame.setTitle("MapViewer " + GitVersion.getVersion());
         frame.setSize(800, 600);

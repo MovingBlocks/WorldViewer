@@ -22,15 +22,15 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 /**
- * TODO Type description
+ * Provides a set of static methods that map pairs of
+ * {@link Supplier} and {@link Consumer} to Swing UI elements
+ * and attach listeners.
  * @author Martin Steiger
  */
 public final class UIBindings {
@@ -39,7 +39,7 @@ public final class UIBindings {
         // no instances
     }
 
-    public static void createCheckbox(JComponent parent, String name, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+    public static JCheckBox createCheckbox(Supplier<Boolean> getter, Consumer<Boolean> setter) {
         JCheckBox checkBox = new JCheckBox("visible");
         checkBox.setSelected(getter.get());
         checkBox.addComponentListener(new ComponentAdapter() {
@@ -57,11 +57,10 @@ public final class UIBindings {
             }
         });
 
-        parent.add(new JLabel(name));
-        parent.add(checkBox);
+        return checkBox;
     }
 
-    public static void createSpinner(JComponent parent, String name, double min, double stepSize, double max, Supplier<Double> getter, Consumer<Double> setter) {
+    public static JSpinner createSpinner(double min, double stepSize, double max, Supplier<Double> getter, Consumer<Double> setter) {
         double initValue = getter.get().doubleValue();
 
         final SpinnerNumberModel model = new SpinnerNumberModel(initValue, min, max, stepSize);
@@ -81,8 +80,8 @@ public final class UIBindings {
                 setter.accept(value);
             }
         });
-        parent.add(new JLabel(name));
-        parent.add(spinner);
+
+        return spinner;
     }
 
 }
