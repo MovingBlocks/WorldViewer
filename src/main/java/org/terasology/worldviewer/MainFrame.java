@@ -24,6 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -38,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
+import org.terasology.core.world.generator.facets.TreeFacet;
 import org.terasology.polyworld.biome.WhittakerBiome;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
 import org.terasology.polyworld.voronoi.GraphFacet;
@@ -55,8 +58,10 @@ import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.GraphFacetLayer;
 import org.terasology.worldviewer.layers.NominalFacetLayer;
+import org.terasology.worldviewer.layers.TreeFacetLayer;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * The main MapViewer JFrame
@@ -154,28 +159,32 @@ public class MainFrame extends JFrame {
 
         List<FacetLayer> result = Lists.newArrayList();
 
-        if (FieldFacet2D.class.isAssignableFrom(facetClass)) {
-            Class<FieldFacet2D> cast = (Class<FieldFacet2D>) facetClass;
-            result.add(new FieldFacetLayer(cast, 0, 5));
-        }
+        Map<Class<?>, Function<Class<?>, FacetLayer>> mapping = Maps.newHashMap();
 
-        if (WhittakerBiomeFacet.class.isAssignableFrom(facetClass)) {
-            Class<WhittakerBiomeFacet> cast = (Class<WhittakerBiomeFacet>) facetClass;
-            result.add(new NominalFacetLayer<WhittakerBiome>(cast, new WhittakerBiomeColors()));
-        }
+        mapping.put(FieldFacet2D.class,
+                clazz -> new FieldFacetLayer((Class<FieldFacet2D>) clazz, 0, 5));
 
-        if (BiomeFacet.class.isAssignableFrom(facetClass)) {
-            Class<BiomeFacet> cast = (Class<BiomeFacet>) facetClass;
-            result.add(new NominalFacetLayer<CoreBiome>(cast, new CoreBiomeColors()));
-        }
+        mapping.put(WhittakerBiomeFacet.class,
+                clazz -> new NominalFacetLayer<WhittakerBiome>((Class<WhittakerBiomeFacet>) clazz, new WhittakerBiomeColors()));
 
-        if (GraphFacet.class.isAssignableFrom(facetClass)) {
-            result.add(new GraphFacetLayer());
+        mapping.put(BiomeFacet.class,
+                clazz -> new NominalFacetLayer<CoreBiome>((Class<BiomeFacet>) clazz, new CoreBiomeColors()));
+
+        mapping.put(GraphFacet.class,
+                clazz -> new GraphFacetLayer());
+
+        mapping.put(TreeFacet.class,
+                clazz -> new TreeFacetLayer());
+
+        for (Class<?> clazz : mapping.keySet()) {
+            if (clazz.isAssignableFrom(facetClass)) {
+                result.add(mapping.get(clazz).apply(facetClass));
+            }
         }
 
 //        if (ObjectFacet2D.class.isAssignableFrom(facetClass)) {
 //            Class<ObjectFacet2D<Object>> cast = (Class<ObjectFacet2D<Object>>) facetClass;
-//            return new NominalFacetLayer<Object>(cast, new RandomObjectColors());
+//            result.add(new NominalFacetLayer<Object>(cast, new RandomObjectColors()));
 //        }
 
         if (result.isEmpty()) {

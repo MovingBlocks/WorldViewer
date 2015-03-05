@@ -19,12 +19,11 @@ package org.terasology.worldviewer.overlay;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.util.Collection;
+import java.util.function.Function;
 
 import org.terasology.math.Rect2i;
 import org.terasology.rendering.nui.Color;
 import org.terasology.worldviewer.render.RandomObjectColors;
-
-import com.google.common.base.Function;
 
 /**
  * Renders a collection of colored rectangles

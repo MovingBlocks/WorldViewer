@@ -17,11 +17,11 @@
 package org.terasology.worldviewer.render;
 
 import java.util.List;
+import java.util.function.Function;
 
 import org.terasology.rendering.nui.Color;
 import org.terasology.rendering.nui.layers.mainMenu.CieCamColors;
 
-import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
