@@ -250,9 +250,12 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private Region createRegion(Vector2i chunkPos) {
 
+        int vertChunks = 4; // 4 chunks high (relevant for trees, etc)
+
         int minX = chunkPos.x * TILE_SIZE_X;
         int minZ = chunkPos.y * TILE_SIZE_Y;
-        Region3i area3d = Region3i.createFromMinAndSize(new Vector3i(minX, 0, minZ), new Vector3i(TILE_SIZE_X, 1, TILE_SIZE_Y));
+        int height = vertChunks * ChunkConstants.SIZE_Y;
+        Region3i area3d = Region3i.createFromMinAndSize(new Vector3i(minX, 0, minZ), new Vector3i(TILE_SIZE_X, height, TILE_SIZE_Y));
         World world = worldGen.getWorld();
         Region region = world.getWorldData(area3d);
 

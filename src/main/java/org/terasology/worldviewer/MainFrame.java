@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
+import org.terasology.core.world.generator.facets.FloraFacet;
 import org.terasology.core.world.generator.facets.TreeFacet;
 import org.terasology.polyworld.biome.WhittakerBiome;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
@@ -60,6 +61,7 @@ import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.GraphFacetLayer;
 import org.terasology.worldviewer.layers.NominalFacetLayer;
 import org.terasology.worldviewer.layers.TreeFacetLayer;
+import org.terasology.worldviewer.layers.FloraFacetLayer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -143,6 +145,9 @@ public class MainFrame extends JFrame {
 
         mapping.put(GraphFacet.class,
                 clazz -> new GraphFacetLayer());
+
+        mapping.put(FloraFacet.class,
+                clazz -> new FloraFacetLayer());
 
         mapping.put(TreeFacet.class,
                 clazz -> new TreeFacetLayer());
