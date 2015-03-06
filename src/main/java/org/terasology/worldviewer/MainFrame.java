@@ -49,6 +49,7 @@ import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.ConfigStore;
+import org.terasology.worldviewer.core.ConfigPanel;
 import org.terasology.worldviewer.core.CoreBiomeColors;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
@@ -81,8 +82,6 @@ public class MainFrame extends JFrame {
 
     private final Viewer viewer;
 
-    private final TextField seedText;
-
     private Timer memoryTimer;
 
     public MainFrame(WorldGenerator worldGen) {
@@ -92,14 +91,7 @@ public class MainFrame extends JFrame {
 
         config = ConfigStore.load(CONFIG_PATH);
 
-        String seedString = "sdfsfdf";
-        worldGen.setWorldSeed(seedString);
-        worldGen.initialize();
-
-        JPanel configPanel = new JPanel();
-        BoxLayout layout = new BoxLayout(configPanel, BoxLayout.LINE_AXIS);
-        configPanel.setLayout(layout);
-        configPanel.setBorder(new EmptyBorder(2, 5, 2, 5));
+        JPanel configPanel = new ConfigPanel(worldGen, config);
 
         List<FacetLayer> facets = Lists.newArrayList();
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
@@ -108,30 +100,9 @@ public class MainFrame extends JFrame {
 
         viewer = new Viewer(worldGen, facets, config.getViewConfig());
 
-        seedText = new TextField(seedString);
-
-        configPanel.add(Box.createHorizontalGlue());
-        configPanel.add(new JLabel("Seed"));
-        configPanel.add(Box.createHorizontalStrut(5));
-        configPanel.add(seedText);
-        configPanel.add(Box.createHorizontalStrut(5));
-
-        JButton refreshButton = new JButton("Reload");
-        refreshButton.setFocusable(false);
-        refreshButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                worldGen.setWorldSeed(seedText.getText());
-                worldGen.initialize();
-                viewer.invalidateWorld();
-            }
-        });
-        configPanel.add(refreshButton);
-
         JPanel facetPanel = new FacetPanel(facets);
-        add(facetPanel, BorderLayout.WEST);
-        add(configPanel, BorderLayout.NORTH);
+        add(facetPanel, BorderLayout.EAST);
+        add(configPanel, BorderLayout.WEST);
         add(viewer, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
 

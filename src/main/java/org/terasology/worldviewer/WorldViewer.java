@@ -67,7 +67,6 @@ public final class WorldViewer {
                 public void run() {
                     setupLookAndFeel();
                     createAndShowGUI(worldGen);
-                    configureWorldGen(worldGen);
                 }
             });
         } else {
@@ -92,16 +91,6 @@ public final class WorldViewer {
       logger.debug("Java VM: {} {} {}", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
       logger.debug("OS: {} {} {}", System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
-    }
-
-    private static void configureWorldGen(WorldGenerator worldGen) {
-        JFrame frame = new ConfigFrame(worldGen);
-
-        frame.setTitle("Configure " + worldGen.getClass().getSimpleName());
-        frame.setSize(300, 600);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.setVisible(true);
     }
 
     private static void createAndShowGUI(WorldGenerator worldGen) {
