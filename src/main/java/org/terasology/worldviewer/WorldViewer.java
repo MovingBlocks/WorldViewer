@@ -28,6 +28,7 @@ import javax.swing.WindowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.engine.SimpleUri;
+import org.terasology.world.generator.RegisterWorldGenerator;
 import org.terasology.world.generator.WorldGenerator;
 
 import version.GitVersion;
@@ -59,7 +60,7 @@ public final class WorldViewer {
                 "org.terasology.core.world.generator.worldGenerators.FlatWorldGenerator",
                 "org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator");
 
-        final WorldGenerator worldGen = loadFirst(worldGenClassNames, new SimpleUri());
+        final WorldGenerator worldGen = loadFirst(worldGenClassNames);
 
         if (worldGen != null) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -110,13 +111,20 @@ public final class WorldViewer {
 //        frame.setLocation(screenWidth - frame.getWidth(), 40);
     }
 
-    private static WorldGenerator loadFirst(List<String> classNames, SimpleUri simpleUri) {
+    private static WorldGenerator loadFirst(List<String> classNames) {
 
         for (String className : classNames) {
             try {
                 Class<?> worldGenClazz = Class.forName(className);
+                if (!WorldGenerator.class.isAssignableFrom(worldGenClazz)) {
+                    throw new IllegalArgumentException(className + " does not implement the WorldGenerator interface");
+                }
+                RegisterWorldGenerator anno = worldGenClazz.getAnnotation(RegisterWorldGenerator.class);
+                if (anno == null) {
+                    throw new IllegalArgumentException(className + " is not annotated with @RegisterWorldGenerator");
+                }
                 Constructor<?> constructor = worldGenClazz.getConstructor(SimpleUri.class);
-                return (WorldGenerator) constructor.newInstance(simpleUri);
+                return (WorldGenerator) constructor.newInstance(new SimpleUri("unknown", anno.id()));
             } catch (ClassNotFoundException e) {
                 logger.info("Class not found: {}", className);
             } catch (LinkageError e) {

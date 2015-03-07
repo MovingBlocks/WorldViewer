@@ -19,6 +19,7 @@ package org.terasology.worldviewer.layers;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.core.Observer;
 
 /**
@@ -66,5 +67,16 @@ public abstract class AbstractFacetLayer implements FacetLayer {
         String name = getFacetClass().getSimpleName();
         name = name.replaceAll("Facet", "").replaceAll("(.)([A-Z])", "$1 $2");
         return name;
+    }
+
+
+    @Override
+    public FacetConfig getConfig() {
+        return null;
+    }
+
+    @Override
+    public void setConfig(FacetConfig config) {
+        // ignore
     }
 }

@@ -30,6 +30,7 @@ import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
+import org.terasology.worldviewer.config.FacetConfig;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.math.DoubleMath;
@@ -49,27 +50,32 @@ public class FieldFacetLayer extends AbstractFacetLayer {
 
     private static final Logger logger = LoggerFactory.getLogger(FieldFacetLayer.class);
 
-    private final Class<? extends FieldFacet2D> clazz;
+    private Config config = new Config();
 
-    private double offset;
-    private double scale;
+    /**
+     * This can be called only through reflection since Config is private
+     * @param config the layer configuration info
+     */
+    public FieldFacetLayer(Config config) {
+        this.config = config;
+    }
 
     public FieldFacetLayer(Class<? extends FieldFacet2D> clazz, double offset, double scale) {
-        this.clazz = clazz;
-        this.offset = offset;
-        this.scale = scale;
+        this.config.clazz = clazz;
+        this.config.offset = offset;
+        this.config.scale = scale;
     }
 
     @Override
     public String getWorldText(Region region, int wx, int wy) {
-        FieldFacet2D facet = region.getFacet(clazz);
+        FieldFacet2D facet = region.getFacet(config.clazz);
         double value = facet.getWorld(wx, wy);
         return String.format("%.2f", value);
     }
 
     @Override
     public void render(BufferedImage img, Region region) {
-        FieldFacet2D facet = region.getFacet(clazz);
+        FieldFacet2D facet = region.getFacet(config.clazz);
 
         Stopwatch sw = Stopwatch.createStarted();
 
@@ -92,7 +98,7 @@ public class FieldFacetLayer extends AbstractFacetLayer {
     private Color getColor(FieldFacet2D facet, int x, int z) {
         double value = facet.get(x, z);
         if (Double.isFinite(value)) {
-            int round = DoubleMath.roundToInt(offset + scale * value, RoundingMode.HALF_UP);
+            int round = DoubleMath.roundToInt(config.offset + config.scale * value, RoundingMode.HALF_UP);
             int idx = TeraMath.clamp(round, 0, 255);
             return GRAYS.get(idx);
         } else {
@@ -102,23 +108,23 @@ public class FieldFacetLayer extends AbstractFacetLayer {
 
     @Override
     public Class<? extends WorldFacet> getFacetClass() {
-        return clazz;
+        return config.clazz;
     }
 
     public double getOffset() {
-        return offset;
+        return config.offset;
     }
 
     public double getScale() {
-        return scale;
+        return config.scale;
     }
 
     /**
      * @param scale the new scale factor
      */
     public void setScale(double scale) {
-        if (scale != this.scale) {
-            this.scale = scale;
+        if (scale != config.scale) {
+            config.scale = scale;
             notifyObservers();
         }
     }
@@ -127,11 +133,28 @@ public class FieldFacetLayer extends AbstractFacetLayer {
      * @param offset the new offset
      */
     public void setOffset(double offset) {
-        if (offset != this.offset) {
-            this.offset = offset;
+        if (offset != config.offset) {
+            config.offset = offset;
             notifyObservers();
         }
     }
 
+    @Override
+    public FacetConfig getConfig() {
+        return config;
+    }
 
+    @Override
+    public void setConfig(FacetConfig config) {
+        this.config = (Config) config;
+    }
+
+    /**
+     * Persistent data
+     */
+    private static class Config implements FacetConfig {
+        private Class<? extends FieldFacet2D> clazz;
+        private double offset;
+        private double scale;
+    }
 }

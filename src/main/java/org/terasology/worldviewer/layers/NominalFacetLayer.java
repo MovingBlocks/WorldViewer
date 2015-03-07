@@ -43,7 +43,7 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
 
     public NominalFacetLayer(Class<? extends ObjectFacet2D<E>> clazz, Function<? super E, Color> colorMap) {
         this.colorMap = colorMap;
-        this.facetClass = clazz;
+        this.facetClass = clazz; 
     }
 
     @Override

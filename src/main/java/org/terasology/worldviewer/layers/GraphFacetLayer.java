@@ -37,6 +37,7 @@ import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.polyworld.voronoi.Region;
 import org.terasology.polyworld.voronoi.Triangle;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.config.FacetConfig;
 
 import com.google.common.math.DoubleMath;
 
@@ -46,11 +47,19 @@ import com.google.common.math.DoubleMath;
  */
 public class GraphFacetLayer extends AbstractFacetLayer {
 
-    private boolean showEdges = true;
-    private boolean showBounds = true;
-    private boolean showCorners = true;
-    private boolean showSites = true;
-    private boolean showTris;
+    private Config config = new Config();
+
+    public GraphFacetLayer() {
+        // use default settings
+    }
+
+    /**
+     * This can be called only through reflection since Config is private
+     * @param config the layer configuration info
+     */
+    public GraphFacetLayer(Config config) {
+        this.config = config;
+    }
 
     @Override
     public Class<? extends WorldFacet> getFacetClass() {
@@ -66,23 +75,23 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         int dy = region.getRegion().minZ();
         g.translate(-dx, -dy);
         for (Graph graph : graphFacet.getAllGraphs()) {
-            if (showEdges) {
+            if (config.showEdges) {
                 drawEdges(g, graph);
             }
 
-            if (showTris) {
+            if (config.showTris) {
                 drawTriangles(g, graph);
             }
 
-            if (showCorners) {
+            if (config.showCorners) {
                 drawCorners(g, graph);
             }
 
-            if (showSites) {
+            if (config.showSites) {
                 drawSites(g, graph);
             }
 
-            if (showBounds) {
+            if (config.showBounds) {
                 drawBounds(g, graph);
             }
         }
@@ -103,56 +112,56 @@ public class GraphFacetLayer extends AbstractFacetLayer {
     }
 
     public boolean isShowEdges() {
-        return showEdges;
+        return config.showEdges;
     }
 
     public void setShowEdges(boolean showEdges) {
-        if (this.showEdges != showEdges) {
-            this.showEdges = showEdges;
+        if (config.showEdges != showEdges) {
+            config.showEdges = showEdges;
             notifyObservers();
         }
     }
 
     public boolean isShowBounds() {
-        return showBounds;
+        return config.showBounds;
     }
 
     public void setShowBounds(boolean showBounds) {
-        if (this.showBounds != showBounds) {
-            this.showBounds = showBounds;
+        if (config.showBounds != showBounds) {
+            config.showBounds = showBounds;
             notifyObservers();
         }
     }
 
     public boolean isShowCorners() {
-        return showCorners;
+        return config.showCorners;
     }
 
     public void setShowCorners(boolean showCorners) {
-        if (this.showCorners != showCorners) {
-            this.showCorners = showCorners;
+        if (config.showCorners != showCorners) {
+            config.showCorners = showCorners;
             notifyObservers();
         }
     }
 
     public boolean isShowSites() {
-        return showSites;
+        return config.showSites;
     }
 
     public void setShowSites(boolean showSites) {
-        if (this.showSites != showSites) {
-            this.showSites = showSites;
+        if (config.showSites != showSites) {
+            config.showSites = showSites;
             notifyObservers();
         }
     }
 
     public boolean isShowTris() {
-        return showTris;
+        return config.showTris;
     }
 
     public void setShowTris(boolean showTris) {
-        if (this.showTris != showTris) {
-            this.showTris = showTris;
+        if (config.showTris != showTris) {
+            config.showTris = showTris;
             notifyObservers();
         }
     }
@@ -255,4 +264,24 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         g.fillRect(bounds.minX() + 1, bounds.minY() + 1, bounds.width() - 1, bounds.height() - 1);
     }
 
+    @Override
+    public FacetConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public void setConfig(FacetConfig config) {
+        this.config = (Config) config;
+    }
+
+    /**
+     * Persistent data
+     */
+    private static class Config implements FacetConfig {
+        private boolean showEdges = true;
+        private boolean showBounds = true;
+        private boolean showCorners = true;
+        private boolean showSites = true;
+        private boolean showTris;
+    }
 }

@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.core.Observer;
 
 /**
@@ -33,6 +34,13 @@ public interface FacetLayer  {
     void render(BufferedImage img, Region r);
 
     String getWorldText(Region r, int wx, int wy);
+
+    /**
+     * @return a config or <code>null</code>
+     */
+    FacetConfig getConfig();
+
+    void setConfig(FacetConfig config);
 
     /**
      * @return true if visible

@@ -17,9 +17,6 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
-import java.awt.TextField;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -29,7 +26,6 @@ import java.util.function.Function;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,30 +34,26 @@ import javax.swing.border.EmptyBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.core.world.generator.facets.FloraFacet;
 import org.terasology.core.world.generator.facets.TreeFacet;
-import org.terasology.polyworld.biome.WhittakerBiome;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
 import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
-import org.terasology.worldviewer.config.ConfigStore;
 import org.terasology.worldviewer.core.ConfigPanel;
-import org.terasology.worldviewer.core.CoreBiomeColors;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
-import org.terasology.worldviewer.core.WhittakerBiomeColors;
 import org.terasology.worldviewer.env.TinyEnvironment;
+import org.terasology.worldviewer.layers.CoreBiomeFacetLayer;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
-import org.terasology.worldviewer.layers.GraphFacetLayer;
-import org.terasology.worldviewer.layers.NominalFacetLayer;
-import org.terasology.worldviewer.layers.TreeFacetLayer;
 import org.terasology.worldviewer.layers.FloraFacetLayer;
+import org.terasology.worldviewer.layers.GraphFacetLayer;
+import org.terasology.worldviewer.layers.TreeFacetLayer;
+import org.terasology.worldviewer.layers.WhittakerBiomeFacetLayer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -78,32 +70,49 @@ public class MainFrame extends JFrame {
 
     private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".worldviewer.json");
 
-    private final JPanel statusBar = new JPanel();
-
     private final Config config;
+    private final Timer memoryTimer;
+
+    private final WorldGenerator worldGen;
+    private final List<FacetLayer> facets;
 
     private final Viewer viewer;
-
-    private Timer memoryTimer;
+    private final FacetPanel layerPanel;
+    private final ConfigPanel configPanel;
+    private final JPanel statusBar = new JPanel();
 
     public MainFrame(WorldGenerator worldGen) {
 
 //        FullEnvironment.setup();
         TinyEnvironment.setup();
 
-        config = ConfigStore.load(CONFIG_PATH);
+        worldGen.setWorldSeed("a");
+        worldGen.initialize();
 
-        JPanel configPanel = new ConfigPanel(worldGen, config);
+        List<FacetLayer> loadedFacets;
 
-        List<FacetLayer> facets = Lists.newArrayList();
-        for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
-            facets.addAll(getLayers(facet));
+        this.worldGen = worldGen;
+
+        config = Config.load(CONFIG_PATH);
+        try {
+            loadedFacets = config.loadLayers(worldGen.getUri());
+        } catch (RuntimeException e) {
+            logger.warn("Could not load layers - using default", e);
+            loadedFacets = Lists.newArrayList();
+            for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
+                loadedFacets.addAll(getLayers(facet));
+            }
         }
 
-        viewer = new Viewer(worldGen, facets, config.getViewConfig());
+        // assign outside the try/catch clause to allow for making it final
+        facets = loadedFacets;
 
-        JPanel facetPanel = new FacetPanel(facets);
-        add(facetPanel, BorderLayout.EAST);
+        configPanel = new ConfigPanel(worldGen, config);
+
+        viewer = new Viewer(worldGen, facets, config.getViewConfig());
+        layerPanel = new FacetPanel(facets);
+
+        add(layerPanel, BorderLayout.EAST);
         add(configPanel, BorderLayout.WEST);
         add(viewer, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
@@ -138,10 +147,10 @@ public class MainFrame extends JFrame {
                 clazz -> new FieldFacetLayer((Class<FieldFacet2D>) clazz, 0, 5));
 
         mapping.put(WhittakerBiomeFacet.class,
-                clazz -> new NominalFacetLayer<WhittakerBiome>((Class<WhittakerBiomeFacet>) clazz, new WhittakerBiomeColors()));
+                clazz -> new WhittakerBiomeFacetLayer());
 
         mapping.put(BiomeFacet.class,
-                clazz -> new NominalFacetLayer<CoreBiome>((Class<BiomeFacet>) clazz, new CoreBiomeColors()));
+                clazz -> new CoreBiomeFacetLayer());
 
         mapping.put(GraphFacet.class,
                 clazz -> new GraphFacetLayer());
@@ -178,7 +187,9 @@ public class MainFrame extends JFrame {
 
         viewer.close();
 
-        ConfigStore.save(CONFIG_PATH, config);
+        config.storeLayers(worldGen.getUri(), facets);
+
+        Config.save(CONFIG_PATH, config);
 
         // just in case some other thread is still running
         System.exit(0);
