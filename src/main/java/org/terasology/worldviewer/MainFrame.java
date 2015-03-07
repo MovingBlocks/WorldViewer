@@ -89,23 +89,22 @@ public class MainFrame extends JFrame {
         worldGen.setWorldSeed("a");
         worldGen.initialize();
 
-        List<FacetLayer> loadedFacets;
-
         this.worldGen = worldGen;
+        this.config = Config.load(CONFIG_PATH);
 
-        config = Config.load(CONFIG_PATH);
+        List<FacetLayer> loadedFacets = null;
+        List<FacetLayer> defaultFacets = Lists.newArrayList();
+        for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
+            defaultFacets.addAll(getLayers(facet));
+        }
         try {
-            loadedFacets = config.loadLayers(worldGen.getUri());
+            loadedFacets = config.loadLayers(worldGen.getUri(), defaultFacets);
         } catch (RuntimeException e) {
             logger.warn("Could not load layers - using default", e);
-            loadedFacets = Lists.newArrayList();
-            for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
-                loadedFacets.addAll(getLayers(facet));
-            }
         }
 
         // assign outside the try/catch clause to allow for making it final
-        facets = loadedFacets;
+        facets = loadedFacets != null ? loadedFacets : defaultFacets;
 
         configPanel = new ConfigPanel(worldGen, config);
 

@@ -74,9 +74,4 @@ public abstract class AbstractFacetLayer implements FacetLayer {
     public FacetConfig getConfig() {
         return null;
     }
-
-    @Override
-    public void setConfig(FacetConfig config) {
-        // ignore
-    }
 }

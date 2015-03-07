@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -88,22 +89,34 @@ public class Config {
         }
     }
 
-    public List<FacetLayer> loadLayers(SimpleUri wgUri) {
+    public List<FacetLayer> loadLayers(SimpleUri wgUri, List<FacetLayer> defaultFacets) {
         List<FacetLayer> confLayers = Lists.newArrayList();
+        List<FacetLayer> defLayers = Lists.newArrayList(defaultFacets);
 
         for (ConfigEntry entry : data.worldGenConfigs.get(wgUri).layers) {
 
-            FacetLayer layer;
-            if (entry.configClass != null) {
-                FacetConfig conf = GSON.fromJson(entry.data, entry.configClass);
-                layer = createInstance(entry.facetClass, conf);
-            } else {
-                layer = createInstance(entry.facetClass);
-            }
+            // if a "similar" entry exists somewhere in the default config
+            // replace it with a configured one
+            if (removeDefault(entry.facetClass, defLayers)) {
+                FacetLayer layer;
+                if (entry.configClass != null) {
+                    FacetConfig conf = GSON.fromJson(entry.data, entry.configClass);
+                    layer = createInstance(entry.facetClass, conf);
+                } else {
+                    layer = createInstance(entry.facetClass);
+                }
 
-            if (layer != null) {
-                confLayers.add(layer);
+                if (layer != null) {
+                    confLayers.add(layer);
+                }
+            } else {
+                logger.warn("Found entry that does not correspond to any default layer: {}", entry.facetClass);
             }
+        }
+
+        for (FacetLayer layer : defLayers) {
+            logger.info("No stored config available for {} - using defaults", layer.getClass());
+            confLayers.add(layer);
         }
 
         return confLayers;
@@ -133,6 +146,19 @@ public class Config {
             logger.warn("Could not create an instance of {} with {}", facetClass, conf);
             return null;
         }
+    }
+
+    private boolean removeDefault(Class<? extends FacetLayer> facetClass, List<FacetLayer> defLayers) {
+        Iterator<FacetLayer> it = defLayers.iterator();
+
+        while (it.hasNext()) {
+            if (facetClass.isInstance(it.next())) {
+                it.remove();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -144,11 +144,6 @@ public class FieldFacetLayer extends AbstractFacetLayer {
         return config;
     }
 
-    @Override
-    public void setConfig(FacetConfig config) {
-        this.config = (Config) config;
-    }
-
     /**
      * Persistent data
      */

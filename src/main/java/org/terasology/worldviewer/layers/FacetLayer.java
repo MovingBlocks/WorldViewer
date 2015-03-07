@@ -40,8 +40,6 @@ public interface FacetLayer  {
      */
     FacetConfig getConfig();
 
-    void setConfig(FacetConfig config);
-
     /**
      * @return true if visible
      */
