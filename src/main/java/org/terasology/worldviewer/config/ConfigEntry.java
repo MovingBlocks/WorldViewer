@@ -22,13 +22,31 @@ import com.google.gson.JsonElement;
 
 class ConfigEntry {
 
-    Class<? extends FacetLayer> facetClass;
-    Class<? extends FacetConfig> configClass;
-    JsonElement data;
+    private Class<? extends FacetLayer> facetClass;
+    private Class<? extends FacetConfig> configClass;
+    private JsonElement data;
+    private boolean visible;
 
-    public ConfigEntry(FacetLayer layer, JsonElement data) {
+    public ConfigEntry(FacetLayer layer, JsonElement data, boolean visible) {
         this.facetClass = layer.getClass();
         this.configClass = layer.getConfig() != null ? layer.getConfig().getClass() : null;
         this.data = data;
+        this.visible = visible;
+    }
+
+    public Class<? extends FacetLayer> getFacetClass() {
+        return facetClass;
+    }
+
+    public Class<? extends FacetConfig> getConfigClass() {
+        return configClass;
+    }
+
+    public JsonElement getData() {
+        return data;
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 }

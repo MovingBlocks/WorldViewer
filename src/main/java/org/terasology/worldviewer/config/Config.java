@@ -85,7 +85,7 @@ public class Config {
 
         for (FacetLayer layer : layers) {
             JsonElement jsonTree = GSON.toJsonTree(layer.getConfig());
-            wgConfig.layers.add(new ConfigEntry(layer, jsonTree));
+            wgConfig.layers.add(new ConfigEntry(layer, jsonTree, layer.isVisible()));
         }
     }
 
@@ -94,23 +94,25 @@ public class Config {
         List<FacetLayer> defLayers = Lists.newArrayList(defaultFacets);
 
         for (ConfigEntry entry : data.worldGenConfigs.get(wgUri).layers) {
+            Class<? extends FacetLayer> facetClass = entry.getFacetClass();
 
             // if a "similar" entry exists somewhere in the default config
             // replace it with a configured one
-            if (removeDefault(entry.facetClass, defLayers)) {
+            if (removeDefault(facetClass, defLayers)) {
                 FacetLayer layer;
-                if (entry.configClass != null) {
-                    FacetConfig conf = GSON.fromJson(entry.data, entry.configClass);
-                    layer = createInstance(entry.facetClass, conf);
+                if (entry.getConfigClass() != null) {
+                    FacetConfig conf = GSON.fromJson(entry.getData(), entry.getConfigClass());
+                    layer = createInstance(facetClass, conf);
                 } else {
-                    layer = createInstance(entry.facetClass);
+                    layer = createInstance(facetClass);
                 }
 
                 if (layer != null) {
+                    layer.setVisible(entry.isVisible());
                     confLayers.add(layer);
                 }
             } else {
-                logger.warn("Found entry that does not correspond to any default layer: {}", entry.facetClass);
+                logger.warn("Found entry that does not correspond to any default layer: {}", facetClass);
             }
         }
 
