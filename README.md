@@ -3,7 +3,7 @@ WorldViewer
 
 A world-generator based map viewer for Terasology
 
-![image1](images/2014-10-27_version0-3-0.png "Screenshot of surface height facet rendering of PerlinFacetedWorld")
+![image1](images/2015-03-07_version0-5-0.png "Screenshot of biome facet rendering of PolyWorld")
 
 
 Download
