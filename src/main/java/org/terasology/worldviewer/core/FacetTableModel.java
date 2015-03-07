@@ -19,6 +19,7 @@ package org.terasology.worldviewer.core;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
+
 import org.terasology.worldviewer.layers.FacetLayer;
 
 import com.google.common.collect.ImmutableList;
@@ -67,13 +68,15 @@ public class FacetTableModel extends AbstractTableModel implements Reorderable {
 
             case 1:
                 return layer.toString();
+
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
     public Class<?> getColumnClass(int column) {
-        return (getValueAt(0, column).getClass());
+        return getValueAt(0, column).getClass();
     }
 
     @Override

@@ -33,17 +33,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.MatteBorder;
 
 import org.slf4j.Logger;
@@ -107,8 +104,7 @@ public class ConfigPanel extends JPanel {
         add(configPanel, BorderLayout.CENTER);
     }
 
-    private JPanel createConfigPanel(WorldGenerator worldGen)
-    {
+    private JPanel createConfigPanel(WorldGenerator worldGen) {
         JPanel configPanel = new JPanel();
         configPanel.setLayout(new GridBagLayout());
 

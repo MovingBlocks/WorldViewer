@@ -123,7 +123,8 @@ public class MainFrame extends JFrame {
             long totalMemory = runtime.totalMemory();
             long freeMem = runtime.freeMemory();
             long allocMemory = (totalMemory - freeMem);
-            memoryLabel.setText(String.format("Memory: %d/%d MB", allocMemory / (1024 * 1024), maxMem / (1024 * 1024)));
+            long oneMeg = 1024 * 1024;
+            memoryLabel.setText(String.format("Memory: %d/%d MB", allocMemory / oneMeg, maxMem / oneMeg));
         });
         memoryTimer.setInitialDelay(0);
         memoryTimer.start();
@@ -140,7 +141,7 @@ public class MainFrame extends JFrame {
 
         List<FacetLayer> result = Lists.newArrayList();
 
-        Map<Class<?>, Function<Class<?>, FacetLayer>> mapping = Maps.newHashMap();
+        Map<Class<?>, Function<Class<?>, FacetLayer>> mapping = Maps.newLinkedHashMap();
 
         mapping.put(FieldFacet2D.class,
                 clazz -> new FieldFacetLayer((Class<FieldFacet2D>) clazz, 0, 5));

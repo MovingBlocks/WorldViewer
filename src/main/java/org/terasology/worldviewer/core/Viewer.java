@@ -232,18 +232,18 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
             Vector2i tilePos = new Vector2i(tileX, tileY);
             Region region = regionCache.getUnchecked(tilePos);
-            String text = "";
 
+            StringBuffer sb = new StringBuffer();
             for (FacetLayer layer : facets) {
                 if (layer.isVisible()) {
                     String layerText = layer.getWorldText(region, wx, wy);
-                    if (!layerText.isEmpty()) {
-                        text += "\n" + layerText;
+                    if (layerText != null) {
+                        sb.append("\n").append(layerText);
                     }
                 }
             }
 
-            String tooltip = String.format("%d / %d%s", wx, wy, text);
+            String tooltip = String.format("%d / %d%s", wx, wy, sb.toString());
             Tooltip.draw(g, wx, wy, tooltip);
         }
     }
