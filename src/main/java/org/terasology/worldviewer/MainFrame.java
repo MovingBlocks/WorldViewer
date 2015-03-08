@@ -74,7 +74,11 @@ public class MainFrame extends JFrame {
     private final Timer memoryTimer;
 
     private final WorldGenerator worldGen;
-    private final List<FacetLayer> facets;
+
+    /**
+     * A thread-safe list (required for parallel tile rendering)
+     */
+    private final List<FacetLayer> layerList;
 
     private final Viewer viewer;
     private final FacetPanel layerPanel;
@@ -92,24 +96,28 @@ public class MainFrame extends JFrame {
         this.worldGen = worldGen;
         this.config = Config.load(CONFIG_PATH);
 
-        List<FacetLayer> loadedFacets = null;
-        List<FacetLayer> defaultFacets = Lists.newArrayList();
+        List<FacetLayer> loadedLayers = Lists.newArrayList();
+
+        // Fill it with default values first
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
-            defaultFacets.addAll(getLayers(facet));
+            loadedLayers.addAll(getLayers(facet));
         }
+
+        // Then try to replace them with those from the config file
         try {
-            loadedFacets = config.loadLayers(worldGen.getUri(), defaultFacets);
+            loadedLayers = config.loadLayers(worldGen.getUri(), loadedLayers);
         } catch (RuntimeException e) {
             logger.warn("Could not load layers - using default", e);
         }
 
-        // assign outside the try/catch clause to allow for making it final
-        facets = loadedFacets != null ? loadedFacets : defaultFacets;
+        // assign to thread-safe implementation
+        // do it outside the try/catch clause to allow for making it final
+        layerList = Lists.newCopyOnWriteArrayList(loadedLayers);
 
         configPanel = new ConfigPanel(worldGen, config);
 
-        viewer = new Viewer(worldGen, facets, config.getViewConfig());
-        layerPanel = new FacetPanel(facets);
+        viewer = new Viewer(worldGen, layerList, config.getViewConfig());
+        layerPanel = new FacetPanel(layerList);
 
         add(layerPanel, BorderLayout.EAST);
         add(configPanel, BorderLayout.WEST);
@@ -122,7 +130,7 @@ public class MainFrame extends JFrame {
             long maxMem = runtime.maxMemory();
             long totalMemory = runtime.totalMemory();
             long freeMem = runtime.freeMemory();
-            long allocMemory = (totalMemory - freeMem);
+            long allocMemory = totalMemory - freeMem;
             long oneMeg = 1024 * 1024;
             memoryLabel.setText(String.format("Memory: %d/%d MB", allocMemory / oneMeg, maxMem / oneMeg));
         });
@@ -187,7 +195,7 @@ public class MainFrame extends JFrame {
 
         viewer.close();
 
-        config.storeLayers(worldGen.getUri(), facets);
+        config.storeLayers(worldGen.getUri(), layerList);
 
         Config.save(CONFIG_PATH, config);
 

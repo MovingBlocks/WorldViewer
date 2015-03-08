@@ -106,17 +106,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final Deque<Overlay> overlays = Lists.newLinkedList();
 
-    private final List<FacetLayer> facets;
+    private final List<FacetLayer> facetLayers;
 
     /**
      * @param wg the world generator to use
-     * @param facetConfig the facet config
+     * @param facetLayers the facet config
      * @param viewConfig the view config
      */
-    public Viewer(WorldGenerator wg, List<FacetLayer> facetConfig, ViewConfig viewConfig) {
+    public Viewer(WorldGenerator wg, List<FacetLayer> facetLayers, ViewConfig viewConfig) {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
-        this.facets = facetConfig;
+        this.facetLayers = facetLayers;
 
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
@@ -150,19 +150,22 @@ public final class Viewer extends JComponent implements AutoCloseable {
         g.dispose();
 
         // clear tile cache and repaint if any of the facet configs has changed
-        for (FacetLayer layer : facetConfig) {
+        for (FacetLayer layer : facetLayers) {
             layer.addObserver(l -> updateImageCache());
         }
     }
 
     private BufferedImage rasterize(Region region) {
+        // this method must be thread-safe!
+
         Vector3i extent = region.getRegion().size();
         int width = extent.x;
         int height = extent.z;
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
-        for (FacetLayer layer : facets) {
+
+        for (FacetLayer layer : facetLayers) {
             if (layer.isVisible()) {
                 layer.render(image, region);
             }
@@ -234,7 +237,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
             Region region = regionCache.getUnchecked(tilePos);
 
             StringBuffer sb = new StringBuffer();
-            for (FacetLayer layer : facets) {
+            for (FacetLayer layer : facetLayers) {
                 if (layer.isVisible()) {
                     String layerText = layer.getWorldText(region, wx, wy);
                     if (layerText != null) {
