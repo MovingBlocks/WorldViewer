@@ -108,7 +108,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
                         graph.getRegions().size(), graph.getCorners().size(), graph.getEdges().size());
             }
         }
-        return "";
+        return null;
     }
 
     public boolean isShowEdges() {

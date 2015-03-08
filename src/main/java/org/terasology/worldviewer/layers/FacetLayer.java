@@ -29,11 +29,26 @@ import org.terasology.worldviewer.core.Observer;
  */
 public interface FacetLayer  {
 
+    /**
+     * @return the target facet class
+     */
     Class<? extends WorldFacet> getFacetClass();
 
-    void render(BufferedImage img, Region r);
+    /**
+     * Renders the content of a facet to an image
+     * @param img the image to render on
+     * @param region the region that provides the data
+     */
+    void render(BufferedImage img, Region region);
 
-    String getWorldText(Region r, int wx, int wy);
+    /**
+     * Returns a descriptive text for a specific target location
+     * @param region the region of interest
+     * @param wx the world x coordinate
+     * @param wy the world y coordinate
+     * @return a descriptive text or <code>null</code>
+     */
+    String getWorldText(Region region, int wx, int wy);
 
     /**
      * @return a config or <code>null</code>
@@ -45,6 +60,10 @@ public interface FacetLayer  {
      */
     boolean isVisible();
 
+    /**
+     * Note that changing visibility will notify all observers
+     * @param yesno true if visible
+     */
     void setVisible(boolean yesno);
 
     /**

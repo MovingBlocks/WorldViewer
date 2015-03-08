@@ -69,7 +69,6 @@ public abstract class AbstractFacetLayer implements FacetLayer {
         return name;
     }
 
-
     @Override
     public FacetConfig getConfig() {
         return null;

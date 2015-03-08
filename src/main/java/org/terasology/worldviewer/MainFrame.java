@@ -38,6 +38,7 @@ import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.core.world.generator.facets.FloraFacet;
 import org.terasology.core.world.generator.facets.TreeFacet;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
+import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
@@ -52,6 +53,7 @@ import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.FloraFacetLayer;
 import org.terasology.worldviewer.layers.GraphFacetLayer;
+import org.terasology.worldviewer.layers.RiverModelFacetLayer;
 import org.terasology.worldviewer.layers.TreeFacetLayer;
 import org.terasology.worldviewer.layers.WhittakerBiomeFacetLayer;
 
@@ -159,6 +161,9 @@ public class MainFrame extends JFrame {
 
         mapping.put(BiomeFacet.class,
                 clazz -> new CoreBiomeFacetLayer());
+
+        mapping.put(RiverModelFacet.class,
+                clazz -> new RiverModelFacetLayer());
 
         mapping.put(GraphFacet.class,
                 clazz -> new GraphFacetLayer());

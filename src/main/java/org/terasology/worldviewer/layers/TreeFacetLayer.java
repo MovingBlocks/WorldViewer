@@ -99,7 +99,7 @@ public class TreeFacetLayer extends AbstractFacetLayer {
         // try to exit early first
 
         if (labels.isEmpty()) {
-            return "";
+            return null;
         }
 
         if (labels.size() == 1) {
