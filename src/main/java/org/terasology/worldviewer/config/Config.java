@@ -93,7 +93,13 @@ public class Config {
         List<FacetLayer> confLayers = Lists.newArrayList();
         List<FacetLayer> defLayers = Lists.newArrayList(defaultFacets);
 
-        for (ConfigEntry entry : data.worldGenConfigs.get(wgUri).layers) {
+        WorldGenConfigData wgData = data.worldGenConfigs.get(wgUri);
+        if (wgData == null) {
+            // no info stored for this world gen -> use defaults
+            return defLayers;
+        }
+
+        for (ConfigEntry entry : wgData.layers) {
             Class<? extends FacetLayer> facetClass = entry.getFacetClass();
 
             // if a "similar" entry exists somewhere in the default config
