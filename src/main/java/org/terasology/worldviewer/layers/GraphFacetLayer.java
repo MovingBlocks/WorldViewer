@@ -19,6 +19,8 @@ package org.terasology.worldviewer.layers;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Collection;
@@ -71,6 +73,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         GraphFacet graphFacet = region.getFacet(GraphFacet.class);
 
         Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         int dx = region.getRegion().minX();
         int dy = region.getRegion().minZ();
         g.translate(-dx, -dy);
@@ -168,7 +171,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
 
     public static void drawEdges(Graphics2D g, Graph graph) {
         g.setStroke(new BasicStroke(1));
-        g.setColor(Color.CYAN);
+        g.setColor(new Color(192, 192, 192, 160));
         for (Edge e : graph.getEdges()) {
             BaseVector2f r0c = e.getCorner0().getLocation();
             BaseVector2f r1c = e.getCorner1().getLocation();
@@ -231,7 +234,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         xPoints[2] = DoubleMath.roundToInt(p2.getX(), mode);
         yPoints[2] = DoubleMath.roundToInt(p2.getY(), mode);
 
-        g.drawPolygon(xPoints, yPoints, 3);
+        g.fillPolygon(xPoints, yPoints, 3);
     }
 
     public static void drawSites(Graphics2D g, Graph graph) {
@@ -239,8 +242,8 @@ public class GraphFacetLayer extends AbstractFacetLayer {
 
         g.setColor(Color.BLACK);
         for (Region regs : centers) {
-            Vector2f center = regs.getCenter();
-            g.fillOval((int) (center.getX() - 2), (int) (center.getY() - 2), 4, 4);
+            Vector2f c = regs.getCenter();
+            g.fill(new Rectangle2D.Double(c.getX() - 1, c.getY() - 1, 2, 2));
         }
     }
 
@@ -248,7 +251,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         g.setColor(Color.WHITE);
         for (Corner c : graph.getCorners()) {
             ImmutableVector2f loc = c.getLocation();
-            g.fillOval((int) (loc.getX() - 2), (int) (loc.getY() - 2), 4, 4);
+            g.fill(new Rectangle2D.Double(loc.getX() - 1, loc.getY() - 1, 2, 2));
         }
     }
 
