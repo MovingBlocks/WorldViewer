@@ -126,6 +126,8 @@ public class FacetPanel extends JPanel {
             panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v)));
             panel.add(new JLabel("Triangles"));
             panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v)));
+            panel.add(new JLabel("Lookup Table"));
+            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowLookup(), v -> graphLayer.setShowLookup(v)));
         }
 
         panel.setBorder(new EmptyBorder(0, 5, 0, 0));

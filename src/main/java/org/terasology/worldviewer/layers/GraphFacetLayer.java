@@ -29,6 +29,7 @@ import java.util.Random;
 import java.util.function.Function;
 
 import org.terasology.math.Rect2i;
+import org.terasology.math.Region3i;
 import org.terasology.math.geom.BaseVector2f;
 import org.terasology.math.geom.ImmutableVector2f;
 import org.terasology.math.geom.Vector2f;
@@ -99,7 +100,26 @@ public class GraphFacetLayer extends AbstractFacetLayer {
             }
         }
 
+        if (config.showLookUp) {
+            drawTriangleLookup(g, graphFacet);
+        }
+
         g.dispose();
+    }
+
+    private void drawTriangleLookup(Graphics2D g, GraphFacet graphFacet)
+    {
+        Region3i worldReg = graphFacet.getWorldRegion();
+        for (int z = worldReg.minZ(); z < worldReg.maxZ(); z++) {
+            for (int x = worldReg.minX(); x < worldReg.maxX(); x++) {
+                Triangle tri = graphFacet.getWorldTriangle(x, 0, z);
+                if (tri == null) {
+                    g.setStroke(new BasicStroke(3f));
+                    g.setColor(Color.RED);
+                    g.drawOval(x - 5, z - 5, 10, 10);
+                }
+            }
+        }
     }
 
     @Override
@@ -165,6 +185,17 @@ public class GraphFacetLayer extends AbstractFacetLayer {
     public void setShowTris(boolean showTris) {
         if (config.showTris != showTris) {
             config.showTris = showTris;
+            notifyObservers();
+        }
+    }
+
+    public boolean isShowLookup() {
+        return config.showLookUp;
+    }
+
+    public void setShowLookup(boolean showLookUp) {
+        if (config.showLookUp != showLookUp) {
+            config.showLookUp = showLookUp;
             notifyObservers();
         }
     }
@@ -280,6 +311,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         private boolean showBounds = true;
         private boolean showCorners = true;
         private boolean showSites = true;
+        private boolean showLookUp;
         private boolean showTris;
     }
 }
