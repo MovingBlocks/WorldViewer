@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.math.TeraMath;
 import org.terasology.rendering.nui.Color;
+import org.terasology.rendering.nui.properties.Range;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
@@ -149,7 +150,11 @@ public class FieldFacetLayer extends AbstractFacetLayer {
      */
     private static class Config implements FacetConfig {
         private Class<? extends FieldFacet2D> clazz;
+
+        @Range(min = -100, max = 100, increment = 1f, precision = 1)
         private double offset;
+
+        @Range(min = 0, max = 100, increment = 0.1f, precision = 1)
         private double scale;
     }
 }

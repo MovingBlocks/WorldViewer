@@ -21,21 +21,28 @@ import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.DropMode;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
+import org.terasology.rendering.nui.properties.Checkbox;
+import org.terasology.rendering.nui.properties.Range;
+import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.gui.UIBindings;
+import org.terasology.worldviewer.lambda.Lambda;
 import org.terasology.worldviewer.layers.FacetLayer;
-import org.terasology.worldviewer.layers.FieldFacetLayer;
-import org.terasology.worldviewer.layers.GraphFacetLayer;
 
 /**
  * The facet layer configuration panel (at the left)
@@ -108,30 +115,61 @@ public class FacetPanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2));
 
-        if (layer instanceof FieldFacetLayer) {
-            FieldFacetLayer fieldLayer = (FieldFacetLayer) layer;
-            panel.add(new JLabel("Scale"));
-            panel.add(UIBindings.createSpinner(0, 0.1, 100, () -> fieldLayer.getScale(), v -> fieldLayer.setScale(v)));
-        }
+        FacetConfig config = layer.getConfig();
+        if (config != null) {
+            for (Field field : config.getClass().getDeclaredFields()) {
 
-        if (layer instanceof GraphFacetLayer) {
-            GraphFacetLayer graphLayer = (GraphFacetLayer) layer;
-            panel.add(new JLabel("Edges"));
-            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowEdges(), v -> graphLayer.setShowEdges(v)));
-            panel.add(new JLabel("Corners"));
-            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowCorners(), v -> graphLayer.setShowCorners(v)));
-            panel.add(new JLabel("Bounds"));
-            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowBounds(), v -> graphLayer.setShowBounds(v)));
-            panel.add(new JLabel("Sites"));
-            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowSites(), v -> graphLayer.setShowSites(v)));
-            panel.add(new JLabel("Triangles"));
-            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowTris(), v -> graphLayer.setShowTris(v)));
-            panel.add(new JLabel("Lookup Table"));
-            panel.add(UIBindings.createCheckbox(() -> graphLayer.isShowLookup(), v -> graphLayer.setShowLookup(v)));
+                if (field.getAnnotations().length > 0) {
+                    field.setAccessible(true);
+
+                    processRangeAnnotation(panel, layer, field);
+                    processCheckboxAnnotation(panel, layer, field);
+                }
+            }
         }
 
         panel.setBorder(new EmptyBorder(0, 5, 0, 0));
         panelWrap.add(panel, BorderLayout.NORTH);
         return panelWrap;
+    }
+
+    private void processRangeAnnotation(JPanel panel, FacetLayer layer, Field field) {
+        FacetConfig config = layer.getConfig();
+        Range range = field.getAnnotation(Range.class);
+
+        // TODO: identify common code with ConfigPanel.process()
+        if (range != null) {
+            JLabel label = new JLabel(range.label().isEmpty() ? field.getName() : range.label());
+            label.setToolTipText(range.description());
+            double min = range.min();
+            double max = range.max();
+            double stepSize = range.increment();
+            Supplier<Double> getter = Lambda.toRuntime(() -> field.getDouble(config));
+            Consumer<Double> setter = Lambda.toRuntime(v -> { field.setFloat(config, v.floatValue()); layer.notifyObservers(); });
+            JSpinner spinner = UIBindings.createSpinner(min, stepSize, max, getter, setter);
+            spinner.setToolTipText(range.description());
+
+            panel.add(label);
+            panel.add(spinner);
+        }
+    }
+
+    private void processCheckboxAnnotation(JPanel panel, FacetLayer layer, Field field) {
+        FacetConfig config = layer.getConfig();
+        Checkbox checkbox = field.getAnnotation(Checkbox.class);
+
+        // TODO: identify common code with ConfigPanel.process()
+        if (checkbox != null) {
+            JLabel label = new JLabel(checkbox.label().isEmpty() ? field.getName() : checkbox.label());
+            label.setToolTipText(checkbox.description());
+
+            Supplier<Boolean> getter = Lambda.toRuntime(() -> field.getBoolean(config));
+            Consumer<Boolean> setter = Lambda.toRuntime(v -> { field.setBoolean(config, v.booleanValue()); layer.notifyObservers(); });
+            JCheckBox component = UIBindings.createCheckbox(getter, setter);
+            component.setToolTipText(checkbox.description());
+
+            panel.add(label);
+            panel.add(component);
+        }
     }
 }

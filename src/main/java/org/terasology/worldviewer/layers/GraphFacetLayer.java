@@ -39,6 +39,7 @@ import org.terasology.polyworld.voronoi.Graph;
 import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.polyworld.voronoi.Region;
 import org.terasology.polyworld.voronoi.Triangle;
+import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.config.FacetConfig;
 
@@ -306,11 +307,11 @@ public class GraphFacetLayer extends AbstractFacetLayer {
      * Persistent data
      */
     private static class Config implements FacetConfig {
-        private boolean showEdges = true;
-        private boolean showBounds = true;
-        private boolean showCorners = true;
-        private boolean showSites = true;
-        private boolean showLookUp;
-        private boolean showTris;
+        @Checkbox private boolean showEdges = true;
+        @Checkbox private boolean showBounds = true;
+        @Checkbox private boolean showCorners = true;
+        @Checkbox private boolean showSites = true;
+        @Checkbox private boolean showLookUp;
+        @Checkbox private boolean showTris;
     }
 }

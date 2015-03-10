@@ -75,7 +75,7 @@ public class ConfigPanel extends JPanel {
         String seedString = "sdfsfdf";
 
         seedText = new TextField(seedString);
-        JComboBox<WorldGenerator> wgSelectCombo = new JComboBox<>(new WorldGenerator[] { worldGen } );
+        JComboBox<WorldGenerator> wgSelectCombo = new JComboBox<>(new WorldGenerator[] {worldGen});
         ListCellRenderer<? super WorldGenerator> wgTextRenderer = new WorldGenCellRenderer();
         wgSelectCombo.setRenderer(wgTextRenderer);
         wgSelectPanel.add(wgSelectCombo, BorderLayout.NORTH);
@@ -161,7 +161,7 @@ public class ConfigPanel extends JPanel {
             gbc.insets.left = 5;
             gbc.insets.right = 5;
             gbc.gridx = 0;
-            JLabel label = new JLabel(range.label().isEmpty() ? "<undefined>" : range.label());
+            JLabel label = new JLabel(range.label().isEmpty() ? field.getName() : range.label());
             parent.add(label, gbc.clone());
             label.setToolTipText(range.description());
             double min = range.min();
