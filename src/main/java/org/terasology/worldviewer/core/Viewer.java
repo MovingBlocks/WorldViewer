@@ -22,6 +22,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.geom.AffineTransform;
@@ -243,6 +244,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
         int camChunkMaxX = IntMath.divide(area.maxX(), TILE_SIZE_X, RoundingMode.CEILING);
         int camChunkMaxZ = IntMath.divide(area.maxY(), TILE_SIZE_Y, RoundingMode.CEILING);
 
+        Object hint;
+
+        if (camera.getZoom() < 1) {
+            // Render with bi-linear interpolation when zoomed out
+            hint = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+        } else {
+            // Render with nearest neighbor interpolation when zoomed in (or at 100%)
+            hint = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+        }
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
+
         for (int z = camChunkMinZ; z < camChunkMaxZ; z++) {
             for (int x = camChunkMinX; x < camChunkMaxX; x++) {
                 Vector2i pos = new Vector2i(x, z);
@@ -251,6 +263,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
                 g.drawImage(image, x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
             }
         }
+
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     }
 
     private void drawTooltip(Graphics2D g, Rect2i area) {

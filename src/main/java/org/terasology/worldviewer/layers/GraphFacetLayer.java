@@ -25,7 +25,6 @@ import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Function;
 
 import org.terasology.math.Rect2i;
@@ -236,36 +235,21 @@ public class GraphFacetLayer extends AbstractFacetLayer {
     public static void drawTriangles(Graphics2D g, Graph graph) {
         List<Region> regions = graph.getRegions();
 
-        Random r = new Random(12332434);
+        g.setColor(new Color(64, 64, 255, 224));
+        RoundingMode mode = RoundingMode.HALF_UP;
 
         for (final Region reg : regions) {
-            for (Triangle t : reg.computeTriangles()) {
-                g.setColor(new Color(r.nextInt(0xFFFFFF)));
-                drawTriangle(g, t);
+            BaseVector2f p0 = reg.getCenter();
+            int x0 = DoubleMath.roundToInt(p0.getX(), mode);
+            int y0 = DoubleMath.roundToInt(p0.getY(), mode);
+            for (Corner c : reg.getCorners()) {
+                BaseVector2f p1 = c.getLocation();
+
+                int x1 = DoubleMath.roundToInt(p1.getX(), mode);
+                int y1 = DoubleMath.roundToInt(p1.getY(), mode);
+                g.drawLine(x0, y0, x1, y1);
             }
         }
-    }
-
-    public static void drawTriangle(Graphics2D g, Triangle tri) {
-
-        RoundingMode mode = RoundingMode.HALF_UP;
-        int[] xPoints = new int[3];
-        int[] yPoints = new int[3];
-
-        BaseVector2f p0 = tri.getRegion().getCenter();
-        BaseVector2f p1 = tri.getCorner1().getLocation();
-        BaseVector2f p2 = tri.getCorner2().getLocation();
-
-        xPoints[0] = DoubleMath.roundToInt(p0.getX(), mode);
-        yPoints[0] = DoubleMath.roundToInt(p0.getY(), mode);
-
-        xPoints[1] = DoubleMath.roundToInt(p1.getX(), mode);
-        yPoints[1] = DoubleMath.roundToInt(p1.getY(), mode);
-
-        xPoints[2] = DoubleMath.roundToInt(p2.getX(), mode);
-        yPoints[2] = DoubleMath.roundToInt(p2.getY(), mode);
-
-        g.fillPolygon(xPoints, yPoints, 3);
     }
 
     public static void drawSites(Graphics2D g, Graph graph) {

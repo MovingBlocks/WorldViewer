@@ -21,6 +21,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.RenderingHints;
 import java.util.function.Supplier;
 
 import org.terasology.math.Rect2i;
@@ -116,7 +117,10 @@ public class TextOverlay extends AbstractOverlay {
         }
 
         Font oldFont = g.getFont();
+        Object oldHint = g.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+
         g.setFont(font);        // null fonts are silenty ignored
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         FontMetrics fm = g.getFontMetrics();
         String[] lines = text.split("\n");
@@ -192,6 +196,7 @@ public class TextOverlay extends AbstractOverlay {
         }
 
         g.setFont(oldFont);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, oldHint);
     }
 
     public void setBackground(Paint background) {
