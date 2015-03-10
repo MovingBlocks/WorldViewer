@@ -16,11 +16,15 @@
 
 package org.terasology.worldviewer.camera;
 
+import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 
 import javax.swing.SwingUtilities;
+
+import org.terasology.math.TeraMath;
 
 /**
  * Controls a camera based on mouse interaction
@@ -30,6 +34,10 @@ public class CameraMouseController extends MouseAdapter {
 
     private Point draggedPoint;
     private final Camera camera;
+
+    private int zoomLevel;
+    private int minZoomLevel = -8;
+    private int maxzoomLevel = 12;
 
     public CameraMouseController(Camera camera) {
         this.camera = camera;
@@ -55,5 +63,39 @@ public class CameraMouseController extends MouseAdapter {
     @Override
     public void mouseReleased(MouseEvent e) {
         draggedPoint = null;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        zoomLevel += e.getWheelRotation();
+
+        zoomLevel = TeraMath.clamp(zoomLevel, minZoomLevel, maxzoomLevel);
+
+        float delta = 0.25f;
+
+        // Zoom only in deterministic steps
+        // Don't concatenate with previous zooms to avoid rounding errors
+        float zoom = (float) Math.pow(2.0, zoomLevel * delta);
+
+        // This cast is safe since MouseWheelEvent takes only Component sources
+        Component source = (Component) e.getSource();
+
+        int relX = e.getX() - source.getWidth() / 2;
+        int relY = e.getY() - source.getHeight() / 2;
+
+        int oldX = TeraMath.floorToInt(relX);
+        int oldY = TeraMath.floorToInt(relY);
+
+        // move the camera to the cursor position
+        camera.translate(oldX, oldY);
+
+        // zoom
+        camera.setZoom(zoom);
+
+        int newX = TeraMath.floorToInt(relX);
+        int newY = TeraMath.floorToInt(relY);
+
+        // revert the camera movement from above, but in the new coordinate system
+        camera.translate(-newX, -newY);
     }
 }

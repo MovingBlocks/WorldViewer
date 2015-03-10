@@ -18,11 +18,13 @@ package org.terasology.worldviewer.core;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Deque;
@@ -34,8 +36,10 @@ import javax.swing.JComponent;
 
 import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
+import org.terasology.math.TeraMath;
 import org.terasology.math.Vector2i;
 import org.terasology.math.Vector3i;
+import org.terasology.rendering.nui.HorizontalAlign;
 import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
@@ -51,6 +55,7 @@ import org.terasology.worldviewer.gui.Tooltip;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
+import org.terasology.worldviewer.overlay.TextOverlay;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -104,7 +109,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final ViewConfig viewConfig;
 
-    private final Deque<Overlay> overlays = Lists.newLinkedList();
+    private final Deque<Overlay> trOverlays = Lists.newLinkedList();
+    private final Deque<Overlay> utOverlays = Lists.newLinkedList();
 
     private final List<FacetLayer> facetLayers;
 
@@ -123,7 +129,18 @@ public final class Viewer extends JComponent implements AutoCloseable {
         camera.translate(camPos.getX(), camPos.getY());
 
         GridOverlay gridOverlay = new GridOverlay(TILE_SIZE_X, TILE_SIZE_Y);
-        overlays.addLast(gridOverlay);
+        trOverlays.addLast(gridOverlay);
+
+        TextOverlay zoomOverlay = new TextOverlay(() -> String.format("Zoom: %3d%%", (int) (camera.getZoom() * 100)));
+        zoomOverlay.setHorizontalAlign(HorizontalAlign.RIGHT);
+        zoomOverlay.setMargins(5, 5, 5, 5);
+        zoomOverlay.setInsets(8, 5, 5, 5);
+        zoomOverlay.setFont(new Font("Dialog", Font.BOLD, 15));
+        zoomOverlay.setFrame(new Color(192, 192, 192, 128));
+        zoomOverlay.setBackground(new Color(92, 92, 92, 160));
+        zoomOverlay.setVisible(false);
+        camera.addListener(new ZoomOverlayUpdater(this, zoomOverlay));
+        utOverlays.add(zoomOverlay);
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -133,6 +150,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
         addKeyListener(keyCameraController);
         addMouseListener(mouseCameraController);
         addMouseMotionListener(mouseCameraController);
+        addMouseWheelListener(mouseCameraController);
 
         // add tooltip mouse listeners
         curPosListener = new CursorPositionListener();
@@ -182,20 +200,38 @@ public final class Viewer extends JComponent implements AutoCloseable {
     @Override
     public void paint(Graphics g1) {
         Graphics2D g = (Graphics2D) g1;
+        AffineTransform orgTrans = g.getTransform();
 
-        int cx = camera.getPos().getX();
-        int cy = camera.getPos().getY();
-        int w = getWidth();
-        int h = getHeight();
+        int cx = TeraMath.floorToInt(camera.getPos().getX());
+        int cy = TeraMath.floorToInt(camera.getPos().getY());
+
+        int w = (int) (getWidth() / camera.getZoom());
+        int h = (int) (getHeight() / camera.getZoom());
         int minX = cx - w / 2;
         int minY = cy - h / 2;
         Rect2i area = Rect2i.createFromMinAndSize(minX, minY, w, h);
 
+        g.scale(camera.getZoom(), camera.getZoom());
         g.translate(-minX, -minY);
 
         drawTiles(g, area);
 
-        drawOverlays(g, area);
+        // draw world overlays
+        for (Overlay ovly : trOverlays) {
+            if (ovly.isVisible()) {
+                ovly.render(g, area);
+            }
+        }
+
+        g.setTransform(orgTrans);
+
+        // draw screen overlays
+        Rect2i windowRect = Rect2i.createFromMinAndSize(0, 0, getWidth(), getHeight());
+        for (Overlay ovly : utOverlays) {
+            if (ovly.isVisible()) {
+                ovly.render(g, windowRect);
+            }
+        }
 
         drawTooltip(g, area);
     }
@@ -217,18 +253,12 @@ public final class Viewer extends JComponent implements AutoCloseable {
         }
     }
 
-    private void drawOverlays(Graphics2D g, Rect2i area) {
-        for (Overlay ovly : overlays) {
-            ovly.render(g, area);
-        }
-    }
-
     private void drawTooltip(Graphics2D g, Rect2i area) {
         Point curPos = curPosListener.getCursorPosition();
 
         if (curPos != null) {
-            int wx = area.minX() + curPos.x;
-            int wy = area.minY() + curPos.y;
+            int wx = area.minX() + TeraMath.floorToInt(curPos.x / camera.getZoom());
+            int wy = area.minY() + TeraMath.floorToInt(curPos.y / camera.getZoom());
 
             int tileX = IntMath.divide(wx, TILE_SIZE_X, RoundingMode.FLOOR);
             int tileY = IntMath.divide(wy, TILE_SIZE_Y, RoundingMode.FLOOR);
@@ -247,7 +277,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
             }
 
             String tooltip = String.format("%d / %d%s", wx, wy, sb.toString());
-            Tooltip.draw(g, wx, wy, tooltip);
+            Tooltip.draw(g, curPos.x, curPos.y, tooltip);
         }
     }
 
@@ -279,8 +309,11 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     @Override
     public void close() {
+        int cx = (int) camera.getPos().getX();
+        int cy = (int) camera.getPos().getY();
+
         // TODO: TeraMath compatibility fix
-        viewConfig.setCamPos(new Vector2i(camera.getPos().getX(), camera.getPos().getY()));
+        viewConfig.setCamPos(new Vector2i(cx, cy));
 
         threadPool.shutdownNow();
     }

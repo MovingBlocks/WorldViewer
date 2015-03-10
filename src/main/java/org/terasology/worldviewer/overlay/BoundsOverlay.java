@@ -29,7 +29,7 @@ import org.terasology.worldviewer.render.RandomObjectColors;
  * Renders a collection of colored rectangles
  * @author Martin Steiger
  */
-public class BoundsOverlay implements Overlay {
+public class BoundsOverlay extends AbstractOverlay {
 
     private Function<Rect2i, Collection<Rect2i>> func;
     private Function<Object, Color> colorFunc;
@@ -38,7 +38,6 @@ public class BoundsOverlay implements Overlay {
         this.func = func;
         colorFunc = new RandomObjectColors();
     }
-
 
     @Override
     public void render(Graphics2D g, Rect2i area) {

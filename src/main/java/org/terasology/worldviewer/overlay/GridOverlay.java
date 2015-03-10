@@ -29,9 +29,10 @@ import com.google.common.math.IntMath;
  * Renders a grid that is aligned along tile borders
  * @author Martin Steiger
  */
-public class GridOverlay implements Overlay {
+public class GridOverlay extends AbstractOverlay {
 
-    private Color majorGridColor = new Color(128, 128, 128, 192);
+    private Color originGridColor = new Color(192, 192, 192, 224);
+    private Color majorGridColor = new Color(128, 128, 128, 160);
     private Color minorGridColor = new Color(128, 128, 128, 64);
 
     private int majorToMinor = 8;
@@ -44,7 +45,6 @@ public class GridOverlay implements Overlay {
         this.tileSizeY = tileSizeY;
     }
 
-
     @Override
     public void render(Graphics2D g, Rect2i area) {
         int tileMinX = IntMath.divide(area.minX(), tileSizeX, RoundingMode.FLOOR);
@@ -56,12 +56,12 @@ public class GridOverlay implements Overlay {
         g.setStroke(new BasicStroke(0));
 
         for (int z = tileMinZ; z < tileMaxZ; z++) {
-            g.setColor((z % majorToMinor == 0) ? majorGridColor : minorGridColor);
+            g.setColor((z == 0) ? originGridColor : (z % majorToMinor == 0) ? majorGridColor : minorGridColor);
             g.drawLine(tileMinX * tileSizeX, z * tileSizeY, tileMaxX * tileSizeX, z * tileSizeY);
         }
 
         for (int x = tileMinX; x < tileMaxX; x++) {
-            g.setColor((x % majorToMinor == 0) ? majorGridColor : minorGridColor);
+            g.setColor((x == 0) ? originGridColor : (x % majorToMinor == 0) ? majorGridColor : minorGridColor);
             g.drawLine(x * tileSizeX, tileMinZ * tileSizeY, x * tileSizeX, tileMaxZ * tileSizeY);
         }
     }

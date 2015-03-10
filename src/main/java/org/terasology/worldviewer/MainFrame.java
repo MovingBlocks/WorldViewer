@@ -144,7 +144,7 @@ public class MainFrame extends JFrame {
         statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.LINE_AXIS));
         statusBar.add(memoryLabel);
         statusBar.add(Box.createHorizontalGlue());
-        statusBar.add(new JLabel("Use cursor arrows or drag with right mouse button to navigate"));
+        statusBar.add(new JLabel("Drag with right mouse button to navigate, use the wheel to zoom"));
         statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
     }
 

@@ -16,23 +16,21 @@
 
 package org.terasology.worldviewer.overlay;
 
-import java.awt.Graphics2D;
-
-import org.terasology.math.Rect2i;
 
 /**
- * TODO Type description
  * @author Martin Steiger
  */
-public interface Overlay {
+public abstract class AbstractOverlay implements Overlay {
 
-    /**
-     * @param g
-     * @param area
-     */
-    void render(Graphics2D g, Rect2i area);
+    private boolean isVisible = true;
 
-    void setVisible(boolean yesno);
+    @Override
+    public void setVisible(boolean yesno) {
+        isVisible = yesno;
+    }
 
-    boolean isVisible();
+    @Override
+    public boolean isVisible() {
+        return isVisible;
+    }
 }

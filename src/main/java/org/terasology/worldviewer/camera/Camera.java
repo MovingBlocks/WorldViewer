@@ -18,9 +18,8 @@ package org.terasology.worldviewer.camera;
 
 import java.util.Collection;
 
-import org.terasology.math.geom.BaseVector2i;
-import org.terasology.math.geom.ImmutableVector2i;
-import org.terasology.math.geom.Vector2i;
+import org.terasology.math.geom.ImmutableVector2f;
+import org.terasology.math.geom.Vector2f;
 
 import com.google.common.collect.Lists;
 
@@ -29,39 +28,32 @@ import com.google.common.collect.Lists;
  * @author Martin Steiger
  */
 public class Camera {
-    private final Vector2i pos = new Vector2i();
+    private final Vector2f pos = new Vector2f();
     private final Collection<CameraListener> listeners = Lists.newLinkedList();
-    private double zoom = 1.0;
+    private float zoom = 1.0f;
 
-    public double getZoom() {
+    public float getZoom() {
         return zoom;
     }
 
-    public void setZoom(double zoom) {
+    public void setZoom(float zoom) {
         this.zoom = zoom;
         for (CameraListener listener : listeners) {
             listener.onZoomChange();
         }
     }
 
-    public ImmutableVector2i getPos() {
-        return new ImmutableVector2i(pos);
-    }
-
-    public void setPos(BaseVector2i npos) {
-        pos.set(npos);
-        for (CameraListener listener : listeners) {
-            listener.onPosChange();
-        }
+    public ImmutableVector2f getPos() {
+        return new ImmutableVector2f(pos.x, pos.y);
     }
 
     /**
      * @param dx the x translation
      * @param dy the y translation
      */
-    public void translate(int dx, int dy) {
-        this.pos.addX(dx);
-        this.pos.addY(dy);
+    public void translate(float dx, float dy) {
+        this.pos.addX(dx / zoom);
+        this.pos.addY(dy / zoom);
         for (CameraListener listener : listeners) {
             listener.onPosChange();
         }

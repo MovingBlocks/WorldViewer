@@ -107,8 +107,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         g.dispose();
     }
 
-    private void drawTriangleLookup(Graphics2D g, GraphFacet graphFacet)
-    {
+    private void drawTriangleLookup(Graphics2D g, GraphFacet graphFacet) {
         Region3i worldReg = graphFacet.getWorldRegion();
         for (int z = worldReg.minZ(); z < worldReg.maxZ(); z++) {
             for (int x = worldReg.minX(); x < worldReg.maxX(); x++) {
