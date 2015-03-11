@@ -26,9 +26,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.terasology.rendering.nui.properties.OneOf.Enum;
+
 import javax.swing.BorderFactory;
 import javax.swing.DropMode;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -41,7 +44,6 @@ import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.rendering.nui.properties.Range;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.gui.UIBindings;
-import org.terasology.worldviewer.lambda.Lambda;
 import org.terasology.worldviewer.layers.FacetLayer;
 
 /**
@@ -122,8 +124,7 @@ public class FacetPanel extends JPanel {
                 if (field.getAnnotations().length > 0) {
                     field.setAccessible(true);
 
-                    processRangeAnnotation(panel, layer, field);
-                    processCheckboxAnnotation(panel, layer, field);
+                    processAnnotations(panel, layer, field);
                 }
             }
         }
@@ -133,43 +134,37 @@ public class FacetPanel extends JPanel {
         return panelWrap;
     }
 
-    private void processRangeAnnotation(JPanel panel, FacetLayer layer, Field field) {
-        FacetConfig config = layer.getConfig();
-        Range range = field.getAnnotation(Range.class);
+    private void processAnnotations(JPanel panel, FacetLayer layer, Field field)
+    {
+        JSpinner spinner = UIBindings.processRangeAnnotation(layer, field);
+        if (spinner != null) {
+            Range range = field.getAnnotation(Range.class);
 
-        // TODO: identify common code with ConfigPanel.process()
-        if (range != null) {
             JLabel label = new JLabel(range.label().isEmpty() ? field.getName() : range.label());
             label.setToolTipText(range.description());
-            double min = range.min();
-            double max = range.max();
-            double stepSize = range.increment();
-            Supplier<Double> getter = Lambda.toRuntime(() -> field.getDouble(config));
-            Consumer<Double> setter = Lambda.toRuntime(v -> { field.setFloat(config, v.floatValue()); layer.notifyObservers(); });
-            JSpinner spinner = UIBindings.createSpinner(min, stepSize, max, getter, setter);
-            spinner.setToolTipText(range.description());
 
             panel.add(label);
             panel.add(spinner);
         }
-    }
 
-    private void processCheckboxAnnotation(JPanel panel, FacetLayer layer, Field field) {
-        FacetConfig config = layer.getConfig();
-        Checkbox checkbox = field.getAnnotation(Checkbox.class);
-
-        // TODO: identify common code with ConfigPanel.process()
+        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(layer, field);
         if (checkbox != null) {
-            JLabel label = new JLabel(checkbox.label().isEmpty() ? field.getName() : checkbox.label());
-            label.setToolTipText(checkbox.description());
-
-            Supplier<Boolean> getter = Lambda.toRuntime(() -> field.getBoolean(config));
-            Consumer<Boolean> setter = Lambda.toRuntime(v -> { field.setBoolean(config, v.booleanValue()); layer.notifyObservers(); });
-            JCheckBox component = UIBindings.createCheckbox(getter, setter);
-            component.setToolTipText(checkbox.description());
+            Checkbox anno = field.getAnnotation(Checkbox.class);
+            JLabel label = new JLabel(anno.label().isEmpty() ? field.getName() : anno.label());
+            label.setToolTipText(anno.description());
 
             panel.add(label);
-            panel.add(component);
+            panel.add(checkbox);
+        }
+
+        JComboBox<?> combo = UIBindings.processEnumAnnotation(layer, field);
+        if (combo != null) {
+            Enum en = field.getAnnotation(Enum.class);
+            JLabel label = new JLabel(en.label().isEmpty() ? field.getName() : en.label());
+            label.setToolTipText(en.description());
+
+            panel.add(label);
+            panel.add(combo);
         }
     }
 }
