@@ -59,38 +59,15 @@ public final class WorldViewer {
 
         logStatus();
 
-        Config config = Config.load(CONFIG_PATH);
-
 //      FullEnvironment.setup();
         TinyEnvironment.setup();
 
-        WorldConfig wgConfig = config.getWorldConfig();
+        Config config = Config.load(CONFIG_PATH);
 
-        SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);
-        dialog.setVisible(true);
-
-        if (dialog.getAnswer() == JOptionPane.CANCEL_OPTION) {
-            dialog.dispose();
-            return;
-        }
-
-        final WorldGenerator worldGen = dialog.getSelectedWorldGen();
-
-        dialog.dispose();
-
-        if (worldGen != null) {
-            worldGen.setWorldSeed(wgConfig.getWorldSeed());
-
-            SwingUtilities.invokeLater(() -> {
-                setupLookAndFeel();
-                createAndShowGUI(worldGen, config);
-            });
-        } else {
-            String message = "Could not load any world generator class";
-            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        SwingUtilities.invokeLater(() -> {
+            setupLookAndFeel();
+            createAndShowGUI(config);
+        });
     }
 
     private static void setupLookAndFeel() {
@@ -111,7 +88,29 @@ public final class WorldViewer {
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
     }
 
-    private static void createAndShowGUI(WorldGenerator worldGen, Config config) {
+    private static void createAndShowGUI(Config config) {
+
+        WorldConfig wgConfig = config.getWorldConfig();
+        SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+        dialog.dispose();
+
+        if (dialog.getAnswer() == JOptionPane.OK_OPTION) {
+            WorldGenerator worldGen = WorldGenerators.createWorldGenerator(wgConfig.getWorldGenClass());
+            if (worldGen != null) {
+                worldGen.setWorldSeed(wgConfig.getWorldSeed());
+                worldGen.initialize();
+                createAndShowMainFrame(worldGen, config);
+            } else {
+                String message = "Could not load any world generator class";
+                JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private static void createAndShowMainFrame(WorldGenerator worldGen, Config config) {
         JFrame frame = new MainFrame(worldGen, config);
 
         frame.setTitle("MapViewer " + GitVersion.getVersion());

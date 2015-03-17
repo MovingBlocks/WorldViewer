@@ -38,12 +38,16 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 
 /**
- *
+ * Some helper methods for WorldGenerators
  * @author Martin Steiger
  */
-public class WorldGenerators {
+public final class WorldGenerators {
 
     private static final Logger logger = LoggerFactory.getLogger(WorldGenerators.class);
+
+    private WorldGenerators() {
+        // no instances
+    }
 
     /**
      * @return a list of world generators on the classpath

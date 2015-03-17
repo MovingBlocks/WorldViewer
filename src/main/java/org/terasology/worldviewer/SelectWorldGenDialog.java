@@ -19,6 +19,7 @@ package org.terasology.worldviewer;
 import java.awt.BorderLayout;
 import java.awt.TextField;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -26,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 import org.terasology.world.generator.WorldGenerator;
@@ -33,7 +35,7 @@ import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 
 /**
- *
+ * A modal dialogs for the selection of a world generator.
  * @author Martin Steiger
  */
 public class SelectWorldGenDialog extends JDialog {
@@ -41,44 +43,67 @@ public class SelectWorldGenDialog extends JDialog {
     private static final long serialVersionUID = 257345717408006930L;
 
     private final JOptionPane optionPane;
-
     private final JComboBox<WorldGenerator> wgSelectCombo;
+    private final TextField seedText;
 
     public SelectWorldGenDialog(WorldConfig wgConfig) {
         super(null, "Select World Generator", ModalityType.APPLICATION_MODAL);
 
-        List<WorldGenerator> worldGens = WorldGenerators.findOnClasspath();
-
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(new EmptyBorder(0, 10, 10, 10));
-        TextField seedText = new TextField(wgConfig.getWorldSeed());
+        seedText = new TextField(wgConfig.getWorldSeed());
 
-        wgSelectCombo = new JComboBox<>(worldGens.toArray(new WorldGenerator[0]));
+        wgSelectCombo = new JComboBox<>();
         ListCellRenderer<? super WorldGenerator> wgTextRenderer = new WorldGenCellRenderer();
         wgSelectCombo.setRenderer(wgTextRenderer);
 
-        int idx = findWorldGenIndex(worldGens, wgConfig.getWorldGenClass());
-        wgSelectCombo.setSelectedIndex(idx >= 0 ? idx : 0);
+        SwingWorker<List<WorldGenerator>, Void> swingWorker = new SwingWorker<List<WorldGenerator>, Void>() {
+
+            @Override
+            protected List<WorldGenerator> doInBackground() {
+                return WorldGenerators.findOnClasspath();
+            }
+
+            @Override
+            protected void done() {
+                int idx;
+                try {
+                    List<WorldGenerator> worldGens = get();
+                    for (WorldGenerator wg : worldGens) {
+                        wgSelectCombo.addItem(wg);
+                    }
+                    idx = findWorldGenIndex(worldGens, wgConfig.getWorldGenClass());
+                    wgSelectCombo.setSelectedIndex(idx >= 0 ? idx : 0);
+                } catch (InterruptedException | ExecutionException e) {
+                    // not going to happen
+                }
+            }
+        };
+        swingWorker.execute();
 
         panel.add(wgSelectCombo, BorderLayout.NORTH);
         panel.add(new JLabel("Seed"), BorderLayout.WEST);
         panel.add(seedText, BorderLayout.CENTER);
 
-        optionPane = new JOptionPane(panel,
-                JOptionPane.QUESTION_MESSAGE,
-                JOptionPane.OK_CANCEL_OPTION);
+        optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
 
         optionPane.addPropertyChangeListener(e -> {
             if (isVisible() && (e.getPropertyName().equals(JOptionPane.VALUE_PROPERTY))) {
                 setVisible(false);
+
+                updateConfig(wgConfig);
             }
         });
 
         setContentPane(optionPane);
     }
 
-    private int findWorldGenIndex(List<WorldGenerator> worldGens, String worldGenClass)
-    {
+    private void updateConfig(WorldConfig wgConfig) {
+        wgConfig.setWorldGenClass(getSelectedWorldGen().getClass().getCanonicalName());
+        wgConfig.setWorldSeed(seedText.getText());
+    }
+
+    private int findWorldGenIndex(List<WorldGenerator> worldGens, String worldGenClass) {
         for (int idx = 0; idx < worldGens.size(); idx++) {
             WorldGenerator wg = worldGens.get(idx);
             if (wg.getClass().getName().equals(worldGenClass)) {
@@ -101,7 +126,7 @@ public class SelectWorldGenDialog extends JDialog {
             return JOptionPane.CANCEL_OPTION;
         }
 
-        return (Integer)optionPane.getValue();
+        return (Integer) optionPane.getValue();
     }
 
     /**
@@ -113,6 +138,10 @@ public class SelectWorldGenDialog extends JDialog {
             return null;
         }
         return wgSelectCombo.getItemAt(idx);
+    }
+
+    public String getWorldSeed() {
+        return seedText.getText();
     }
 }
 
