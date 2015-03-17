@@ -17,8 +17,6 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +46,6 @@ import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.core.ConfigPanel;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
-import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.layers.CoreBiomeFacetLayer;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.layers.FieldFacetLayer;

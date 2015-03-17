@@ -18,11 +18,8 @@ package org.terasology.worldviewer;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -32,8 +29,6 @@ import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.engine.SimpleUri;
-import org.terasology.world.generator.RegisterWorldGenerator;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.WorldConfig;
@@ -41,7 +36,6 @@ import org.terasology.worldviewer.env.TinyEnvironment;
 
 import version.GitVersion;
 
-import com.google.common.collect.ImmutableList;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 
 /**
@@ -71,7 +65,20 @@ public final class WorldViewer {
         TinyEnvironment.setup();
 
         WorldConfig wgConfig = config.getWorldConfig();
-        final WorldGenerator worldGen = createWorldGenerator(wgConfig.getWorldGenClass());
+
+        SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        if (dialog.getAnswer() == JOptionPane.CANCEL_OPTION) {
+            dialog.dispose();
+            return;
+        }
+
+        final WorldGenerator worldGen = dialog.getSelectedWorldGen();
+
+        dialog.dispose();
 
         if (worldGen != null) {
             worldGen.setWorldSeed(wgConfig.getWorldSeed());
@@ -128,33 +135,5 @@ public final class WorldViewer {
 //        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 //        int screenWidth = gd.getDisplayMode().getWidth();
 //        frame.setLocation(screenWidth - frame.getWidth(), 40);
-    }
-
-    private static WorldGenerator createWorldGenerator(String className) {
-
-        try {
-            Class<?> worldGenClazz = Class.forName(className);
-            if (!WorldGenerator.class.isAssignableFrom(worldGenClazz)) {
-                throw new IllegalArgumentException(className + " does not implement the WorldGenerator interface");
-            }
-            RegisterWorldGenerator anno = worldGenClazz.getAnnotation(RegisterWorldGenerator.class);
-            if (anno == null) {
-                throw new IllegalArgumentException(className + " is not annotated with @RegisterWorldGenerator");
-            }
-            Constructor<?> constructor = worldGenClazz.getConstructor(SimpleUri.class);
-            return (WorldGenerator) constructor.newInstance(new SimpleUri("unknown", anno.id()));
-        } catch (ClassNotFoundException e) {
-            logger.info("Class not found: {}", className);
-        } catch (LinkageError e) {
-            logger.warn("Class not loadable: {}", className, e);
-        } catch (NoSuchMethodException e) {
-            logger.warn("Class does not have a constructor with SimpleUri parameter", className);
-        } catch (SecurityException e) {
-            logger.warn("Security violation while loading class {}", className, e);
-        } catch (Exception e) {
-            logger.warn("Could not instantiate class {}", className);
-        }
-
-        return null;
     }
 }
