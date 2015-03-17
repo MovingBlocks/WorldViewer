@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -55,6 +56,7 @@ import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 import org.terasology.worldviewer.lambda.Lambda;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 public class ConfigPanel extends JPanel {
 
@@ -62,7 +64,11 @@ public class ConfigPanel extends JPanel {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigPanel.class);
 
+    private final List<Observer<WorldGenerator>> observers = Lists.newArrayList();
+
     private final TextField seedText;
+
+    private final WorldGenerator worldGen;
 
     public ConfigPanel(WorldGenerator worldGen, Config config) {
 
@@ -74,6 +80,7 @@ public class ConfigPanel extends JPanel {
         wgSelectPanel.setLayout(new BorderLayout(5, 5));
         String seedString = "sdfsfdf";
 
+        this.worldGen = worldGen;
         seedText = new TextField(seedString);
         JComboBox<WorldGenerator> wgSelectCombo = new JComboBox<>(new WorldGenerator[] {worldGen});
         ListCellRenderer<? super WorldGenerator> wgTextRenderer = new WorldGenCellRenderer();
@@ -89,9 +96,7 @@ public class ConfigPanel extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                worldGen.setWorldSeed(seedText.getText());
-                worldGen.initialize();
-//                viewer.invalidateWorld();
+                notifyObservers();
             }
         });
         refreshButton.setPreferredSize(new Dimension(100, 40));
@@ -102,6 +107,25 @@ public class ConfigPanel extends JPanel {
 
         JPanel configPanel = createConfigPanel(worldGen);
         add(configPanel, BorderLayout.CENTER);
+    }
+
+    /**
+     * Adds an observer <b>and fires out a notification</b>
+     * @param obs the observer to add
+     */
+    public void addObserver(Observer<WorldGenerator> obs) {
+        observers.add(obs);
+        obs.update(worldGen);
+    }
+
+    public void removeObserver(Observer<WorldGenerator> obs) {
+        observers.remove(obs);
+    }
+
+    private void notifyObservers() {
+        for (Observer<WorldGenerator> obs : observers) {
+            obs.update(worldGen);
+        }
     }
 
     private JPanel createConfigPanel(WorldGenerator worldGen) {

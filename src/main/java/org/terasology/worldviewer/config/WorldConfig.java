@@ -16,21 +16,30 @@
 
 package org.terasology.worldviewer.config;
 
-import org.terasology.world.generation.facets.SurfaceHeightFacet;
 
 /**
- * Stores view-related config params.
+ * Stores world-related config params.
  * @author Martin Steiger
  */
 public class WorldConfig {
 
-    private String defaultFacetClass = SurfaceHeightFacet.class.getName();
+    private String worldGenClass = "org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator";
 
-    public String getDefaultFacetClass() {
-        return defaultFacetClass;
+    private String worldSeed = "sdfsfdf";
+
+    public String getWorldGenClass() {
+        return worldGenClass;
     }
 
-    public void setDefaultFacetClass(String facetClass) {
-        this.defaultFacetClass = facetClass;
+    public void setWorldGenClass(String worldGenClass) {
+        this.worldGenClass = worldGenClass;
+    }
+
+    public String getWorldSeed() {
+        return worldSeed;
+    }
+
+    public void setWorldSeed(String worldSeed) {
+        this.worldSeed = worldSeed;
     }
 }

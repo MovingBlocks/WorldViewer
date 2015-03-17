@@ -72,8 +72,6 @@ public class MainFrame extends JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
 
-    private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".worldviewer.json");
-
     private final Config config;
     private final Timer memoryTimer;
 
@@ -89,16 +87,10 @@ public class MainFrame extends JFrame {
     private final ConfigPanel configPanel;
     private final JPanel statusBar = new JPanel();
 
-    public MainFrame(WorldGenerator worldGen) {
-
-//        FullEnvironment.setup();
-        TinyEnvironment.setup();
-
-        worldGen.setWorldSeed("a");
-        worldGen.initialize();
+    public MainFrame(WorldGenerator worldGen, Config config) {
 
         this.worldGen = worldGen;
-        this.config = Config.load(CONFIG_PATH);
+        this.config = config;
 
         List<FacetLayer> loadedLayers = Lists.newArrayList();
 
@@ -122,6 +114,8 @@ public class MainFrame extends JFrame {
 
         viewer = new Viewer(worldGen, layerList, config.getViewConfig());
         layerPanel = new FacetPanel(layerList);
+
+        configPanel.addObserver(wg -> viewer.invalidateWorld());
 
         add(layerPanel, BorderLayout.EAST);
         add(configPanel, BorderLayout.WEST);
@@ -206,11 +200,6 @@ public class MainFrame extends JFrame {
         viewer.close();
 
         config.storeLayers(worldGen.getUri(), layerList);
-
-        Config.save(CONFIG_PATH, config);
-
-        // just in case some other thread is still running
-        System.exit(0);
     }
 
 }

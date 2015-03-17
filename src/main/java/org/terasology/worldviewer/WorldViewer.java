@@ -16,7 +16,12 @@
 
 package org.terasology.worldviewer;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.lang.reflect.Constructor;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -30,6 +35,9 @@ import org.slf4j.LoggerFactory;
 import org.terasology.engine.SimpleUri;
 import org.terasology.world.generator.RegisterWorldGenerator;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.config.Config;
+import org.terasology.worldviewer.config.WorldConfig;
+import org.terasology.worldviewer.env.TinyEnvironment;
 
 import version.GitVersion;
 
@@ -44,6 +52,8 @@ public final class WorldViewer {
 
     private static final Logger logger = LoggerFactory.getLogger(WorldViewer.class);
 
+    private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".worldviewer.json");
+
     private WorldViewer() {
         // don't create instances
     }
@@ -55,20 +65,20 @@ public final class WorldViewer {
 
         logStatus();
 
-        List<String> worldGenClassNames = ImmutableList.of(
-                "org.terasology.polyworld.IslandWorldGenerator",
-                "org.terasology.core.world.generator.worldGenerators.FlatWorldGenerator",
-                "org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator");
+        Config config = Config.load(CONFIG_PATH);
 
-        final WorldGenerator worldGen = loadFirst(worldGenClassNames);
+//      FullEnvironment.setup();
+        TinyEnvironment.setup();
+
+        WorldConfig wgConfig = config.getWorldConfig();
+        final WorldGenerator worldGen = createWorldGenerator(wgConfig.getWorldGenClass());
 
         if (worldGen != null) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setupLookAndFeel();
-                    createAndShowGUI(worldGen);
-                }
+            worldGen.setWorldSeed(wgConfig.getWorldSeed());
+
+            SwingUtilities.invokeLater(() -> {
+                setupLookAndFeel();
+                createAndShowGUI(worldGen, config);
             });
         } else {
             String message = "Could not load any world generator class";
@@ -94,14 +104,23 @@ public final class WorldViewer {
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
     }
 
-    private static void createAndShowGUI(WorldGenerator worldGen) {
-        JFrame frame = new MainFrame(worldGen);
+    private static void createAndShowGUI(WorldGenerator worldGen, Config config) {
+        JFrame frame = new MainFrame(worldGen, config);
 
         frame.setTitle("MapViewer " + GitVersion.getVersion());
         frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setVisible(true);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                Config.save(CONFIG_PATH, config);
+
+                // just in case some other thread is still running
+                System.exit(0);
+            }
+        });
 
 //        frame.setAlwaysOnTop(true);
 
@@ -111,31 +130,29 @@ public final class WorldViewer {
 //        frame.setLocation(screenWidth - frame.getWidth(), 40);
     }
 
-    private static WorldGenerator loadFirst(List<String> classNames) {
+    private static WorldGenerator createWorldGenerator(String className) {
 
-        for (String className : classNames) {
-            try {
-                Class<?> worldGenClazz = Class.forName(className);
-                if (!WorldGenerator.class.isAssignableFrom(worldGenClazz)) {
-                    throw new IllegalArgumentException(className + " does not implement the WorldGenerator interface");
-                }
-                RegisterWorldGenerator anno = worldGenClazz.getAnnotation(RegisterWorldGenerator.class);
-                if (anno == null) {
-                    throw new IllegalArgumentException(className + " is not annotated with @RegisterWorldGenerator");
-                }
-                Constructor<?> constructor = worldGenClazz.getConstructor(SimpleUri.class);
-                return (WorldGenerator) constructor.newInstance(new SimpleUri("unknown", anno.id()));
-            } catch (ClassNotFoundException e) {
-                logger.info("Class not found: {}", className);
-            } catch (LinkageError e) {
-                logger.warn("Class not loadable: {}", className, e);
-            } catch (NoSuchMethodException e) {
-                logger.warn("Class does not have a constructor with SimpleUri parameter", className);
-            } catch (SecurityException e) {
-                logger.warn("Security violation while loading class {}", className, e);
-            } catch (Exception e) {
-                logger.warn("Could not instantiate class {}", className);
+        try {
+            Class<?> worldGenClazz = Class.forName(className);
+            if (!WorldGenerator.class.isAssignableFrom(worldGenClazz)) {
+                throw new IllegalArgumentException(className + " does not implement the WorldGenerator interface");
             }
+            RegisterWorldGenerator anno = worldGenClazz.getAnnotation(RegisterWorldGenerator.class);
+            if (anno == null) {
+                throw new IllegalArgumentException(className + " is not annotated with @RegisterWorldGenerator");
+            }
+            Constructor<?> constructor = worldGenClazz.getConstructor(SimpleUri.class);
+            return (WorldGenerator) constructor.newInstance(new SimpleUri("unknown", anno.id()));
+        } catch (ClassNotFoundException e) {
+            logger.info("Class not found: {}", className);
+        } catch (LinkageError e) {
+            logger.warn("Class not loadable: {}", className, e);
+        } catch (NoSuchMethodException e) {
+            logger.warn("Class does not have a constructor with SimpleUri parameter", className);
+        } catch (SecurityException e) {
+            logger.warn("Security violation while loading class {}", className, e);
+        } catch (Exception e) {
+            logger.warn("Could not instantiate class {}", className);
         }
 
         return null;
