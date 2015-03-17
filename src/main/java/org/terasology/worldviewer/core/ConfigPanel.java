@@ -23,7 +23,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.annotation.Annotation;
@@ -35,11 +34,9 @@ import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -50,9 +47,9 @@ import org.terasology.entitySystem.Component;
 import org.terasology.rendering.nui.properties.Range;
 import org.terasology.world.generator.WorldConfigurator;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.WorldGenerators;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.gui.UIBindings;
-import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 import org.terasology.worldviewer.lambda.Lambda;
 
 import com.google.common.base.Optional;
@@ -66,8 +63,6 @@ public class ConfigPanel extends JPanel {
 
     private final List<Observer<WorldGenerator>> observers = Lists.newArrayList();
 
-    private final TextField seedText;
-
     private final WorldGenerator worldGen;
 
     public ConfigPanel(WorldGenerator worldGen, Config config) {
@@ -78,16 +73,18 @@ public class ConfigPanel extends JPanel {
         JPanel wgSelectPanel = new JPanel();
         wgSelectPanel.setBorder(BorderFactory.createTitledBorder("World Generator"));
         wgSelectPanel.setLayout(new BorderLayout(5, 5));
-        String seedString = "sdfsfdf";
 
         this.worldGen = worldGen;
-        seedText = new TextField(seedString);
-        JComboBox<WorldGenerator> wgSelectCombo = new JComboBox<>(new WorldGenerator[] {worldGen});
-        ListCellRenderer<? super WorldGenerator> wgTextRenderer = new WorldGenCellRenderer();
-        wgSelectCombo.setRenderer(wgTextRenderer);
-        wgSelectPanel.add(wgSelectCombo, BorderLayout.NORTH);
-        wgSelectPanel.add(new JLabel("Seed"), BorderLayout.WEST);
-        wgSelectPanel.add(seedText, BorderLayout.CENTER);
+
+        String worldSeed = config.getWorldConfig().getWorldSeed();
+        String wgName = WorldGenerators.getAnnotatedDisplayName(worldGen.getClass());
+
+        JLabel seedText = new JLabel("Seed: " + worldSeed);
+        JLabel typeText = new JLabel("Type: " + wgName);
+        typeText.setBorder(new EmptyBorder(5, 10, 0, 5));
+        seedText.setBorder(new EmptyBorder(0, 10, 5, 5));
+        wgSelectPanel.add(typeText, BorderLayout.NORTH);
+        wgSelectPanel.add(seedText, BorderLayout.WEST);
 
         add(wgSelectPanel, BorderLayout.NORTH);
 

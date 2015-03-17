@@ -52,13 +52,13 @@ public final class WorldGenerators {
     /**
      * @return a list of world generators on the classpath
      */
-    public static List<WorldGenerator> findOnClasspath() {
+    public static Set<Class<?>> findOnClasspath(String packageFilter) {
 
         // search only in packages with that start with o.t.
-        Collection<URL> classPathURLs = ClasspathHelper.forPackage("org.terasology");
+        Collection<URL> classPathURLs = ClasspathHelper.forPackage(packageFilter);
 
         // this effectively removes assets, MANIFEST.MF and other files
-        Predicate<String> fileFilter = new FilterBuilder().includePackage("org.terasology");
+        Predicate<String> fileFilter = new FilterBuilder().includePackage(packageFilter);
 
         Reflections reflections = new Reflections(new ConfigurationBuilder()
              .setUrls(classPathURLs)
@@ -68,13 +68,7 @@ public final class WorldGenerators {
         // find classes that are annotated and assume that they are WorldGenerator instances
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(RegisterWorldGenerator.class);
 
-        List<WorldGenerator> worldGens = Lists.newArrayList();
-        for (Class<?> clazz : classes) {
-            WorldGenerator wg = createWorldGenerator(clazz.getName());
-            worldGens.add(wg);
-        }
-
-        return worldGens;
+        return classes;
     }
 
     /**
@@ -107,5 +101,18 @@ public final class WorldGenerators {
         }
 
         return null;
+    }
+
+    /**
+     * @param clazz the world generator class (possibly annotated with @RegisterWorldGenerator)
+     * @return the human-readable name
+     */
+    public static String getAnnotatedDisplayName(Class<?> clazz) {
+        RegisterWorldGenerator anno = clazz.getAnnotation(RegisterWorldGenerator.class);
+        if (anno != null) {
+            return anno.displayName();
+        } else {
+            return clazz.getSimpleName();
+        }
     }
 }

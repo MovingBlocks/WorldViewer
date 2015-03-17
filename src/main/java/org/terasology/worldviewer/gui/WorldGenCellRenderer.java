@@ -21,7 +21,7 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import org.terasology.world.generator.RegisterWorldGenerator;
+import org.terasology.worldviewer.WorldGenerators;
 
 /**
  * It actually implements ListCellRenderer<WorldGenerator>, but since DefaultListCellRenderer
@@ -34,17 +34,7 @@ public class WorldGenCellRenderer extends DefaultListCellRenderer {
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        String text;
-        if (value == null) {
-            text = "<null>";
-        } else {
-            RegisterWorldGenerator anno = value.getClass().getAnnotation(RegisterWorldGenerator.class);
-            if (anno != null) {
-                text = anno.displayName();
-            } else {
-                text = value.getClass().getSimpleName();
-            }
-        }
+        String text = WorldGenerators.getAnnotatedDisplayName((Class<?>) value);
         return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
     }
 }
