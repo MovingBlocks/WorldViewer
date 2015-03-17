@@ -17,10 +17,12 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.TextField;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -30,6 +32,8 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.gui.WorldGenCellRenderer;
@@ -41,6 +45,8 @@ import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 public class SelectWorldGenDialog extends JDialog {
 
     private static final long serialVersionUID = 257345717408006930L;
+
+    private static final Logger logger = LoggerFactory.getLogger(SelectWorldGenDialog.class);
 
     private final JOptionPane optionPane;
     private final JComboBox<WorldGenerator> wgSelectCombo;
@@ -54,8 +60,16 @@ public class SelectWorldGenDialog extends JDialog {
         seedText = new TextField(wgConfig.getWorldSeed());
 
         wgSelectCombo = new JComboBox<>();
-        ListCellRenderer<? super WorldGenerator> wgTextRenderer = new WorldGenCellRenderer();
-        wgSelectCombo.setRenderer(wgTextRenderer);
+        wgSelectCombo.setEnabled(false);
+
+        JButton okButton = new JButton("OK");
+        okButton.setPreferredSize(new Dimension(90, 25));
+        okButton.addActionListener(e -> optionPane.setValue(JOptionPane.OK_OPTION));
+        okButton.setEnabled(false);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(90, 25));
+        cancelButton.addActionListener(e -> optionPane.setValue(JOptionPane.CANCEL_OPTION));
 
         SwingWorker<List<WorldGenerator>, Void> swingWorker = new SwingWorker<List<WorldGenerator>, Void>() {
 
@@ -74,8 +88,12 @@ public class SelectWorldGenDialog extends JDialog {
                     }
                     idx = findWorldGenIndex(worldGens, wgConfig.getWorldGenClass());
                     wgSelectCombo.setSelectedIndex(idx >= 0 ? idx : 0);
+                    ListCellRenderer<? super WorldGenerator> wgTextRenderer = new WorldGenCellRenderer();
+                    wgSelectCombo.setRenderer(wgTextRenderer);
+                    wgSelectCombo.setEnabled(true);
+                    okButton.setEnabled(true);
                 } catch (InterruptedException | ExecutionException e) {
-                    // not going to happen
+                    logger.error("Could not update world generator combo box", e);
                 }
             }
         };
@@ -85,7 +103,9 @@ public class SelectWorldGenDialog extends JDialog {
         panel.add(new JLabel("Seed"), BorderLayout.WEST);
         panel.add(seedText, BorderLayout.CENTER);
 
-        optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+        JButton[] options = new JButton[] {okButton, cancelButton};
+
+        optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, options, options[0]);
 
         optionPane.addPropertyChangeListener(e -> {
             if (isVisible() && (e.getPropertyName().equals(JOptionPane.VALUE_PROPERTY))) {
@@ -99,7 +119,10 @@ public class SelectWorldGenDialog extends JDialog {
     }
 
     private void updateConfig(WorldConfig wgConfig) {
-        wgConfig.setWorldGenClass(getSelectedWorldGen().getClass().getCanonicalName());
+        WorldGenerator worldGen = getSelectedWorldGen();
+        if (worldGen != null) {
+            wgConfig.setWorldGenClass(worldGen.getClass().getCanonicalName());
+        }
         wgConfig.setWorldSeed(seedText.getText());
     }
 
