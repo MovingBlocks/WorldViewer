@@ -79,6 +79,8 @@ dependencies {
     
     // the deps. without a fixed version number are flagged with 'changing: true'
     // to indicate that gradle should check for updates
+	
+    compile (group: 'args4j', name: 'args4j', version: '2.0.29')
 
     compile (group: 'org.terasology.engine', name: 'engine', version: '+', changing: true)
     compile (group: 'org.terasology.modules', name: 'Core', version: '+', changing: true)

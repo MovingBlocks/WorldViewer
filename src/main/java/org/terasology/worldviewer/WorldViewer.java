@@ -27,6 +27,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.world.generator.WorldGenerator;
@@ -64,9 +66,25 @@ public final class WorldViewer {
 
         Config config = Config.load(CONFIG_PATH);
 
+        CmdLineConfigs cmdLineOpts = new CmdLineConfigs();
+        CmdLineParser parser = new CmdLineParser(cmdLineOpts);
+        try {
+            parser.parseArgument(args);
+        } catch (CmdLineException e) {
+            System.err.println("Could not parse command line arguments: " + e.getMessage());
+            parser.printUsage(System.out);
+            return;
+        }
+
+        if (cmdLineOpts.help) {
+            System.out.println("WorldViewer - Version " + GitVersion.getVersion());
+            parser.printUsage(System.out);
+            return;
+        }
+
         SwingUtilities.invokeLater(() -> {
             setupLookAndFeel();
-            createAndShowGUI(config);
+            createAndShowGUI(config, cmdLineOpts);
         });
     }
 
@@ -88,25 +106,40 @@ public final class WorldViewer {
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
     }
 
-    private static void createAndShowGUI(Config config) {
+    private static void createAndShowGUI(Config config, CmdLineConfigs cmdLineOpts) {
 
         WorldConfig wgConfig = config.getWorldConfig();
-        SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);
-        dialog.setVisible(true);
-        dialog.dispose();
 
-        if (dialog.getAnswer() == JOptionPane.OK_OPTION) {
-            WorldGenerator worldGen = WorldGenerators.createWorldGenerator(wgConfig.getWorldGenClass());
-            if (worldGen != null) {
-                worldGen.setWorldSeed(wgConfig.getWorldSeed());
-                worldGen.initialize();
-                createAndShowMainFrame(worldGen, config);
-            } else {
-                String message = "Could not load any world generator class";
-                JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+        if (!cmdLineOpts.skipSelect && cmdLineOpts.worldGen == null && cmdLineOpts.seed == null) {
+            SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
+            dialog.pack();
+            dialog.setLocationRelativeTo(null);
+            dialog.setVisible(true);
+            dialog.dispose();
+            if (dialog.getAnswer() != JOptionPane.OK_OPTION) {
+                return;
             }
+        }
+
+        String worldGenClass = wgConfig.getWorldGenClass();
+        String worldSeed = wgConfig.getWorldSeed();
+
+        if (cmdLineOpts.worldGen != null) {
+            worldGenClass = cmdLineOpts.worldGen;
+        }
+
+        if (cmdLineOpts.seed != null) {
+            worldSeed = cmdLineOpts.seed;
+        }
+
+        WorldGenerator worldGen = WorldGenerators.createWorldGenerator(worldGenClass);
+        if (worldGen != null) {
+            worldGen.setWorldSeed(worldSeed);
+            worldGen.initialize();
+            createAndShowMainFrame(worldGen, config);
+        } else {
+            String message = "Could not load any world generator class";
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

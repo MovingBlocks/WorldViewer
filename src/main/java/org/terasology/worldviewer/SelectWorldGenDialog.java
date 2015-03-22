@@ -105,6 +105,7 @@ public class SelectWorldGenDialog extends JDialog {
         panel.add(wgSelectCombo, BorderLayout.NORTH);
         panel.add(new JLabel("Seed"), BorderLayout.WEST);
         panel.add(seedText, BorderLayout.CENTER);
+        panel.add(new JLabel("<html><b>Note: </b>You can skip this dialog by<br/>supplying the -skip cmd. line argument</html>"), BorderLayout.SOUTH);
 
         JButton[] options = new JButton[] {okButton, cancelButton};
 
@@ -119,6 +120,7 @@ public class SelectWorldGenDialog extends JDialog {
         });
 
         setContentPane(optionPane);
+        setResizable(false);
     }
 
     private void updateConfig(WorldConfig wgConfig) {
