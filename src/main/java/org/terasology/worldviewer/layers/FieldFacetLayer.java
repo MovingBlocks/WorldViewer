@@ -85,8 +85,13 @@ public class FieldFacetLayer extends AbstractFacetLayer {
 
         for (int z = 0; z < width; z++) {
             for (int x = 0; x < height; x++) {
-                Color src = getColor(facet, x, z);
-                int mix = (src.rgba() >> 8) | (src.a() << 24);
+                Color col = getColor(facet, x, z);
+                int src = col.rgba() >> 8; // we ignore alpha  | (col.a() << 24);
+                int dst = img.getRGB(x, z);
+                int mix = 0xFF000000;
+                mix |= Math.min(0x0000FF, (dst & 0x0000FF) + (src & 0x0000FF));
+                mix |= Math.min(0x00FF00, (dst & 0x00FF00) + (src & 0x00FF00));
+                mix |= Math.min(0xFF0000, (dst & 0xFF0000) + (src & 0xFF0000));
                 img.setRGB(x, z, mix);
             }
         }
