@@ -64,12 +64,10 @@ public class SelectWorldGenDialog extends JDialog {
 
         JButton okButton = new JButton("OK");
         okButton.setPreferredSize(new Dimension(90, 25));
-        okButton.addActionListener(e -> optionPane.setValue(JOptionPane.OK_OPTION));
         okButton.setEnabled(false);
 
         JButton cancelButton = new JButton("Cancel");
         cancelButton.setPreferredSize(new Dimension(90, 25));
-        cancelButton.addActionListener(e -> optionPane.setValue(JOptionPane.CANCEL_OPTION));
 
         SwingWorker<Set<Class<?>>, Void> swingWorker = new SwingWorker<Set<Class<?>>, Void>() {
 
@@ -118,6 +116,9 @@ public class SelectWorldGenDialog extends JDialog {
                 updateConfig(wgConfig);
             }
         });
+
+        okButton.addActionListener(e -> optionPane.setValue(JOptionPane.OK_OPTION));
+        cancelButton.addActionListener(e -> optionPane.setValue(JOptionPane.CANCEL_OPTION));
 
         setContentPane(optionPane);
         setResizable(false);
