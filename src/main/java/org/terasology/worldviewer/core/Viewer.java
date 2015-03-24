@@ -30,8 +30,9 @@ import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 
@@ -77,7 +78,13 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final BufferedImage dummyImg = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
 
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(4);
+    private final int numThreads = 4;
+
+    private final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
+
+    private final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads, numThreads,
+            0L, TimeUnit.MILLISECONDS, workQueue);
+
     private final CacheLoader<Vector2i, Region> regionLoader = new CacheLoader<Vector2i, Region>() {
 
         @Override
@@ -172,6 +179,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
         for (FacetLayer layer : facetLayers) {
             layer.addObserver(l -> updateImageCache());
         }
+    }
+
+    /**
+     * @return the number of tiles that is currently waiting for being processed
+     */
+    public int getPendingTiles() {
+        return workQueue.size();
+    }
+
+    public Camera getCamera() {
+        return camera;
     }
 
     private BufferedImage rasterize(Region region) {
@@ -315,7 +333,12 @@ public final class Viewer extends JComponent implements AutoCloseable {
         repaint();
      }
 
-    private void updateImageCache() {
+    /**
+     * Called whenever a facet layer configuration changes
+     */
+    void updateImageCache() {
+        workQueue.clear();
+
         for (Region region : imageCache.asMap().keySet()) {
             threadPool.execute(new UpdateImageCache(region));
         }

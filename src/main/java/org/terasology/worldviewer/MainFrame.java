@@ -17,6 +17,7 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import org.terasology.polyworld.voronoi.GraphFacet;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.core.ConfigPanel;
 import org.terasology.worldviewer.core.FacetPanel;
@@ -70,7 +72,7 @@ public class MainFrame extends JFrame {
     private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
 
     private final Config config;
-    private final Timer memoryTimer;
+    private final Timer statusBarTimer;
 
     private final WorldGenerator worldGen;
 
@@ -119,8 +121,22 @@ public class MainFrame extends JFrame {
         add(viewer, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
 
+        JLabel cameraLabel = new JLabel();
+        cameraLabel.setPreferredSize(new Dimension(150, 0));
+        JLabel tileCountLabel = new JLabel();
+        tileCountLabel.setPreferredSize(new Dimension(120, 0));
         JLabel memoryLabel = new JLabel();
-        memoryTimer = new Timer(500, event -> {
+        memoryLabel.setPreferredSize(new Dimension(140, 0));
+        statusBarTimer = new Timer(50, event -> {
+            Camera camera = viewer.getCamera();
+            int camX = (int) camera.getPos().getX();
+            int camZ = (int) camera.getPos().getY();
+            int zoom = (int) (camera.getZoom() * 100);
+            cameraLabel.setText(String.format("Camera: %d/%d at %d%%", camX, camZ, zoom));
+
+            int pendingTiles = viewer.getPendingTiles();
+            tileCountLabel.setText(String.format("Queued: %s tiles", pendingTiles));
+
             Runtime runtime = Runtime.getRuntime();
             long maxMem = runtime.maxMemory();
             long totalMemory = runtime.totalMemory();
@@ -129,14 +145,20 @@ public class MainFrame extends JFrame {
             long oneMeg = 1024 * 1024;
             memoryLabel.setText(String.format("Memory: %d/%d MB", allocMemory / oneMeg, maxMem / oneMeg));
         });
-        memoryTimer.setInitialDelay(0);
-        memoryTimer.start();
+        statusBarTimer.setInitialDelay(0);
+        statusBarTimer.start();
 
         statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.LINE_AXIS));
-        statusBar.add(memoryLabel);
+        statusBar.add(new JLabel("Drag with right mouse button to pan, mouse wheel to zoom"));
         statusBar.add(Box.createHorizontalGlue());
-        statusBar.add(new JLabel("Drag with right mouse button to navigate, use the wheel to zoom"));
+        statusBar.add(cameraLabel);
+        statusBar.add(Box.createHorizontalGlue());
+        statusBar.add(tileCountLabel);
+        statusBar.add(Box.createHorizontalStrut(20));
+        statusBar.add(memoryLabel);
         statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
+
+        setMinimumSize(new Dimension(850, 530));
     }
 
     @SuppressWarnings("unchecked")
@@ -192,7 +214,7 @@ public class MainFrame extends JFrame {
     public void dispose() {
         super.dispose();
 
-        memoryTimer.stop();
+        statusBarTimer.stop();
 
         viewer.close();
 
