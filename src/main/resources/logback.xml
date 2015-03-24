@@ -11,4 +11,7 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
+  <logger name="org.terasology" level="INFO" />
+  <logger name="org.reflections.Reflections" level="WARN" />
+
 </configuration>
