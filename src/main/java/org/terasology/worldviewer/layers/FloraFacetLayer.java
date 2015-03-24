@@ -56,7 +56,23 @@ public class FloraFacetLayer extends AbstractFacetLayer {
             int wz = entry.getKey().getZ();
             Color color = colorFunc.apply(treeGen);
 
-            int mix = (color.rgba() >> 8) | (color.a() << 24);
+            int src = color.rgba();
+            int dst = img.getRGB(wx, wz);
+
+            int sr = (src >> 24) & 0xFF;
+            int sg = (src >> 16) & 0xFF;
+            int sb = (src >> 8) & 0xFF;
+            int a = src & 0xFF;
+
+            int dr = (dst >> 16) & 0xFF;
+            int dg = (dst >> 8) & 0xFF;
+            int db = dst & 0xFF;
+
+            int mb = (a * sb + (0xFF - a) * db) / 0xFF;
+            int mg = (a * sg + (0xFF - a) * dg) / 0xFF;
+            int mr = (a * sr + (0xFF - a) * dr) / 0xFF;
+
+            int mix = mb | (mg << 8) | (mr << 16);
             img.setRGB(wx, wz, mix);
         }
 

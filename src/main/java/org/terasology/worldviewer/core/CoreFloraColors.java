@@ -25,7 +25,7 @@ import org.terasology.rendering.nui.Color;
 import com.google.common.collect.Maps;
 
 /**
- * TODO Type description
+ * Maps {@link FloraType} to color.
  * @author Martin Steiger
  */
 public class CoreFloraColors implements Function<FloraType, Color> {
@@ -33,9 +33,9 @@ public class CoreFloraColors implements Function<FloraType, Color> {
     private final Map<FloraType, Color> floraColors = Maps.newHashMap();
 
     public CoreFloraColors() {
-        floraColors.put(FloraType.GRASS, new Color(0x0C9077c0));
-        floraColors.put(FloraType.FLOWER, new Color(0xeefa33c0));
-        floraColors.put(FloraType.MUSHROOM, new Color(0x889911c0));
+        floraColors.put(FloraType.GRASS, new Color(0x0c907780));
+        floraColors.put(FloraType.FLOWER, new Color(0xddda1180));
+        floraColors.put(FloraType.MUSHROOM, new Color(0x88991180));
     }
 
     @Override
