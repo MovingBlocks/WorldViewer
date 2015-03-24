@@ -34,11 +34,13 @@ public class CoreBiomeColors implements Function<CoreBiome, Color> {
     private final Map<Biome, Color> biomeColors = Maps.newHashMap();
 
     public CoreBiomeColors() {
-        biomeColors.put(CoreBiome.DESERT, new Color(0xa09077ff));
-        biomeColors.put(CoreBiome.MOUNTAINS, new Color(0x99aa77ff));
-        biomeColors.put(CoreBiome.PLAINS, new Color(0x889977ff));
+        biomeColors.put(CoreBiome.DESERT, new Color(0xb0a087ff));
+        biomeColors.put(CoreBiome.MOUNTAINS, new Color(0x899a47ff));
+        biomeColors.put(CoreBiome.PLAINS, new Color(0x80b068ff));
         biomeColors.put(CoreBiome.SNOW, new Color(0x99ffffff));
-        biomeColors.put(CoreBiome.FOREST, new Color(0x337755ff));
+        biomeColors.put(CoreBiome.FOREST, new Color(0x439765ff));
+        biomeColors.put(CoreBiome.OCEAN, new Color(0x44447aff));
+        biomeColors.put(CoreBiome.BEACH, new Color(0xd0c087ff));
     }
 
     @Override
