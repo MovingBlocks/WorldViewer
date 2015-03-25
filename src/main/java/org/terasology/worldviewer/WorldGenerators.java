@@ -19,7 +19,6 @@ package org.terasology.worldviewer;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import org.reflections.Reflections;
@@ -35,7 +34,6 @@ import org.terasology.world.generator.RegisterWorldGenerator;
 import org.terasology.world.generator.WorldGenerator;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 
 /**
  * Some helper methods for WorldGenerators

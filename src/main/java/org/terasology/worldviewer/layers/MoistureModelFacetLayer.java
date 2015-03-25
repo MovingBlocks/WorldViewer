@@ -16,7 +16,6 @@
 
 package org.terasology.worldviewer.layers;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
@@ -29,8 +28,6 @@ import org.terasology.math.geom.BaseVector2f;
 import org.terasology.math.geom.Vector2f;
 import org.terasology.polyworld.moisture.MoistureModel;
 import org.terasology.polyworld.moisture.MoistureModelFacet;
-import org.terasology.polyworld.rivers.RiverModel;
-import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.polyworld.voronoi.Corner;
 import org.terasology.polyworld.voronoi.Graph;
 import org.terasology.world.generation.Region;

@@ -21,24 +21,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.ListCellRenderer;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.terasology.rendering.nui.properties.Checkbox;
-import org.terasology.rendering.nui.properties.Range;
 import org.terasology.rendering.nui.properties.OneOf.Enum;
-import org.terasology.world.generator.WorldGenerator;
+import org.terasology.rendering.nui.properties.Range;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.lambda.Lambda;
 import org.terasology.worldviewer.layers.FacetLayer;

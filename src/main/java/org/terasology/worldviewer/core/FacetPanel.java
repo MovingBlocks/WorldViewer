@@ -23,10 +23,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import org.terasology.rendering.nui.properties.OneOf.Enum;
 
 import javax.swing.BorderFactory;
 import javax.swing.DropMode;
@@ -41,6 +37,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
 import org.terasology.rendering.nui.properties.Checkbox;
+import org.terasology.rendering.nui.properties.OneOf.Enum;
 import org.terasology.rendering.nui.properties.Range;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.gui.UIBindings;
@@ -134,8 +131,7 @@ public class FacetPanel extends JPanel {
         return panelWrap;
     }
 
-    private void processAnnotations(JPanel panel, FacetLayer layer, Field field)
-    {
+    private void processAnnotations(JPanel panel, FacetLayer layer, Field field) {
         JSpinner spinner = UIBindings.processRangeAnnotation(layer, field);
         if (spinner != null) {
             Range range = field.getAnnotation(Range.class);
