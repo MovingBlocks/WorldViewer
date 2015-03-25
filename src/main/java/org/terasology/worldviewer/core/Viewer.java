@@ -46,6 +46,7 @@ import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.worldviewer.ThreadSafeRegion;
 import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
@@ -322,7 +323,14 @@ public final class Viewer extends JComponent implements AutoCloseable {
         int height = vertChunks * ChunkConstants.SIZE_Y;
         Region3i area3d = Region3i.createFromMinAndSize(new Vector3i(minX, 0, minZ), new Vector3i(TILE_SIZE_X, height, TILE_SIZE_Y));
         World world = worldGen.getWorld();
-        Region region = world.getWorldData(area3d);
+
+        // The region needs to be thread-safe, since the rendering of the tooltip
+        // might access Region.getFacet() at the same time as a thread from the thread pool
+        // that uses it to render to a BufferedImage.
+        // This is often irrelevant, but composed facets such as Perlin's surface height facet,
+        // which consists of the ground layer plus hills and mountains plus rivers
+        // the method could return a partly created facet if accessed in parallel.
+        Region region = new ThreadSafeRegion(world.getWorldData(area3d));
 
         return region;
     }
