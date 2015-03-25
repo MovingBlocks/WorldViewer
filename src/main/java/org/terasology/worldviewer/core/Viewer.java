@@ -28,8 +28,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +64,7 @@ import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 import org.terasology.worldviewer.overlay.TextOverlay;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -79,12 +84,10 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final BufferedImage dummyImg = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
 
-    private final int numThreads = 4;
-
+    private final int numThreads = Runtime.getRuntime().availableProcessors();
     private final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
-
-    private final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads, numThreads,
-            0L, TimeUnit.MILLISECONDS, workQueue);
+    private final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads, numThreads * 2,
+            1L, TimeUnit.SECONDS, workQueue, Executors.defaultThreadFactory());
 
     private final CacheLoader<Vector2i, Region> regionLoader = new CacheLoader<Vector2i, Region>() {
 
@@ -95,11 +98,6 @@ public final class Viewer extends JComponent implements AutoCloseable {
         }
     };
 
-    /**
-     * A cache for regions based on <b>soft-values</b>.
-     */
-    private final LoadingCache<Vector2i, Region> regionCache = CacheBuilder.newBuilder().softValues().build(regionLoader);
-
     private final CacheLoader<Region, BufferedImage> imageLoader = new CacheLoader<Region, BufferedImage>() {
 
         @Override
@@ -109,7 +107,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
         }
     };
 
-    private final LoadingCache<Region, BufferedImage> imageCache = CacheBuilder.newBuilder().build(imageLoader);
+    private final LoadingCache<Vector2i, Region> regionCache;
+    private final LoadingCache<Region, BufferedImage> imageCache;
 
     private final Camera camera = new Camera();
     private final WorldGenerator worldGen;
@@ -118,8 +117,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private final ViewConfig viewConfig;
 
-    private final Deque<Overlay> trOverlays = Lists.newLinkedList();
-    private final Deque<Overlay> utOverlays = Lists.newLinkedList();
+    private final Deque<Overlay> worldOverlays = Lists.newLinkedList();
+    private final Deque<Overlay> screenOverlays = Lists.newLinkedList();
 
     private final List<FacetLayer> facetLayers;
 
@@ -127,18 +126,22 @@ public final class Viewer extends JComponent implements AutoCloseable {
      * @param wg the world generator to use
      * @param facetLayers the facet config
      * @param viewConfig the view config
+     * @param cacheSize maximum number of cached tiles
      */
-    public Viewer(WorldGenerator wg, List<FacetLayer> facetLayers, ViewConfig viewConfig) {
+    public Viewer(WorldGenerator wg, List<FacetLayer> facetLayers, ViewConfig viewConfig, int cacheSize) {
         this.worldGen = wg;
         this.viewConfig = viewConfig;
         this.facetLayers = facetLayers;
+
+        regionCache = CacheBuilder.newBuilder().maximumSize(cacheSize).build(regionLoader);
+        imageCache = CacheBuilder.newBuilder().maximumSize(cacheSize).build(imageLoader);
 
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
         camera.translate(camPos.getX(), camPos.getY());
 
         GridOverlay gridOverlay = new GridOverlay(TILE_SIZE_X, TILE_SIZE_Y);
-        trOverlays.addLast(gridOverlay);
+        worldOverlays.addLast(gridOverlay);
 
         TextOverlay zoomOverlay = new TextOverlay(() -> String.format("Zoom: %3d%%", (int) (camera.getZoom() * 100)));
         zoomOverlay.setHorizontalAlign(HorizontalAlign.RIGHT);
@@ -149,7 +152,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
         zoomOverlay.setBackground(new Color(92, 92, 92, 160));
         zoomOverlay.setVisible(false);
         camera.addListener(new ZoomOverlayUpdater(this, zoomOverlay));
-        utOverlays.add(zoomOverlay);
+        screenOverlays.add(zoomOverlay);
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -189,27 +192,15 @@ public final class Viewer extends JComponent implements AutoCloseable {
         return workQueue.size();
     }
 
-    public Camera getCamera() {
-        return camera;
+    /**
+     * @return the number of tile images in the cache
+     */
+    public int getCachedTiles() {
+        return (int) imageCache.size();
     }
 
-    private BufferedImage rasterize(Region region) {
-        // this method must be thread-safe!
-
-        Vector3i extent = region.getRegion().size();
-        int width = extent.x;
-        int height = extent.z;
-
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = image.createGraphics();
-
-        for (FacetLayer layer : facetLayers) {
-            if (layer.isVisible()) {
-                layer.render(image, region);
-            }
-        }
-        g.dispose();
-        return image;
+    public Camera getCamera() {
+        return camera;
     }
 
     @Override
@@ -222,24 +213,18 @@ public final class Viewer extends JComponent implements AutoCloseable {
         Graphics2D g = (Graphics2D) g1;
         AffineTransform orgTrans = g.getTransform();
 
-        int cx = TeraMath.floorToInt(camera.getPos().getX());
-        int cy = TeraMath.floorToInt(camera.getPos().getY());
-
-        int w = (int) (getWidth() / camera.getZoom());
-        int h = (int) (getHeight() / camera.getZoom());
-        int minX = cx - w / 2;
-        int minY = cy - h / 2;
-        Rect2i area = Rect2i.createFromMinAndSize(minX, minY, w, h);
+        Rect2i visWorld = getVisibleArea(camera, getWidth(), getHeight());
+        Rect2i visChunks = toChunkArea(visWorld);
 
         g.scale(camera.getZoom(), camera.getZoom());
-        g.translate(-minX, -minY);
+        g.translate(-visWorld.minX(), -visWorld.minY());
 
-        drawTiles(g, area);
+        drawTiles(g, visChunks);
 
         // draw world overlays
-        for (Overlay ovly : trOverlays) {
+        for (Overlay ovly : worldOverlays) {
             if (ovly.isVisible()) {
-                ovly.render(g, area);
+                ovly.render(g, visWorld);
             }
         }
 
@@ -247,21 +232,57 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
         // draw screen overlays
         Rect2i windowRect = Rect2i.createFromMinAndSize(0, 0, getWidth(), getHeight());
-        for (Overlay ovly : utOverlays) {
+        for (Overlay ovly : screenOverlays) {
             if (ovly.isVisible()) {
                 ovly.render(g, windowRect);
             }
         }
 
-        drawTooltip(g, area);
+        drawTooltip(g, visWorld);
     }
 
-    private void drawTiles(Graphics2D g, Rect2i area) {
-        int camChunkMinX = IntMath.divide(area.minX(), TILE_SIZE_X, RoundingMode.FLOOR);
-        int camChunkMinZ = IntMath.divide(area.minY(), TILE_SIZE_Y, RoundingMode.FLOOR);
+    public void invalidateWorld() {
+        regionCache.invalidateAll();
+        imageCache.invalidateAll();
+        repaint();
+     }
 
-        int camChunkMaxX = IntMath.divide(area.maxX(), TILE_SIZE_X, RoundingMode.CEILING);
-        int camChunkMaxZ = IntMath.divide(area.maxY(), TILE_SIZE_Y, RoundingMode.CEILING);
+    @Override
+    public void close() {
+        int cx = (int) camera.getPos().getX();
+        int cy = (int) camera.getPos().getY();
+
+        // TODO: TeraMath compatibility fix
+        viewConfig.setCamPos(new Vector2i(cx, cy));
+
+        threadPool.shutdownNow();
+    }
+
+    // TODO: consider moving this to Camera (default method?)
+    private static Rect2i getVisibleArea(Camera camera, int width, int height) {
+        int cx = TeraMath.floorToInt(camera.getPos().getX());
+        int cy = TeraMath.floorToInt(camera.getPos().getY());
+
+        // Compensate rounding errors by adding 2px to the visible window size
+        int w = (int) (width / camera.getZoom()) + 2;
+        int h = (int) (height / camera.getZoom()) + 2;
+        int minX = cx - w / 2;
+        int minY = cy - h / 2;
+        Rect2i visWorld = Rect2i.createFromMinAndSize(minX, minY, w, h);
+        return visWorld;
+    }
+
+    private static Rect2i toChunkArea(Rect2i area) {
+        int chunkMinX = IntMath.divide(area.minX(), TILE_SIZE_X, RoundingMode.FLOOR);
+        int chunkMinZ = IntMath.divide(area.minY(), TILE_SIZE_Y, RoundingMode.FLOOR);
+
+        int chunkMaxX = IntMath.divide(area.maxX(), TILE_SIZE_X, RoundingMode.CEILING);
+        int chunkMaxZ = IntMath.divide(area.maxY(), TILE_SIZE_Y, RoundingMode.CEILING);
+
+        return Rect2i.createFromMinAndMax(chunkMinX, chunkMinZ, chunkMaxX, chunkMaxZ);
+    }
+
+    private void drawTiles(Graphics2D g, Rect2i visChunks) {
 
         Object hint;
 
@@ -274,8 +295,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
         }
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
 
-        for (int z = camChunkMinZ; z < camChunkMaxZ; z++) {
-            for (int x = camChunkMinX; x < camChunkMaxX; x++) {
+        for (int z = visChunks.minY(); z < visChunks.maxY(); z++) {
+            for (int x = visChunks.minX(); x < visChunks.maxX(); x++) {
                 Vector2i pos = new Vector2i(x, z);
                 Region region = regionCache.getUnchecked(pos);
                 BufferedImage image = imageCache.getUnchecked(region);
@@ -335,32 +356,44 @@ public final class Viewer extends JComponent implements AutoCloseable {
         return region;
     }
 
-    public void invalidateWorld() {
-        regionCache.invalidateAll();
-        imageCache.invalidateAll();
-        repaint();
-     }
-
     /**
      * Called whenever a facet layer configuration changes
      */
     void updateImageCache() {
         workQueue.clear();
 
-        for (Region region : imageCache.asMap().keySet()) {
+        // shuffle the order of new tasks
+        // If the queue is cleared repeatedly before all tasks are run
+        // some tiles will never be updated otherwise
+        List<Region> inCache = new ArrayList<Region>(imageCache.asMap().keySet());
+        Collections.shuffle(inCache);
+
+        for (Region region : inCache) {
             threadPool.execute(new UpdateImageCache(region));
         }
     }
 
-    @Override
-    public void close() {
-        int cx = (int) camera.getPos().getX();
-        int cy = (int) camera.getPos().getY();
+    /**
+     * Note: this method must be thread-safe!
+     * @param region the thread-safe region
+     * @return an image of that region
+     */
+    BufferedImage rasterize(Region region) {
 
-        // TODO: TeraMath compatibility fix
-        viewConfig.setCamPos(new Vector2i(cx, cy));
+        Vector3i extent = region.getRegion().size();
+        int width = extent.x;
+        int height = extent.z;
 
-        threadPool.shutdownNow();
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+
+        for (FacetLayer layer : facetLayers) {
+            if (layer.isVisible()) {
+                layer.render(image, region);
+            }
+        }
+        g.dispose();
+        return image;
     }
 
     private class UpdateImageCache implements Runnable {

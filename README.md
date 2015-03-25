@@ -6,6 +6,12 @@ A world-generator based map viewer for Terasology
 ![image1](images/2015-03-07_version0-5-0.png "Screenshot of biome facet rendering of PolyWorld")
 
 
+Requirements
+-----------
+
+You need [Java 8](http://java.com/download) and at least 3 GB memory. 
+
+
 Download
 -----------
 

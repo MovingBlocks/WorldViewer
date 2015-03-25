@@ -111,7 +111,8 @@ public class MainFrame extends JFrame {
 
         configPanel = new ConfigPanel(worldGen, config);
 
-        viewer = new Viewer(worldGen, layerList, config.getViewConfig());
+        int maxTiles = 3000;
+        viewer = new Viewer(worldGen, layerList, config.getViewConfig(), maxTiles);
         layerPanel = new FacetPanel(layerList);
 
         configPanel.addObserver(wg -> viewer.invalidateWorld());
@@ -122,9 +123,9 @@ public class MainFrame extends JFrame {
         add(statusBar, BorderLayout.SOUTH);
 
         JLabel cameraLabel = new JLabel();
-        cameraLabel.setPreferredSize(new Dimension(150, 0));
+        cameraLabel.setPreferredSize(new Dimension(170, 0));
         JLabel tileCountLabel = new JLabel();
-        tileCountLabel.setPreferredSize(new Dimension(120, 0));
+        tileCountLabel.setPreferredSize(new Dimension(220, 0));
         JLabel memoryLabel = new JLabel();
         memoryLabel.setPreferredSize(new Dimension(140, 0));
         statusBarTimer = new Timer(50, event -> {
@@ -135,7 +136,8 @@ public class MainFrame extends JFrame {
             cameraLabel.setText(String.format("Camera: %d/%d at %d%%", camX, camZ, zoom));
 
             int pendingTiles = viewer.getPendingTiles();
-            tileCountLabel.setText(String.format("Queued: %s tiles", pendingTiles));
+            int cachedTiles = viewer.getCachedTiles();
+            tileCountLabel.setText(String.format("Tiles: %d/%d cached, %d queued", cachedTiles, maxTiles, pendingTiles));
 
             Runtime runtime = Runtime.getRuntime();
             long maxMem = runtime.maxMemory();
