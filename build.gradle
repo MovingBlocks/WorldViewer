@@ -68,6 +68,12 @@ task wrapper(type: Wrapper) {
 compileJava.dependsOn createVersionJavaFile
 eclipseProject.dependsOn createVersionJavaFile
 
+configurations {
+    checkstyleConfig
+    findbugsConfig
+    pmdConfig
+}
+
 // by default gradle will check for updates (deps. with changing flag) every 24h
 configurations.all {
     // check for updates every build
@@ -76,8 +82,14 @@ configurations.all {
 
 dependencies {
 
-    checkstyle ('com.puppycrawl.tools:checkstyle:6.3')
-    
+	checkstyleConfig(group: 'org.terasology.config', name: 'checkstyle', version: '1.0.0', ext: 'zip')
+    pmdConfig (group: 'org.terasology.config', name: 'pmd', version: '1.0.0', ext: 'zip')
+    findbugsConfig (group: 'org.terasology.config', name: 'findbugs-exclude', version: '1.0.0', ext: 'zip') 
+	
+    checkstyle ('com.puppycrawl.tools:checkstyle:6.4.1')
+    pmd ('net.sourceforge.pmd:pmd-core:5.2.3')
+    pmd ('net.sourceforge.pmd:pmd-java:5.2.3') 
+
     // the deps. without a fixed version number are flagged with 'changing: true'
     // to indicate that gradle should check for updates
 	
@@ -135,16 +147,17 @@ distZip {
 
 checkstyle {
     ignoreFailures = true
-    configProperties.samedir = checkstyle.configFile.parentFile
+    config = resources.text.fromArchiveEntry(configurations.checkstyleConfig, "checkstyle.xml")
 }
 
 pmd {
     ignoreFailures = true
-    ruleSetFiles = files("config/pmd/pmd.xml")
+    ruleSetConfig = resources.text.fromArchiveEntry(configurations.pmdConfig, "pmd.xml")
 }
 
 findbugs {
     ignoreFailures = true
     effort = 'max'
     reportLevel = 'medium'
+    excludeFilterConfig = resources.text.fromArchiveEntry(configurations.findbugsConfig, "findbugs-exclude.xml")
 }
