@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import org.terasology.core.world.generator.facets.TreeFacet;
 import org.terasology.core.world.generator.trees.TreeGenerator;
 import org.terasology.math.Region3i;
-import org.terasology.math.Vector3i;
+import org.terasology.math.geom.Vector3i;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 
