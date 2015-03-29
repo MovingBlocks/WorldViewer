@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.annotation.Annotation;
@@ -70,39 +71,31 @@ public class ConfigPanel extends JPanel {
         setLayout(new BorderLayout());
         setBorder(new EmptyBorder(5, 5, 5, 5));
 
-        JPanel wgSelectPanel = new JPanel();
+        JPanel wgSelectPanel = new JPanel(new GridBagLayout());
         wgSelectPanel.setBorder(BorderFactory.createTitledBorder("World Generator"));
-        wgSelectPanel.setLayout(new BorderLayout(5, 5));
 
         this.worldGen = worldGen;
 
-        String worldSeed = config.getWorldConfig().getWorldSeed();
+        String worldSeed = worldGen.getWorldSeed();
         String wgName = WorldGenerators.getAnnotatedDisplayName(worldGen.getClass());
+        int seaLevel = worldGen.getWorld().getSeaLevel();
 
-        JLabel seedText = new JLabel("Seed: " + worldSeed);
-        JLabel typeText = new JLabel("Type: " + wgName);
-        typeText.setBorder(new EmptyBorder(5, 10, 0, 5));
-        seedText.setBorder(new EmptyBorder(0, 10, 5, 5));
-        wgSelectPanel.add(typeText, BorderLayout.NORTH);
-        wgSelectPanel.add(seedText, BorderLayout.WEST);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridy = 0;
+        wgSelectPanel.add(new JLabel("Generator Type:"), gbc.clone());
+        wgSelectPanel.add(new JLabel(wgName), gbc.clone());
+        gbc.gridy = 1;
+        wgSelectPanel.add(new JLabel("World Seed:"), gbc.clone());
+        wgSelectPanel.add(new JLabel(worldSeed), gbc.clone());
+        gbc.gridy = 2;
+        wgSelectPanel.add(new JLabel("Sea Level Height:"), gbc.clone());
+        wgSelectPanel.add(new JLabel(seaLevel + " blocks"), gbc.clone());
 
         add(wgSelectPanel, BorderLayout.NORTH);
 
-        JButton refreshButton = new JButton("Reload");
-        refreshButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                notifyObservers();
-            }
-        });
-        refreshButton.setPreferredSize(new Dimension(100, 40));
-        add(refreshButton, BorderLayout.SOUTH);
-
-        // trigger an initial refresh
-        refreshButton.doClick();
-
-        JPanel configPanel = createConfigPanel(worldGen);
+        JPanel configPanel = createConfigPanel();
         add(configPanel, BorderLayout.CENTER);
     }
 
@@ -125,7 +118,7 @@ public class ConfigPanel extends JPanel {
         }
     }
 
-    private JPanel createConfigPanel(WorldGenerator worldGen) {
+    private JPanel createConfigPanel() {
         JPanel configPanel = new JPanel();
         configPanel.setLayout(new GridBagLayout());
 
@@ -196,6 +189,7 @@ public class ConfigPanel extends JPanel {
             JSpinner spinner = UIBindings.createSpinner(min, stepSize, max, getter, setter);
             spinner.setToolTipText(range.description());
             parent.add(spinner, gbc.clone());
+            spinner.addChangeListener(e -> notifyObservers());
         }
     }
 }
