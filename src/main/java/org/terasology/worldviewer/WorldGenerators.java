@@ -17,23 +17,18 @@
 package org.terasology.worldviewer;
 
 import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.util.Collection;
 import java.util.Set;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.asset.AssetManager;
 import org.terasology.engine.SimpleUri;
+import org.terasology.module.ModuleEnvironment;
+import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generator.RegisterWorldGenerator;
 import org.terasology.world.generator.WorldGenerator;
 
-import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 
 /**
  * Some helper methods for WorldGenerators
@@ -48,25 +43,13 @@ public final class WorldGenerators {
     }
 
     /**
-     * @return a list of world generators on the classpath
+     * @return a list of world generators
      */
-    public static Set<Class<?>> findOnClasspath(String packageFilter) {
+    public static Set<Class<?>> findOnClasspath() {
 
-        // search only in packages with that start with o.t.
-        Collection<URL> classPathURLs = ClasspathHelper.forPackage(packageFilter);
-
-        // this effectively removes assets, MANIFEST.MF and other files
-        Predicate<String> fileFilter = new FilterBuilder().includePackage(packageFilter);
-
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-             .setUrls(classPathURLs)
-             .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner())
-             .filterInputsBy(fileFilter));
-
-        // find classes that are annotated and assume that they are WorldGenerator instances
-        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(RegisterWorldGenerator.class);
-
-        return classes;
+        AssetManager assetManager = CoreRegistry.get(AssetManager.class);
+        ModuleEnvironment env = assetManager.getEnvironment();
+        return Sets.newHashSet(env.getTypesAnnotatedWith(RegisterWorldGenerator.class));
     }
 
     /**

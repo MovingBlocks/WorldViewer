@@ -17,24 +17,18 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.TextField;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 
@@ -45,8 +39,6 @@ import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 public class SelectWorldGenDialog extends JDialog {
 
     private static final long serialVersionUID = 257345717408006930L;
-
-    private static final Logger logger = LoggerFactory.getLogger(SelectWorldGenDialog.class);
 
     private final JOptionPane optionPane;
     private final JComboBox<Class<?>> wgSelectCombo;
@@ -60,55 +52,25 @@ public class SelectWorldGenDialog extends JDialog {
         seedText = new TextField(wgConfig.getWorldSeed());
 
         wgSelectCombo = new JComboBox<>();
-        wgSelectCombo.setEnabled(false);
 
-        JButton okButton = new JButton("OK");
-        okButton.setPreferredSize(new Dimension(90, 25));
-        okButton.setEnabled(false);
+        Set<Class<?>> worldGenSet = WorldGenerators.findOnClasspath();
+        Class<?>[] worldGens = worldGenSet.toArray(new Class<?>[0]);
+        Arrays.sort(worldGens, Comparator.comparing(clazz -> WorldGenerators.getAnnotatedDisplayName(clazz)));
 
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.setPreferredSize(new Dimension(90, 25));
+        for (Class<?> wg : worldGens) {
+            wgSelectCombo.addItem(wg);
+        }
 
-        SwingWorker<Set<Class<?>>, Void> swingWorker = new SwingWorker<Set<Class<?>>, Void>() {
-
-            @Override
-            protected Set<Class<?>> doInBackground() {
-                return WorldGenerators.findOnClasspath("org.terasology");
-            }
-
-            @Override
-            protected void done() {
-                int idx;
-                try {
-                    Set<Class<?>> worldGenSet = get();
-                    Class<?>[] worldGens = worldGenSet.toArray(new Class<?>[0]);
-                    Arrays.sort(worldGens, Comparator.comparing(clazz -> WorldGenerators.getAnnotatedDisplayName(clazz)));
-
-                    for (Class<?> wg : worldGens) {
-                        wgSelectCombo.addItem(wg);
-                    }
-
-                    idx = findWorldGenIndex(worldGens, wgConfig.getWorldGenClass());
-                    wgSelectCombo.setSelectedIndex(idx >= 0 ? idx : 0);
-                    wgSelectCombo.setRenderer(new WorldGenCellRenderer());
-                    wgSelectCombo.setEnabled(true);
-                    okButton.setEnabled(true);
-                } catch (InterruptedException | ExecutionException e) {
-                    logger.error("Could not update world generator combo box", e);
-                }
-            }
-        };
-        swingWorker.execute();
+        int idx = findWorldGenIndex(worldGens, wgConfig.getWorldGenClass());
+        wgSelectCombo.setSelectedIndex(idx >= 0 ? idx : 0);
+        wgSelectCombo.setRenderer(new WorldGenCellRenderer());
 
         panel.add(wgSelectCombo, BorderLayout.NORTH);
         panel.add(new JLabel("Seed"), BorderLayout.WEST);
         panel.add(seedText, BorderLayout.CENTER);
         panel.add(new JLabel("<html><b>Note: </b>You can skip this dialog by<br/>supplying the -skip cmd. line argument</html>"), BorderLayout.SOUTH);
 
-        JButton[] options = new JButton[] {okButton, cancelButton};
-
-        optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, options, options[0]);
-
+        optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
         optionPane.addPropertyChangeListener(e -> {
             if (isVisible() && (e.getPropertyName().equals(JOptionPane.VALUE_PROPERTY))) {
                 setVisible(false);
@@ -116,9 +78,6 @@ public class SelectWorldGenDialog extends JDialog {
                 updateConfig(wgConfig);
             }
         });
-
-        okButton.addActionListener(e -> optionPane.setValue(JOptionPane.OK_OPTION));
-        cancelButton.addActionListener(e -> optionPane.setValue(JOptionPane.CANCEL_OPTION));
 
         setContentPane(optionPane);
         setResizable(false);
