@@ -100,12 +100,11 @@ public class ConfigPanel extends JPanel {
     }
 
     /**
-     * Adds an observer <b>and fires out a notification</b>
+     * Adds an observer
      * @param obs the observer to add
      */
     public void addObserver(Observer<WorldGenerator> obs) {
         observers.add(obs);
-        obs.update(worldGen);
     }
 
     public void removeObserver(Observer<WorldGenerator> obs) {
