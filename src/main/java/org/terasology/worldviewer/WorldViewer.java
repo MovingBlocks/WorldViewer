@@ -32,6 +32,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.engine.splash.SplashScreen;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.WorldConfig;
@@ -64,6 +65,8 @@ public final class WorldViewer {
 
         CmdLineConfigs cmdLineOpts = new CmdLineConfigs();
         CmdLineParser parser = new CmdLineParser(cmdLineOpts);
+
+        SplashScreen.getInstance().post("Loading ...");
 
         try {
 //            FullEnvironment.setup();
