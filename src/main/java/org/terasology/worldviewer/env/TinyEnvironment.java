@@ -16,42 +16,38 @@
 
 package org.terasology.worldviewer.env;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.asset.AssetFactory;
 import org.terasology.asset.AssetManager;
-import org.terasology.asset.AssetResolver;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.config.Config;
-import org.terasology.core.world.CoreBiome;
-import org.terasology.core.world.generator.worldGenerators.HeightMapWorldGenerator;
 import org.terasology.engine.TerasologyConstants;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
 import org.terasology.module.ClasspathModule;
 import org.terasology.module.Module;
 import org.terasology.module.ModuleEnvironment;
+import org.terasology.module.ModuleLoader;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataReader;
-import org.terasology.module.sandbox.BytecodeInjector;
 import org.terasology.module.sandbox.PermissionProviderFactory;
-import org.terasology.naming.Name;
-import org.terasology.naming.Version;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
-import org.terasology.rendering.nui.skin.UISkin;
-import org.terasology.rendering.nui.skin.UISkinData;
-import org.terasology.rendering.opengl.OpenGLTexture;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.BlockUri;
@@ -66,14 +62,17 @@ import com.google.common.collect.Lists;
  */
 public final class TinyEnvironment {
 
+    private static final Logger logger = LoggerFactory.getLogger(TinyEnvironment.class);
+
     private TinyEnvironment() {
         // empty
     }
 
     /**
      * Default setup order
+     * @throws IOException if the engine could not be loaded
      */
-    public static void setup() {
+    public static void setup() throws IOException {
 
         setupConfig();
 
@@ -89,32 +88,53 @@ public final class TinyEnvironment {
         CoreRegistry.put(Config.class, config);
     }
 
-    private static void setupAssetManager() {
+    private static void setupAssetManager() throws IOException {
+        Collection<Module> mods = loadModules();
+
+        PermissionProviderFactory securityManager = Mockito.mock(PermissionProviderFactory.class);
+        ModuleEnvironment env = new ModuleEnvironment(mods, securityManager, Collections.emptyList());
+
+        AssetManager assetManager = new AssetManager(env);
+        AssetType.registerAssetTypes(assetManager);
+        assetManager.setAssetFactory(AssetType.TEXTURE, new AssetFactory<TextureData, Texture>() {
+            @Override
+            public Texture buildAsset(AssetUri uri, TextureData data) {
+                return new HeadlessTexture(uri, data);
+            }
+        });
+
+        CoreRegistry.put(AssetManager.class, assetManager);
+    }
+
+    private static Collection<Module> loadModules() throws IOException {
+        try {
+            Module engine = loadEngineModule();
+
+            String classpath = System.getProperty("java.class.path");
+            String[] cpEntries = classpath.split(File.pathSeparator);
+
+            Collection<Module> mods = Lists.newArrayList(engine);
+
+            ModuleLoader moduleLoader = new ModuleLoader();
+            moduleLoader.setModuleInfoPath(TerasologyConstants.MODULE_INFO_FILENAME);
+            for (String path : cpEntries) {
+                Module mod = moduleLoader.load(Paths.get(path));
+                if (mod != null) {
+                    logger.info("Loading module: {}", mod);
+                    mods.add(mod);
+                }
+            }
+            return mods;
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to load engine module", e);
+        }
+    }
+
+    private static Module loadEngineModule() throws IOException, URISyntaxException {
         ModuleMetadataReader metadataReader = new ModuleMetadataReader();
         try (Reader reader = new InputStreamReader(ModuleManager.class.getResourceAsStream("/engine-module.txt"), TerasologyConstants.CHARSET)) {
             ModuleMetadata metadata = metadataReader.read(reader);
-            ClasspathModule engineModule = ClasspathModule.create(metadata, ModuleManager.class, Module.class);
-            ModuleMetadata coreMeta = new ModuleMetadata();
-            coreMeta.setId(new Name("Core"));
-            coreMeta.setVersion(new Version(50, 1, 0));
-            ClasspathModule coreModule = ClasspathModule.create(coreMeta, CoreBiome.class);
-            Iterable<Module> mods = Lists.newArrayList(coreModule, engineModule);
-            PermissionProviderFactory securityManager = Mockito.mock(PermissionProviderFactory.class);
-            ModuleEnvironment env = new ModuleEnvironment(mods, securityManager, Collections.emptyList());
-
-            AssetManager assetManager = new AssetManager(env);
-            AssetType.registerAssetTypes(assetManager);
-            assetManager.setAssetFactory(AssetType.TEXTURE, new AssetFactory<TextureData, Texture>() {
-                @Override
-                public Texture buildAsset(AssetUri uri, TextureData data) {
-                    return new HeadlessTexture(uri, data);
-                }
-            });
-            CoreRegistry.put(AssetManager.class, assetManager);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read engine metadata", e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Failed to convert engine library location to path", e);
+            return ClasspathModule.create(metadata, ModuleManager.class, Module.class);
         }
     }
 

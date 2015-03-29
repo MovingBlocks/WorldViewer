@@ -18,6 +18,7 @@ package org.terasology.worldviewer;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -61,31 +62,35 @@ public final class WorldViewer {
 
         logStatus();
 
-//      FullEnvironment.setup();
-        TinyEnvironment.setup();
-
-        Config config = Config.load(CONFIG_PATH);
-
         CmdLineConfigs cmdLineOpts = new CmdLineConfigs();
         CmdLineParser parser = new CmdLineParser(cmdLineOpts);
+
         try {
+//            FullEnvironment.setup();
+            TinyEnvironment.setup();
+
+            Config config = Config.load(CONFIG_PATH);
+
             parser.parseArgument(args);
+
+            if (cmdLineOpts.help) {
+                System.out.println("WorldViewer - Version " + GitVersion.getVersion());
+                parser.printUsage(System.out);
+                return;
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                setupLookAndFeel();
+                createAndShowGUI(config, cmdLineOpts);
+            });
         } catch (CmdLineException e) {
             System.err.println("Could not parse command line arguments: " + e.getMessage());
             parser.printUsage(System.out);
             return;
-        }
-
-        if (cmdLineOpts.help) {
-            System.out.println("WorldViewer - Version " + GitVersion.getVersion());
-            parser.printUsage(System.out);
+        } catch (IOException e) {
+            System.err.println("Could not load modules: " + e.getMessage());
             return;
         }
-
-        SwingUtilities.invokeLater(() -> {
-            setupLookAndFeel();
-            createAndShowGUI(config, cmdLineOpts);
-        });
     }
 
     private static void setupLookAndFeel() {
