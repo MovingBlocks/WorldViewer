@@ -79,7 +79,7 @@ public class FacetPanel extends JPanel {
         gbc.gridy++;
         add(facetList, gbc.clone());
 
-        JLabel listInfoText = new JLabel("Double-click to toggle; drag to reorder");
+        JLabel listInfoText = new JLabel("Drag layers to change rendering order");
         listInfoText.setAlignmentX(0.5f);
         gbc.gridy++;
         add(listInfoText, gbc.clone());
