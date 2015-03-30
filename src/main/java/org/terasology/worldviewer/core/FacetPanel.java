@@ -38,7 +38,6 @@ import javax.swing.table.TableModel;
 
 import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.rendering.nui.properties.OneOf.Enum;
-import org.terasology.rendering.nui.properties.Range;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.gui.UIBindings;
 import org.terasology.worldviewer.layers.FacetLayer;
@@ -132,22 +131,22 @@ public class FacetPanel extends JPanel {
     }
 
     private void processAnnotations(JPanel panel, FacetLayer layer, Field field) {
-        JSpinner spinner = UIBindings.processRangeAnnotation(layer, field);
+        FacetConfig config = layer.getConfig();
+        JSpinner spinner = UIBindings.processRangeAnnotation(config, field);
         if (spinner != null) {
-            Range range = field.getAnnotation(Range.class);
+            spinner.addChangeListener(event -> layer.notifyObservers());
 
-            JLabel label = new JLabel(range.label().isEmpty() ? field.getName() : range.label());
-            label.setToolTipText(range.description());
+            JLabel label = new JLabel(spinner.getName());
+            label.setToolTipText(spinner.getToolTipText());
 
             panel.add(label);
             panel.add(spinner);
         }
 
-        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(layer, field);
+        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(layer, field, "visible");
         if (checkbox != null) {
-            Checkbox anno = field.getAnnotation(Checkbox.class);
-            JLabel label = new JLabel(anno.label().isEmpty() ? field.getName() : anno.label());
-            label.setToolTipText(anno.description());
+            JLabel label = new JLabel(checkbox.getName());
+            label.setToolTipText(checkbox.getToolTipText());
 
             panel.add(label);
             panel.add(checkbox);
@@ -155,9 +154,8 @@ public class FacetPanel extends JPanel {
 
         JComboBox<?> combo = UIBindings.processEnumAnnotation(layer, field);
         if (combo != null) {
-            Enum en = field.getAnnotation(Enum.class);
-            JLabel label = new JLabel(en.label().isEmpty() ? field.getName() : en.label());
-            label.setToolTipText(en.description());
+            JLabel label = new JLabel(combo.getName());
+            label.setToolTipText(combo.getToolTipText());
 
             panel.add(label);
             panel.add(combo);

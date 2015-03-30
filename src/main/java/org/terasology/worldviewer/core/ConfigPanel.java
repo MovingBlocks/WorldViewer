@@ -169,24 +169,18 @@ public class ConfigPanel extends JPanel {
         gbc.gridy = GridBagConstraints.RELATIVE;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        Range range = field.getAnnotation(Range.class);
-        if (range != null) {
+        JSpinner spinner = UIBindings.processRangeAnnotation(obj, field);
+
+        if (spinner != null) {
             gbc.insets.left = 5;
             gbc.insets.right = 5;
             gbc.gridx = 0;
-            JLabel label = new JLabel(range.label().isEmpty() ? field.getName() : range.label());
+            JLabel label = new JLabel(spinner.getName());
+            label.setToolTipText(spinner.getToolTipText());
             parent.add(label, gbc.clone());
-            label.setToolTipText(range.description());
-            double min = range.min();
-            double max = range.max();
-            double stepSize = range.increment();
-            Supplier<Double> getter = Lambda.toRuntime(() -> field.getDouble(obj));
-            Consumer<Double> setter = Lambda.toRuntime(v -> field.setFloat(obj, v.floatValue()));
             gbc.insets.left = 5;
             gbc.insets.right = 5;
             gbc.gridx = 1;
-            JSpinner spinner = UIBindings.createSpinner(min, stepSize, max, getter, setter);
-            spinner.setToolTipText(range.description());
             parent.add(spinner, gbc.clone());
             spinner.addChangeListener(e -> notifyObservers());
         }

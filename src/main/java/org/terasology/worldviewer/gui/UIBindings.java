@@ -51,18 +51,16 @@ public final class UIBindings {
         // no instances
     }
 
-    public static JCheckBox processCheckboxAnnotation(FacetLayer layer, Field field) {
+    public static JCheckBox processCheckboxAnnotation(FacetLayer layer, Field field, String text) {
         FacetConfig config = layer.getConfig();
         Checkbox checkbox = field.getAnnotation(Checkbox.class);
 
         if (checkbox != null) {
-            JLabel label = new JLabel(checkbox.label().isEmpty() ? field.getName() : checkbox.label());
-            label.setToolTipText(checkbox.description());
-
             Supplier<Boolean> getter = Lambda.toRuntime(() -> field.getBoolean(config));
             Consumer<Boolean> setter = Lambda.toRuntime(v -> { field.setBoolean(config, v.booleanValue()); layer.notifyObservers(); });
-            JCheckBox component = createCheckbox(getter, setter);
-            component.setToolTipText(checkbox.description());
+            JCheckBox component = createCheckbox(text, getter, setter);
+            component.setName(checkbox.label().isEmpty() ? field.getName() : checkbox.label());
+            component.setToolTipText(checkbox.description().isEmpty() ? null : checkbox.description());
 
             return component;
         }
@@ -70,8 +68,8 @@ public final class UIBindings {
         return null;
     }
 
-    public static JCheckBox createCheckbox(Supplier<Boolean> getter, Consumer<Boolean> setter) {
-        JCheckBox checkBox = new JCheckBox("visible");
+    public static JCheckBox createCheckbox(String text, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        JCheckBox checkBox = new JCheckBox(text);
         checkBox.setSelected(getter.get());
         checkBox.addComponentListener(new ComponentAdapter() {
 
@@ -91,18 +89,25 @@ public final class UIBindings {
         return checkBox;
     }
 
-    public static JSpinner processRangeAnnotation(FacetLayer layer, Field field) {
-        FacetConfig config = layer.getConfig();
+    public static JSpinner processRangeAnnotation(Object config, Field field) {
         Range range = field.getAnnotation(Range.class);
 
         if (range != null) {
             double min = range.min();
             double max = range.max();
             double stepSize = range.increment();
-            Supplier<Double> getter = Lambda.toRuntime(() -> field.getDouble(config));
-            Consumer<Double> setter = Lambda.toRuntime(v -> { field.setFloat(config, v.floatValue()); layer.notifyObservers(); });
+            Supplier<Number> getter;
+            Consumer<Number> setter;
+            if (field.getType() == int.class) {
+                getter = Lambda.toRuntime(() -> field.getInt(config));
+                setter = Lambda.toRuntime(v -> field.setInt(config, v.intValue()) );
+            } else {
+                getter = Lambda.toRuntime(() -> field.getDouble(config));
+                setter = Lambda.toRuntime(v -> field.setFloat(config, v.floatValue()) );
+            }
             JSpinner spinner = createSpinner(min, stepSize, max, getter, setter);
-            spinner.setToolTipText(range.description());
+            spinner.setName(range.label().isEmpty() ? field.getName() : range.label());
+            spinner.setToolTipText(range.description().isEmpty() ? null : range.description());
 
             return spinner;
         }
@@ -110,7 +115,7 @@ public final class UIBindings {
         return null;
     }
 
-    public static JSpinner createSpinner(double min, double stepSize, double max, Supplier<Double> getter, Consumer<Double> setter) {
+    public static JSpinner createSpinner(double min, double stepSize, double max, Supplier<Number> getter, Consumer<Number> setter) {
         double initValue = getter.get().doubleValue();
 
         final SpinnerNumberModel model = new SpinnerNumberModel(initValue, min, max, stepSize);
@@ -126,7 +131,7 @@ public final class UIBindings {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                Double value = (Double) model.getValue();
+                Number value = (Number) model.getValue();
                 setter.accept(value);
             }
         });
@@ -146,13 +151,11 @@ public final class UIBindings {
         Class<?> clazz = field.getType(); // the enum class
 
         if (en != null && clazz.isEnum()) {
-            JLabel label = new JLabel(en.label().isEmpty() ? field.getName() : en.label());
-            label.setToolTipText(en.description());
-
             Supplier<Object> getter = Lambda.toRuntime(() -> field.get(config));
             Consumer<Object> setter = Lambda.toRuntime(v -> { field.set(config, v); layer.notifyObservers(); });
             JComboBox<?> combo = createCombo(clazz.getEnumConstants(), getter, setter);
-            combo.setToolTipText(en.description());
+            combo.setName(en.label().isEmpty() ? field.getName() : en.label());
+            combo.setToolTipText(en.description().isEmpty() ? null : en.description());
             return combo;
         }
 
@@ -164,7 +167,6 @@ public final class UIBindings {
 
         JComboBox<T> combo = new JComboBox<T>(elements);
         combo.setSelectedItem(initValue);
-//        combo.setRenderer(wgTextRenderer);
         combo.addComponentListener(new ComponentAdapter() {
 
             @Override
