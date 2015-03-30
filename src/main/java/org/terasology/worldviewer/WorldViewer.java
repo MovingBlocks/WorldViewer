@@ -18,6 +18,7 @@ package org.terasology.worldviewer;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -112,6 +113,12 @@ public final class WorldViewer {
       logger.debug("Java VM: {} {} {}", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
       logger.debug("OS: {} {} {}", System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
+
+      String classpath = System.getProperty("java.class.path");
+      String[] cpEntries = classpath.split(File.pathSeparator);
+      for (String cpEntry : cpEntries) {
+          logger.debug("Classpath: " + cpEntry);
+      }
     }
 
     private static void createAndShowGUI(Config config, CmdLineConfigs cmdLineOpts) {
