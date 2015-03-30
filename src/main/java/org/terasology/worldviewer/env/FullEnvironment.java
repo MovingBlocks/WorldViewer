@@ -25,6 +25,7 @@ import org.terasology.asset.Asset;
 import org.terasology.asset.AssetData;
 import org.terasology.asset.AssetFactory;
 import org.terasology.asset.AssetManager;
+import org.terasology.asset.AssetManagerImpl;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.audio.AudioManager;
@@ -124,7 +125,7 @@ public final class FullEnvironment {
         ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
 
         ModuleEnvironment env = moduleManager.getEnvironment();
-        AssetManager assetManager = new AssetManager(env);
+        AssetManager assetManager = new AssetManagerImpl(env);
 
         // mock an empy asset factory for all asset types
         for (AssetType type : AssetType.values()) {

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.asset.AssetFactory;
 import org.terasology.asset.AssetManager;
+import org.terasology.asset.AssetManagerImpl;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.config.Config;
@@ -94,7 +95,7 @@ public final class TinyEnvironment {
         PermissionProviderFactory securityManager = Mockito.mock(PermissionProviderFactory.class);
         ModuleEnvironment env = new ModuleEnvironment(mods, securityManager, Collections.emptyList());
 
-        AssetManager assetManager = new AssetManager(env);
+        AssetManager assetManager = new AssetManagerImpl(env);
         AssetType.registerAssetTypes(assetManager);
         assetManager.setAssetFactory(AssetType.TEXTURE, new AssetFactory<TextureData, Texture>() {
             @Override
