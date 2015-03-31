@@ -23,8 +23,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -122,8 +122,15 @@ public final class TinyEnvironment {
 
             ModuleLoader moduleLoader = new ModuleLoader();
             moduleLoader.setModuleInfoPath(TerasologyConstants.MODULE_INFO_FILENAME);
-            for (String path : cpEntries) {
-                Module mod = moduleLoader.load(Paths.get(path));
+            for (String pathStr : cpEntries) {
+                Path modulePath = Paths.get(pathStr);
+                Path codeLoc = moduleLoader.getDirectoryCodeLocation();
+                if (modulePath.endsWith(codeLoc)) {
+                    for (int i = 0; i < codeLoc.getNameCount(); i++) {
+                        modulePath = modulePath.getParent();
+                    }
+                }
+                Module mod = moduleLoader.load(modulePath);
                 if (mod != null) {
                     logger.info("Loading module: {}", mod);
                     mods.add(mod);
