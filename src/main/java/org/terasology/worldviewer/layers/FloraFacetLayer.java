@@ -18,6 +18,7 @@ package org.terasology.worldviewer.layers;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
@@ -49,6 +50,9 @@ public class FloraFacetLayer extends AbstractFacetLayer {
         FloraFacet treeFacet = region.getFacet(FloraFacet.class);
 
         Graphics2D g = img.createGraphics();
+        int width = img.getWidth();
+
+        DataBufferInt dataBuffer = (DataBufferInt) img.getRaster().getDataBuffer();
 
         for (Entry<Vector3i, FloraType> entry : treeFacet.getRelativeEntries().entrySet()) {
             FloraType treeGen = entry.getValue();
@@ -57,7 +61,7 @@ public class FloraFacetLayer extends AbstractFacetLayer {
             Color color = colorFunc.apply(treeGen);
 
             int src = color.rgba();
-            int dst = img.getRGB(wx, wz);
+            int dst = dataBuffer.getElem(wz * width + wx);
 
             int sr = (src >> 24) & 0xFF;
             int sg = (src >> 16) & 0xFF;
@@ -73,7 +77,7 @@ public class FloraFacetLayer extends AbstractFacetLayer {
             int mr = (a * sr + (0xFF - a) * dr) / 0xFF;
 
             int mix = mb | (mg << 8) | (mr << 16);
-            img.setRGB(wx, wz, mix);
+            dataBuffer.setElem(wz * width + wx, mix);
         }
 
         g.dispose();

@@ -17,6 +17,7 @@
 package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -43,7 +44,7 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
 
     public NominalFacetLayer(Class<? extends ObjectFacet2D<E>> clazz, Function<? super E, Color> colorMap) {
         this.colorMap = colorMap;
-        this.facetClass = clazz; 
+        this.facetClass = clazz;
     }
 
     @Override
@@ -55,11 +56,13 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
         int width = img.getWidth();
         int height = img.getHeight();
 
-        for (int z = 0; z < width; z++) {
-            for (int x = 0; x < height; x++) {
+        DataBufferInt dataBuffer = (DataBufferInt) img.getRaster().getDataBuffer();
+
+        for (int z = 0; z < height; z++) {
+            for (int x = 0; x < width; x++) {
                 Color src = getColor(facet, x, z);
-                int mix = (src.rgba() >> 8) | (src.a() << 24);
-                img.setRGB(x, z, mix);
+                int mix = src.rgba() >> 8;
+                dataBuffer.setElem(z * width + x, mix);
             }
         }
 

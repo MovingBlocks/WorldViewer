@@ -17,6 +17,7 @@
 package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -83,16 +84,18 @@ public class FieldFacetLayer extends AbstractFacetLayer {
         int width = img.getWidth();
         int height = img.getHeight();
 
-        for (int z = 0; z < width; z++) {
-            for (int x = 0; x < height; x++) {
+        DataBufferInt dataBuffer = (DataBufferInt) img.getRaster().getDataBuffer();
+
+        for (int z = 0; z < height; z++) {
+            for (int x = 0; x < width; x++) {
                 Color col = getColor(facet, x, z);
                 int src = col.rgba() >> 8; // we ignore alpha  | (col.a() << 24);
-                int dst = img.getRGB(x, z);
+                int dst = dataBuffer.getElem(z * width + x);
                 int mix = 0xFF000000;
                 mix |= Math.min(0x0000FF, (dst & 0x0000FF) + (src & 0x0000FF));
                 mix |= Math.min(0x00FF00, (dst & 0x00FF00) + (src & 0x00FF00));
                 mix |= Math.min(0xFF0000, (dst & 0xFF0000) + (src & 0xFF0000));
-                img.setRGB(x, z, mix);
+                dataBuffer.setElem(z * width + x, mix);
             }
         }
 
