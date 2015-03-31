@@ -37,7 +37,7 @@ public class CameraMouseController extends MouseAdapter {
 
     private int zoomLevel;
     private int minZoomLevel = -8;
-    private int maxzoomLevel = 12;
+    private int maxZoomLevel = 16;
 
     public CameraMouseController(Camera camera) {
         this.camera = camera;
@@ -69,7 +69,7 @@ public class CameraMouseController extends MouseAdapter {
     public void mouseWheelMoved(MouseWheelEvent e) {
         zoomLevel += e.getWheelRotation();
 
-        zoomLevel = TeraMath.clamp(zoomLevel, minZoomLevel, maxzoomLevel);
+        zoomLevel = TeraMath.clamp(zoomLevel, minZoomLevel, maxZoomLevel);
 
         float delta = 0.25f;
 
