@@ -83,6 +83,7 @@ public final class WorldViewer {
                 return;
             }
 
+            SplashScreen.getInstance().close();
             SwingUtilities.invokeLater(() -> {
                 setupLookAndFeel();
                 createAndShowGUI(config, cmdLineOpts);
@@ -162,7 +163,7 @@ public final class WorldViewer {
         JFrame frame = new MainFrame(worldGen, config);
 
         frame.setTitle("MapViewer " + GitVersion.getVersion());
-        frame.setSize(1024, 768);
+        frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setVisible(true);

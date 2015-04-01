@@ -18,13 +18,18 @@ package org.terasology.worldviewer.env;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -111,8 +116,7 @@ public final class TinyEnvironment {
         try {
             Module engine = loadEngineModule();
 
-            String classpath = System.getProperty("java.class.path");
-            String[] cpEntries = classpath.split(File.pathSeparator);
+            String[] cpEntries = getClassPath();
 
             Collection<Module> mods = Lists.newArrayList(engine);
 
@@ -128,6 +132,28 @@ public final class TinyEnvironment {
             return mods;
         } catch (URISyntaxException e) {
             throw new IOException("Failed to load engine module", e);
+        }
+    }
+
+    private static String[] getClassPath() throws IOException {
+        // If the application is launched from the command line through java -jar
+        // the classpath attribute is ignored and read from the jar's MANIFEST.MF file
+        // instead. We classpath will then just contain WorldViewer.jar. We need to
+        // manually parse the entries in that case :-(
+
+        // Use the classloader for this class, not the default one to ensure that
+        // only MANIFEST.MF from this jar is loaded (if it exists).
+        ClassLoader classLoader = TinyEnvironment.class.getClassLoader();
+        URL manifestResource = classLoader.getResource("/META-INF/MANIFEST.MF");
+        if (manifestResource != null) {
+            try (InputStream is = manifestResource.openStream()) {
+                Manifest manifest = new Manifest(is);
+                String classpath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+                return classpath.split(" ");
+            }
+        } else {
+            String classpath = System.getProperty("java.class.path");
+            return classpath.split(File.pathSeparator);
         }
     }
 
