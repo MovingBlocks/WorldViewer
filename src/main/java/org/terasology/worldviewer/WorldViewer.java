@@ -16,13 +16,19 @@
 
 package org.terasology.worldviewer;
 
+import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -161,8 +167,8 @@ public final class WorldViewer {
 
     private static void createAndShowMainFrame(WorldGenerator worldGen, Config config) {
         JFrame frame = new MainFrame(worldGen, config);
-
-        frame.setTitle("MapViewer " + GitVersion.getVersion());
+        frame.setIconImages(loadIcons());
+        frame.setTitle("WorldViewer " + GitVersion.getVersion());
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -183,5 +189,23 @@ public final class WorldViewer {
 //        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 //        int screenWidth = gd.getDisplayMode().getWidth();
 //        frame.setLocation(screenWidth - frame.getWidth(), 40);
+    }
+
+    private static List<Image> loadIcons()
+    {
+        List<Image> icons = new ArrayList<Image>();
+        int[] sizes = { 16, 32, 64 };
+        for (int size : sizes) {
+            String name = String.format("/icons/gooey_sweet_red_%d.png", size);
+            URL resUrl = WorldViewer.class.getResource(name);
+            try {
+                BufferedImage iconImage = ImageIO.read(resUrl);
+                icons.add(iconImage);
+            }
+            catch (IOException e) {
+                logger.warn("Could not load icon: {}", name);
+            }
+        }
+        return icons;
     }
 }
