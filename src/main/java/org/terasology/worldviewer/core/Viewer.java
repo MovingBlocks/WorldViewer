@@ -19,6 +19,7 @@ package org.terasology.worldviewer.core;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -39,6 +40,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
 import org.terasology.math.TeraMath;
@@ -75,12 +78,15 @@ import com.google.common.math.IntMath;
  */
 public final class Viewer extends JComponent implements AutoCloseable {
 
+    private static final Logger logger = LoggerFactory.getLogger(Viewer.class);
+
     private static final int TILE_SIZE_X = ChunkConstants.SIZE_X * 4;
     private static final int TILE_SIZE_Y = ChunkConstants.SIZE_Z * 4;
 
     private static final long serialVersionUID = 4178713176841691478L;
 
-    private final BufferedImage dummyImg = new BufferedImage(TILE_SIZE_X, TILE_SIZE_Y, BufferedImage.TYPE_INT_RGB);
+    private final BufferedImage dummyImg;
+    private final BufferedImage failedImg;
 
     private final int numThreads = Runtime.getRuntime().availableProcessors();
     private final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
@@ -173,15 +179,31 @@ public final class Viewer extends JComponent implements AutoCloseable {
         addMouseListener(repaintListener);
         addMouseMotionListener(repaintListener);
 
-        Graphics2D g = dummyImg.createGraphics();
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, dummyImg.getWidth(), dummyImg.getHeight());
-        g.dispose();
+        dummyImg = createStaticImage(TILE_SIZE_X, TILE_SIZE_Y, null);
+        failedImg = createStaticImage(TILE_SIZE_X, TILE_SIZE_Y, "FAILED");
 
         // clear tile cache and repaint if any of the facet configs has changed
         for (FacetLayer layer : facetLayers) {
             layer.addObserver(l -> updateImageCache());
         }
+    }
+
+    private static BufferedImage createStaticImage(int width, int height, String text) {
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+        if (text != null) {
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setFont(g.getFont().deriveFont(Font.BOLD, 20f));
+            FontMetrics fm = g.getFontMetrics();
+            int ty = height / 2 - (fm.getHeight() / 2 - fm.getAscent());
+            int tx = width / 2 - fm.stringWidth(text) / 2;
+            g.drawString(text, tx, ty);
+        }
+        g.setColor(Color.GRAY);
+        g.drawRect(0, 0, width - 1, height - 1);
+        g.dispose();
+        return image;
     }
 
     /**
@@ -320,9 +342,13 @@ public final class Viewer extends JComponent implements AutoCloseable {
             StringBuffer sb = new StringBuffer();
             for (FacetLayer layer : facetLayers) {
                 if (layer.isVisible()) {
-                    String layerText = layer.getWorldText(region, wx, wy);
-                    if (layerText != null) {
-                        sb.append("\n").append(layerText);
+                    try {
+                        String layerText = layer.getWorldText(region, wx, wy);
+                        if (layerText != null) {
+                            sb.append("\n").append(layerText);
+                        }
+                    } catch (Exception e) {
+                        sb.append("\n<failed>");
                     }
                 }
             }
@@ -404,8 +430,13 @@ public final class Viewer extends JComponent implements AutoCloseable {
         @Override
         public void run() {
             Region region = regionCache.getUnchecked(pos);
-
-            BufferedImage image = rasterize(region);
+            BufferedImage image;
+            try {
+                image = rasterize(region);
+            } catch (Exception e) {
+                logger.error("Could not rasterize tile {}", pos, e);
+                image = failedImg;
+            }
             imageCache.put(pos, image);
             repaint();
         }
