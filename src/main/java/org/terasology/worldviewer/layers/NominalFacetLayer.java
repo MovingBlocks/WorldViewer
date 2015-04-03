@@ -73,6 +73,9 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
 
     private Color getColor(ObjectFacet2D<E> facet, int x, int z) {
         E val = facet.get(x, z);
+        if (val == null)
+            return Color.MAGENTA;
+
         return colorMap.apply(val);
     }
 
@@ -80,6 +83,9 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
     public String getWorldText(Region region, int wx, int wy) {
         ObjectFacet2D<E> facet = region.getFacet(facetClass);
         E val = facet.getWorld(wx, wy);
+        if (val == null) {
+            return "<missing>";
+        }
         return val.toString();
     }
 
