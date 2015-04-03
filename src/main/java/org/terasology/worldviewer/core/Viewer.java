@@ -137,6 +137,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
         camera.addListener(new RepaintingCameraListener(this));
         Vector2i camPos = viewConfig.getCamPos();
         camera.translate(camPos.getX(), camPos.getY());
+        camera.setZoom(viewConfig.getZoomFactor());
 
         GridOverlay gridOverlay = new GridOverlay(TILE_SIZE_X, TILE_SIZE_Y);
         worldOverlays.addLast(gridOverlay);
@@ -250,8 +251,8 @@ public final class Viewer extends JComponent implements AutoCloseable {
         int cx = (int) camera.getPos().getX();
         int cy = (int) camera.getPos().getY();
 
-        // TODO: TeraMath compatibility fix
         viewConfig.setCamPos(new Vector2i(cx, cy));
+        viewConfig.setZoomFactor(camera.getZoom());
 
         threadPool.shutdownNow();
     }

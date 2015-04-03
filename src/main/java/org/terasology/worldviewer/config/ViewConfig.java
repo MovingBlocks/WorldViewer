@@ -25,6 +25,7 @@ import org.terasology.math.Vector2i;
 public class ViewConfig {
 
     private Vector2i camPos = new Vector2i(512, 512);
+    private float zoomFactor = 1f;
 
     public Vector2i getCamPos() {
         return camPos;
@@ -32,5 +33,13 @@ public class ViewConfig {
 
     public void setCamPos(Vector2i camPos) {
         this.camPos = camPos;
+    }
+
+    public float getZoomFactor() {
+        return zoomFactor;
+    }
+
+    public void setZoomFactor(float zoomFactor) {
+        this.zoomFactor = zoomFactor;
     }
 }

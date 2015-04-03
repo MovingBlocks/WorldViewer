@@ -21,10 +21,13 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.math.RoundingMode;
 
 import javax.swing.SwingUtilities;
 
 import org.terasology.math.TeraMath;
+
+import com.google.common.math.DoubleMath;
 
 /**
  * Controls a camera based on mouse interaction
@@ -39,8 +42,11 @@ public class CameraMouseController extends MouseAdapter {
     private int minZoomLevel = -8;
     private int maxZoomLevel = 16;
 
+    private final float zoomDelta = 0.25f;
+
     public CameraMouseController(Camera camera) {
         this.camera = camera;
+        this.zoomLevel = findZoomLevel(camera.getZoom());
     }
 
     @Override
@@ -65,17 +71,20 @@ public class CameraMouseController extends MouseAdapter {
         draggedPoint = null;
     }
 
+    private int findZoomLevel(float zoom) {
+        double est = Math.log(zoom) / Math.log(2);
+        return DoubleMath.roundToInt(est / zoomDelta, RoundingMode.HALF_UP);
+    }
+
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         zoomLevel += e.getWheelRotation();
 
         zoomLevel = TeraMath.clamp(zoomLevel, minZoomLevel, maxZoomLevel);
 
-        float delta = 0.25f;
-
         // Zoom only in deterministic steps
         // Don't concatenate with previous zooms to avoid rounding errors
-        float zoom = (float) Math.pow(2.0, zoomLevel * delta);
+        float zoom = (float) Math.pow(2.0, zoomLevel * zoomDelta);
 
         // This cast is safe since MouseWheelEvent takes only Component sources
         Component source = (Component) e.getSource();
@@ -83,19 +92,13 @@ public class CameraMouseController extends MouseAdapter {
         int relX = e.getX() - source.getWidth() / 2;
         int relY = e.getY() - source.getHeight() / 2;
 
-        int oldX = TeraMath.floorToInt(relX);
-        int oldY = TeraMath.floorToInt(relY);
-
         // move the camera to the cursor position
-        camera.translate(oldX, oldY);
+        camera.translate(relX, relY);
 
         // zoom
         camera.setZoom(zoom);
 
-        int newX = TeraMath.floorToInt(relX);
-        int newY = TeraMath.floorToInt(relY);
-
-        // revert the camera movement from above, but in the new coordinate system
-        camera.translate(-newX, -newY);
+        // revert the camera movement from above
+        camera.translate(-relX, -relY);
     }
 }
