@@ -18,6 +18,7 @@ package org.terasology.worldviewer.layers;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +48,8 @@ import com.google.common.collect.Lists;
  */
 public class TreeFacetLayer extends AbstractFacetLayer {
 
-    private Function<TreeGenerator, Integer> radiusFunc = ignore -> 3;
-    private Function<TreeGenerator, Color> colorFunc = ignore -> Color.GREEN;
+    private Function<TreeGenerator, Integer> radiusFunc = ignore -> 5;
+    private Function<TreeGenerator, Color> colorFunc = ignore -> Color.GREEN.darker();
     private Function<TreeGenerator, String> labelFunc = ignore -> "Tree";
 
     @Override
@@ -61,6 +62,7 @@ public class TreeFacetLayer extends AbstractFacetLayer {
         TreeFacet treeFacet = region.getFacet(TreeFacet.class);
 
         Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         for (Entry<Vector3i, TreeGenerator> entry : treeFacet.getRelativeEntries().entrySet()) {
             TreeGenerator treeGen = entry.getValue();
@@ -69,10 +71,12 @@ public class TreeFacetLayer extends AbstractFacetLayer {
             int r = radiusFunc.apply(treeGen);
             Color color = colorFunc.apply(treeGen);
 
+            // the fill area is offset by +1/+1 pixel
+            // otherwise it will bleed out at the top left corner
             g.setColor(color);
-            g.fillOval(wx - r, wz - r, r * 2 + 1, r * 2 + 1);
+            g.fillOval(wx - r + 1, wz - r + 1, r * 2 - 1, r * 2 - 1);
             g.setColor(color.darker());
-            g.drawOval(wx - r, wz - r, r * 2 + 1, r * 2 + 1);
+            g.drawOval(wx - r, wz - r, r * 2, r * 2);
         }
 
         g.dispose();

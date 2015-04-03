@@ -18,10 +18,12 @@ package org.terasology.worldviewer.layers;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +40,7 @@ import org.terasology.worldviewer.picker.CirclePickerClosest;
 import com.google.common.base.Stopwatch;
 
 /**
- * TODO Type description
+ * TODO Convert this into a more general class that supports different graph-based value look-ups
  * @author Martin Steiger
  */
 public class MoistureModelFacetLayer extends AbstractFacetLayer {
@@ -64,6 +66,8 @@ public class MoistureModelFacetLayer extends AbstractFacetLayer {
         int dx = region.getRegion().minX();
         int dy = region.getRegion().minZ();
         g.translate(-dx, -dy);
+
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         for (Graph graph : facet.getKeys()) {
             MoistureModel model = facet.get(graph);
@@ -97,7 +101,11 @@ public class MoistureModelFacetLayer extends AbstractFacetLayer {
             MoistureModel model = moistureModelFacet.get(graph);
 
             Vector2f cursor = new Vector2f(wx, wy);
-            CirclePickerClosest<Corner> picker = new CirclePickerClosest<>(cursor, c -> model.getMoisture(c) * scale);
+
+            // Use the value as radius, but clamp it to some minimum value so it
+            // remains large enough to be hovered with the mouse cursor
+            Function<Corner, Float> radiusFunc = c -> Math.max(2f, model.getMoisture(c) * scale);
+            CirclePickerClosest<Corner> picker = new CirclePickerClosest<>(cursor, radiusFunc);
 
             for (Corner c : graph.getCorners()) {
                 picker.offer(c.getLocation(), c);
