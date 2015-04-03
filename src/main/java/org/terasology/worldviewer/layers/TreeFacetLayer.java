@@ -22,15 +22,21 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.terasology.core.world.generator.facets.TreeFacet;
 import org.terasology.core.world.generator.trees.TreeGenerator;
 import org.terasology.math.Region3i;
+import org.terasology.math.geom.Vector2f;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.picker.CirclePicker;
+import org.terasology.worldviewer.picker.CirclePickerAll;
+import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 import com.google.common.collect.Lists;
 
@@ -82,36 +88,36 @@ public class TreeFacetLayer extends AbstractFacetLayer {
         int rx = wx - worldRegion.minX() + relativeRegion.minX();
         int rz = wy - worldRegion.minZ() + relativeRegion.minZ();
 
-        List<String> labels = Lists.newArrayList();
+        Vector2f relCursor = new Vector2f(rx, rz);
+        CirclePicker<TreeGenerator> picker = new CirclePickerAll<>(relCursor, radiusFunc);
+
         for (Entry<Vector3i, TreeGenerator> entry : treeFacet.getRelativeEntries().entrySet()) {
             TreeGenerator treeGen = entry.getValue();
             Vector3i treePos = entry.getKey();
 
-            int dx = treePos.getX() - rx;
-            int dz = treePos.getZ() - rz;
-            int rad = radiusFunc.apply(treeGen);
-
-            if (dx * dx + dz * dz < rad * rad) {
-                labels.add(labelFunc.apply(treeGen));
-            }
+            picker.offer(treePos.getX(), treePos.getZ(), treeGen);
         }
 
-        // try to exit early first
+        Set<TreeGenerator> picked = picker.getAll();
 
-        if (labels.isEmpty()) {
+        // try to exit early first
+        if (picked.isEmpty()) {
             return null;
         }
 
-        if (labels.size() == 1) {
-            return labels.get(0);
+        if (picked.size() == 1) {
+            TreeGenerator first = picked.iterator().next();
+            return labelFunc.apply(first);
         }
 
-        // TODO: treat 1x occurrences like above (e.g. Tree instead of 1x Tree)
+        // convert to a stream of labels
+        Stream<String> labels = picked.stream().map(labelFunc);
 
-        // convert to a stream, collect identical String elements and collect the count in a map
-        Map<String, Long> counters = labels.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        // collect identical String elements and collect the count in a map
+        Map<String, Long> counters = labels.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         // define a mapping from a map entry to a String representation
+        // TODO: treat 1x occurrences like above (e.g. Tree instead of 1x Tree)
         Function<Entry<String, Long>, String> toStringFunc = e -> String.format("%dx %s", e.getValue(), e.getKey());
 
         // apply that mapping and join the Strings with a comma

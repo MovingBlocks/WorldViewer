@@ -20,6 +20,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import org.terasology.polyworld.voronoi.Corner;
 import org.terasology.polyworld.voronoi.Graph;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 import com.google.common.base.Stopwatch;
 
@@ -42,6 +44,11 @@ import com.google.common.base.Stopwatch;
 public class MoistureModelFacetLayer extends AbstractFacetLayer {
 
     private static final Logger logger = LoggerFactory.getLogger(MoistureModelFacetLayer.class);
+
+    /**
+     * The radius multiplier for the visible circles
+     */
+    private float scale = 4f;
 
     public MoistureModelFacetLayer() {
      // use default settings
@@ -74,7 +81,7 @@ public class MoistureModelFacetLayer extends AbstractFacetLayer {
         g.setColor(new Color(0x4040FF));
         for (Corner c : graph.getCorners()) {
             float moisture = model.getMoisture(c);
-            float r = 4 * moisture;
+            float r = scale * moisture;
             BaseVector2f loc = c.getLocation();
             g.fill(new Ellipse2D.Float(loc.getX() - r, loc.getY() - r, 2 * r, 2 * r));
         }
@@ -82,31 +89,37 @@ public class MoistureModelFacetLayer extends AbstractFacetLayer {
 
     @Override
     public String getWorldText(Region region, int wx, int wy) {
+
         MoistureModelFacet moistureModelFacet = region.getFacet(MoistureModelFacet.class);
-        double minDistSq = Double.MAX_VALUE;
-        double radSq = 5 * 5;
-        double moisture = Double.NaN;
-        Corner closest = null;
-        Vector2f cursor = new Vector2f(wx, wy);
-        for (Graph graph : moistureModelFacet.getKeys()) {
-            if (graph.getBounds().contains(wx, wy)) {
-                MoistureModel model = moistureModelFacet.get(graph);
-                for (Corner c : graph.getCorners()) {
-                    float distSq = c.getLocation().distanceSquared(cursor);
-                    if (distSq < radSq && distSq < minDistSq) {
-                        minDistSq = distSq;
-                        closest = c;
-                        moisture = model.getMoisture(c);
-                    }
-                }
+        Graph graph = findGraph(moistureModelFacet.getKeys(), wx, wy);
+
+        if (graph != null) {
+            MoistureModel model = moistureModelFacet.get(graph);
+
+            Vector2f cursor = new Vector2f(wx, wy);
+            CirclePickerClosest<Corner> picker = new CirclePickerClosest<>(cursor, c -> model.getMoisture(c) * scale);
+
+            for (Corner c : graph.getCorners()) {
+                picker.offer(c.getLocation(), c);
+            }
+
+            if (picker.getClosest() != null) {
+                float moisture = model.getMoisture(picker.getClosest());
+                return String.format("Moisture: %.2f", moisture);
             }
         }
 
-        if (closest != null) {
-            return String.format("Moisture: %.2f", moisture);
-        } else {
-            return null;
+        return null;
+    }
+
+    private Graph findGraph(Collection<Graph> keys, int wx, int wy) {
+        for (Graph graph : keys) {
+            if (graph.getBounds().contains(wx, wy)) {
+                return graph;
+            }
         }
+
+        return null;
     }
 
     @Override
