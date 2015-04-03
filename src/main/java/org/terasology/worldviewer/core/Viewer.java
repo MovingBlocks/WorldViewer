@@ -96,17 +96,17 @@ public final class Viewer extends JComponent implements AutoCloseable {
         }
     };
 
-    private final CacheLoader<Region, BufferedImage> imageLoader = new CacheLoader<Region, BufferedImage>() {
+    private final CacheLoader<Vector2i, BufferedImage> imageLoader = new CacheLoader<Vector2i, BufferedImage>() {
 
         @Override
-        public BufferedImage load(Region region) throws Exception {
-            threadPool.execute(new UpdateImageCache(region));
+        public BufferedImage load(Vector2i pos) throws Exception {
+            threadPool.execute(new UpdateImageCache(pos));
             return dummyImg;
         }
     };
 
     private final LoadingCache<Vector2i, Region> regionCache;
-    private final LoadingCache<Region, BufferedImage> imageCache;
+    private final LoadingCache<Vector2i, BufferedImage> imageCache;
 
     private final Camera camera = new Camera();
     private final WorldGenerator worldGen;
@@ -242,8 +242,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     public void invalidateWorld() {
         regionCache.invalidateAll();
-        imageCache.invalidateAll();
-        repaint();
+        updateImageCache();
      }
 
     @Override
@@ -297,8 +296,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
         for (int z = visChunks.minY(); z < visChunks.maxY(); z++) {
             for (int x = visChunks.minX(); x < visChunks.maxX(); x++) {
                 Vector2i pos = new Vector2i(x, z);
-                Region region = regionCache.getUnchecked(pos);
-                BufferedImage image = imageCache.getUnchecked(region);
+                BufferedImage image = imageCache.getUnchecked(pos);
                 g.drawImage(image, x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
             }
         }
@@ -364,11 +362,11 @@ public final class Viewer extends JComponent implements AutoCloseable {
         // shuffle the order of new tasks
         // If the queue is cleared repeatedly before all tasks are run
         // some tiles will never be updated otherwise
-        List<Region> inCache = new ArrayList<Region>(imageCache.asMap().keySet());
+        List<Vector2i> inCache = new ArrayList<>(imageCache.asMap().keySet());
         Collections.shuffle(inCache);
 
-        for (Region region : inCache) {
-            threadPool.execute(new UpdateImageCache(region));
+        for (Vector2i pos : inCache) {
+            threadPool.execute(new UpdateImageCache(pos));
         }
     }
 
@@ -397,16 +395,18 @@ public final class Viewer extends JComponent implements AutoCloseable {
 
     private class UpdateImageCache implements Runnable {
 
-        private Region region;
+        private final Vector2i pos;
 
-        public UpdateImageCache(Region region) {
-            this.region = region;
+        public UpdateImageCache(Vector2i pos) {
+            this.pos = pos;
         }
 
         @Override
         public void run() {
+            Region region = regionCache.getUnchecked(pos);
+
             BufferedImage image = rasterize(region);
-            imageCache.put(region, image);
+            imageCache.put(pos, image);
             repaint();
         }
     }
