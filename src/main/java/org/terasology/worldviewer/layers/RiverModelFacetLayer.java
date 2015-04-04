@@ -22,10 +22,10 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import org.terasology.math.geom.BaseVector2f;
+import org.terasology.polyworld.graph.Edge;
+import org.terasology.polyworld.graph.Graph;
 import org.terasology.polyworld.rivers.RiverModel;
 import org.terasology.polyworld.rivers.RiverModelFacet;
-import org.terasology.polyworld.voronoi.Edge;
-import org.terasology.polyworld.voronoi.Graph;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 
