@@ -20,9 +20,9 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -41,8 +41,7 @@ import org.terasology.polyworld.voronoi.Triangle;
 import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.config.FacetConfig;
-
-import com.google.common.math.DoubleMath;
+import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 /**
  * Draws the generated graph on a AWT graphics instance
@@ -114,8 +113,8 @@ public class GraphFacetLayer extends AbstractFacetLayer {
                 Triangle tri = graphFacet.getWorldTriangle(x, 0, z);
                 if (tri == null) {
                     g.setStroke(new BasicStroke(3f));
-                    g.setColor(Color.RED);
-                    g.drawOval(x - 5, z - 5, 10, 10);
+                    g.setColor(Color.MAGENTA);
+                    g.drawLine(x, z, x, z);
                 }
             }
         }
@@ -124,10 +123,20 @@ public class GraphFacetLayer extends AbstractFacetLayer {
     @Override
     public String getWorldText(org.terasology.world.generation.Region region, int wx, int wy) {
         GraphFacet graphFacet = region.getFacet(GraphFacet.class);
+        CirclePickerClosest<Corner> cornerPicker = new CirclePickerClosest<>(new Vector2f(wx, wy), c -> 3);
+        CirclePickerClosest<Region> sitePicker = new CirclePickerClosest<>(new Vector2f(wx, wy), r -> 3);
         for (Graph graph : graphFacet.getAllGraphs()) {
             if (graph.getBounds().contains(wx, wy)) {
-                return String.format("%d regs, %d corners, %d edges",
-                        graph.getRegions().size(), graph.getCorners().size(), graph.getEdges().size());
+                Triangle tri = graphFacet.getWorldTriangle(wx, 0, wy);
+                cornerPicker.offer(tri.getCorner1().getLocation(), tri.getCorner1());
+                cornerPicker.offer(tri.getCorner2().getLocation(), tri.getCorner2());
+                sitePicker.offer(tri.getRegion().getCenter(), tri.getRegion());
+                if (cornerPicker.getClosest() != null) {
+                    return cornerPicker.getClosest().toString();
+                }
+                if (sitePicker.getClosest() != null) {
+                    return sitePicker.getClosest().toString();
+                }
             }
         }
         return null;
@@ -236,18 +245,13 @@ public class GraphFacetLayer extends AbstractFacetLayer {
         List<Region> regions = graph.getRegions();
 
         g.setColor(new Color(64, 64, 255, 224));
-        RoundingMode mode = RoundingMode.HALF_UP;
 
         for (final Region reg : regions) {
             BaseVector2f p0 = reg.getCenter();
-            int x0 = DoubleMath.roundToInt(p0.getX(), mode);
-            int y0 = DoubleMath.roundToInt(p0.getY(), mode);
             for (Corner c : reg.getCorners()) {
                 BaseVector2f p1 = c.getLocation();
 
-                int x1 = DoubleMath.roundToInt(p1.getX(), mode);
-                int y1 = DoubleMath.roundToInt(p1.getY(), mode);
-                g.drawLine(x0, y0, x1, y1);
+                g.draw(new Line2D.Double(p0.getX(), p0.getY(), p1.getX(), p1.getY()));
             }
         }
     }
@@ -255,7 +259,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
     public static void drawSites(Graphics2D g, Graph graph) {
         List<Region> centers = graph.getRegions();
 
-        g.setColor(Color.BLACK);
+        g.setColor(Color.ORANGE);
         for (Region regs : centers) {
             Vector2f c = regs.getCenter();
             g.fill(new Rectangle2D.Double(c.getX() - 1, c.getY() - 1, 2, 2));
