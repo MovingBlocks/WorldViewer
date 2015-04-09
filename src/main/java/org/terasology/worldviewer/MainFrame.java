@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.core.world.generator.facets.FloraFacet;
 import org.terasology.core.world.generator.facets.TreeFacet;
+import org.terasology.core.world.generator.facets.World2dPreviewFacet;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
 import org.terasology.polyworld.moisture.MoistureModelFacet;
 import org.terasology.polyworld.rivers.RiverModelFacet;
@@ -54,6 +55,7 @@ import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.FloraFacetLayer;
 import org.terasology.worldviewer.layers.GraphFacetLayer;
 import org.terasology.worldviewer.layers.MoistureModelFacetLayer;
+import org.terasology.worldviewer.layers.PreviewFacetLayer;
 import org.terasology.worldviewer.layers.RiverModelFacetLayer;
 import org.terasology.worldviewer.layers.TreeFacetLayer;
 import org.terasology.worldviewer.layers.WhittakerBiomeFacetLayer;
@@ -169,6 +171,9 @@ public class MainFrame extends JFrame {
         List<FacetLayer> result = Lists.newArrayList();
 
         Map<Class<?>, Function<Class<?>, FacetLayer>> mapping = Maps.newLinkedHashMap();
+
+        mapping.put(World2dPreviewFacet.class,
+                clazz -> new PreviewFacetLayer());
 
         mapping.put(FieldFacet2D.class,
                 clazz -> new FieldFacetLayer((Class<FieldFacet2D>) clazz, 0, 5));
