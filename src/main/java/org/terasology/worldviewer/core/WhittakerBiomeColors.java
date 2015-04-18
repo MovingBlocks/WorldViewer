@@ -60,7 +60,7 @@ public class WhittakerBiomeColors implements Function<WhittakerBiome, Color> {
                 .put(LAKE, new Color(0x336699ff))
                 .put(BEACH, new Color(0xa09077ff))
                 .put(SNOW, new Color(0xffffffff))
-                .put(TUNDRA, new Color(0xbbbbaaff))
+                .put(TUNDRA, new Color(0xa0a099ff))
                 .put(BARE, new Color(0x888888ff))
                 .put(SCORCHED, new Color(0x555555ff))
                 .put(TAIGA, new Color(0x99aa77ff))

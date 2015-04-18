@@ -35,6 +35,7 @@ import org.terasology.engine.ComponentSystemManager;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.bootstrap.EntitySystemBuilder;
 import org.terasology.engine.module.ModuleManager;
+import org.terasology.engine.module.ModuleManagerImpl;
 import org.terasology.engine.paths.PathManager;
 import org.terasology.entitySystem.Component;
 import org.terasology.entitySystem.entity.EntityManager;
@@ -192,7 +193,7 @@ public final class FullEnvironment {
     }
 
     private static void setupModuleManager() {
-        ModuleManager moduleManager = new ModuleManager();
+        ModuleManager moduleManager = new ModuleManagerImpl();
         CoreRegistry.put(ModuleManager.class, moduleManager);
     }
 
