@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -34,10 +33,9 @@ import javax.swing.event.ChangeListener;
 
 import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.rendering.nui.properties.OneOf.Enum;
+import org.terasology.rendering.nui.properties.OneOf.List;
 import org.terasology.rendering.nui.properties.Range;
-import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.lambda.Lambda;
-import org.terasology.worldviewer.layers.FacetLayer;
 
 /**
  * Provides a set of static methods that map pairs of
@@ -154,6 +152,21 @@ public final class UIBindings {
             JComboBox<?> combo = createCombo(clazz.getEnumConstants(), getter, setter);
             combo.setName(en.label().isEmpty() ? field.getName() : en.label());
             combo.setToolTipText(en.description().isEmpty() ? null : en.description());
+            return combo;
+        }
+
+        return null;
+    }
+
+    public static JComboBox<String> processListAnnotation(Object config, Field field) {
+        List list = field.getAnnotation(List.class);
+
+        if (list != null) {
+            Supplier<String> getter = Lambda.toRuntime(() -> field.get(config).toString());
+            Consumer<String> setter = Lambda.toRuntime(v -> field.set(config, v));
+            JComboBox<String> combo = createCombo(list.items(), getter, setter);
+            combo.setName(list.label().isEmpty() ? field.getName() : list.label());
+            combo.setToolTipText(list.description().isEmpty() ? null : list.description());
             return combo;
         }
 

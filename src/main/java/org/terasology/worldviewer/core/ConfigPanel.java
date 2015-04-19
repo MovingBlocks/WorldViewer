@@ -19,22 +19,18 @@ package org.terasology.worldviewer.core;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -45,13 +41,11 @@ import javax.swing.border.MatteBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.Component;
-import org.terasology.rendering.nui.properties.Range;
 import org.terasology.world.generator.WorldConfigurator;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.WorldGenerators;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.gui.UIBindings;
-import org.terasology.worldviewer.lambda.Lambda;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -169,20 +163,31 @@ public class ConfigPanel extends JPanel {
         gbc.gridy = GridBagConstraints.RELATIVE;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JSpinner spinner = UIBindings.processRangeAnnotation(obj, field);
+        JComponent comp = null;
 
+        JSpinner spinner = UIBindings.processRangeAnnotation(obj, field);
         if (spinner != null) {
+            spinner.addChangeListener(event -> notifyObservers());
+            comp = spinner;
+        }
+
+        JComboBox<?> combo = UIBindings.processListAnnotation(obj, field);
+        if (combo != null) {
+            combo.addActionListener(event -> notifyObservers());
+            comp = combo;
+        }
+
+        if (comp != null) {
             gbc.insets.left = 5;
             gbc.insets.right = 5;
             gbc.gridx = 0;
-            JLabel label = new JLabel(spinner.getName());
-            label.setToolTipText(spinner.getToolTipText());
+            JLabel label = new JLabel(comp.getName());
+            label.setToolTipText(comp.getToolTipText());
             parent.add(label, gbc.clone());
             gbc.insets.left = 5;
             gbc.insets.right = 5;
             gbc.gridx = 1;
-            parent.add(spinner, gbc.clone());
-            spinner.addChangeListener(e -> notifyObservers());
+            parent.add(comp, gbc.clone());
         }
     }
 }
