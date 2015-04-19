@@ -51,13 +51,12 @@ public final class UIBindings {
         // no instances
     }
 
-    public static JCheckBox processCheckboxAnnotation(FacetLayer layer, Field field, String text) {
-        FacetConfig config = layer.getConfig();
+    public static JCheckBox processCheckboxAnnotation(Object config, Field field, String text) {
         Checkbox checkbox = field.getAnnotation(Checkbox.class);
 
         if (checkbox != null) {
             Supplier<Boolean> getter = Lambda.toRuntime(() -> field.getBoolean(config));
-            Consumer<Boolean> setter = Lambda.toRuntime(v -> { field.setBoolean(config, v.booleanValue()); layer.notifyObservers(); });
+            Consumer<Boolean> setter = Lambda.toRuntime(v -> field.setBoolean(config, v.booleanValue()));
             JCheckBox component = createCheckbox(text, getter, setter);
             component.setName(checkbox.label().isEmpty() ? field.getName() : checkbox.label());
             component.setToolTipText(checkbox.description().isEmpty() ? null : checkbox.description());
@@ -100,10 +99,10 @@ public final class UIBindings {
             Consumer<Number> setter;
             if (field.getType() == int.class) {
                 getter = Lambda.toRuntime(() -> field.getInt(config));
-                setter = Lambda.toRuntime(v -> field.setInt(config, v.intValue()) );
+                setter = Lambda.toRuntime(v -> field.setInt(config, v.intValue()));
             } else {
                 getter = Lambda.toRuntime(() -> field.getDouble(config));
-                setter = Lambda.toRuntime(v -> field.setFloat(config, v.floatValue()) );
+                setter = Lambda.toRuntime(v -> field.setFloat(config, v.floatValue()));
             }
             JSpinner spinner = createSpinner(min, stepSize, max, getter, setter);
             spinner.setName(range.label().isEmpty() ? field.getName() : range.label());
@@ -141,18 +140,17 @@ public final class UIBindings {
 
     /**
      * Maps an @Enum field to a combobox
-     * @param layer the facet layer that contains the config
+     * @param config the object instance that is bound
      * @param field the (potentially annotated field)
      * @return a combobox for the annotated field or <code>null</code> if not applicable
      */
-    public static JComboBox<?> processEnumAnnotation(FacetLayer layer, Field field) {
-        FacetConfig config = layer.getConfig();
+    public static JComboBox<?> processEnumAnnotation(Object config, Field field) {
         Enum en = field.getAnnotation(Enum.class);
         Class<?> clazz = field.getType(); // the enum class
 
         if (en != null && clazz.isEnum()) {
             Supplier<Object> getter = Lambda.toRuntime(() -> field.get(config));
-            Consumer<Object> setter = Lambda.toRuntime(v -> { field.set(config, v); layer.notifyObservers(); });
+            Consumer<Object> setter = Lambda.toRuntime(v -> field.set(config, v));
             JComboBox<?> combo = createCombo(clazz.getEnumConstants(), getter, setter);
             combo.setName(en.label().isEmpty() ? field.getName() : en.label());
             combo.setToolTipText(en.description().isEmpty() ? null : en.description());

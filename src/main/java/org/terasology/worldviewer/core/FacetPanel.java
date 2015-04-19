@@ -143,8 +143,10 @@ public class FacetPanel extends JPanel {
             panel.add(spinner);
         }
 
-        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(layer, field, "visible");
+        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(config, field, "visible");
         if (checkbox != null) {
+            checkbox.addChangeListener(event -> layer.notifyObservers());
+
             JLabel label = new JLabel(checkbox.getName());
             label.setToolTipText(checkbox.getToolTipText());
 
@@ -152,8 +154,10 @@ public class FacetPanel extends JPanel {
             panel.add(checkbox);
         }
 
-        JComboBox<?> combo = UIBindings.processEnumAnnotation(layer, field);
+        JComboBox<?> combo = UIBindings.processEnumAnnotation(config, field);
         if (combo != null) {
+            combo.addActionListener(event -> layer.notifyObservers());
+
             JLabel label = new JLabel(combo.getName());
             label.setToolTipText(combo.getToolTipText());
 
