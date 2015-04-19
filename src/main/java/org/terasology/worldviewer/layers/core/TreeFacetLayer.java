@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.core;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -35,6 +35,7 @@ import org.terasology.math.geom.Vector2f;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.picker.CirclePicker;
 import org.terasology.worldviewer.picker.CirclePickerAll;
 import org.terasology.worldviewer.picker.CirclePickerClosest;

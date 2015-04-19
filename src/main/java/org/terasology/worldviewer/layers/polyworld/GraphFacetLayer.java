@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.polyworld;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -41,6 +41,7 @@ import org.terasology.polyworld.graph.Triangle;
 import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.config.FacetConfig;
+import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 /**

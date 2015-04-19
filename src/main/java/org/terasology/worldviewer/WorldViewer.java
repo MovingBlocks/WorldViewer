@@ -191,18 +191,16 @@ public final class WorldViewer {
 //        frame.setLocation(screenWidth - frame.getWidth(), 40);
     }
 
-    private static List<Image> loadIcons()
-    {
+    private static List<Image> loadIcons() {
         List<Image> icons = new ArrayList<Image>();
-        int[] sizes = { 16, 32, 64 };
+        int[] sizes = {16, 32, 64};
         for (int size : sizes) {
             String name = String.format("/icons/gooey_sweet_red_%d.png", size);
             URL resUrl = WorldViewer.class.getResource(name);
             try {
                 BufferedImage iconImage = ImageIO.read(resUrl);
                 icons.add(iconImage);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 logger.warn("Could not load icon: {}", name);
             }
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.polyworld;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -28,6 +28,7 @@ import org.terasology.polyworld.rivers.RiverModel;
 import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.layers.AbstractFacetLayer;
 
 /**
  * Draws the generated rivers on a AWT graphics instance

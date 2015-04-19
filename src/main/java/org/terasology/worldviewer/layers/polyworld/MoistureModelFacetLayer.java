@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.polyworld;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -35,6 +35,7 @@ import org.terasology.polyworld.moisture.MoistureModel;
 import org.terasology.polyworld.moisture.MoistureModelFacet;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 import com.google.common.base.Stopwatch;

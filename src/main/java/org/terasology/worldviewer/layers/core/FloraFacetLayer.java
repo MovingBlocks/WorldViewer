@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.core;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -29,7 +29,7 @@ import org.terasology.math.geom.Vector3i;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
-import org.terasology.worldviewer.core.CoreFloraColors;
+import org.terasology.worldviewer.layers.AbstractFacetLayer;
 
 /**
  * Renders the flora coverage based on {@link FloraFacet}.

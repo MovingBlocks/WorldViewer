@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.polyworld;
 
 import org.terasology.polyworld.biome.WhittakerBiome;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
-import org.terasology.worldviewer.core.WhittakerBiomeColors;
+import org.terasology.worldviewer.layers.NominalFacetLayer;
 
 /**
  * Maps {@link WhittakerBiome} facet to corresponding colors.

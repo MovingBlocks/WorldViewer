@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers.core;
 
 import java.util.Map;
 import java.util.function.Function;

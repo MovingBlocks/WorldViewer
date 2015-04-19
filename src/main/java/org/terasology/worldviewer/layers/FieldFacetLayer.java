@@ -156,7 +156,7 @@ public class FieldFacetLayer extends AbstractFacetLayer {
     /**
      * Persistent data
      */
-    private static class Config implements FacetConfig {
+    protected static class Config implements FacetConfig {
         private Class<? extends FieldFacet2D> clazz;
 
         @Range(min = -100, max = 100, increment = 1f, precision = 1)

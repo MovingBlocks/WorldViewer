@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.core;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import org.terasology.core.world.generator.facets.World2dPreviewFacet;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.layers.AbstractFacetLayer;
 
 /**
  * @author Martin Steiger

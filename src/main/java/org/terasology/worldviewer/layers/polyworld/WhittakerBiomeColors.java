@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.core;
+package org.terasology.worldviewer.layers.polyworld;
 
 import static org.terasology.polyworld.biome.WhittakerBiome.BARE;
 import static org.terasology.polyworld.biome.WhittakerBiome.BEACH;

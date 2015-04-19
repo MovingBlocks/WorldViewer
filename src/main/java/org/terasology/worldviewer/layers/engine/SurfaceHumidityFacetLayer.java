@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.layers;
+package org.terasology.worldviewer.layers.engine;
 
-import org.terasology.core.world.CoreBiome;
-import org.terasology.core.world.generator.facets.BiomeFacet;
-import org.terasology.worldviewer.core.CoreBiomeColors;
+import org.terasology.world.generation.facets.SurfaceHumidityFacet;
+import org.terasology.worldviewer.layers.FieldFacetLayer;
 
 /**
- * Maps {@link CoreBiome} facet to corresponding colors.
+ * Provides information about the surface humidity.
  * @author Martin Steiger
  */
-public class CoreBiomeFacetLayer extends NominalFacetLayer<CoreBiome> {
+public class SurfaceHumidityFacetLayer extends FieldFacetLayer {
 
-    public CoreBiomeFacetLayer() {
-        super(BiomeFacet.class, new CoreBiomeColors());
+    public SurfaceHumidityFacetLayer(Config config) {
+        super(config);
+    }
+
+    public SurfaceHumidityFacetLayer() {
+        super(SurfaceHumidityFacet.class, 0d, 100d);
     }
 }

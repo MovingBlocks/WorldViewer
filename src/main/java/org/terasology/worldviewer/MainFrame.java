@@ -42,23 +42,29 @@ import org.terasology.polyworld.graph.GraphFacet;
 import org.terasology.polyworld.moisture.MoistureModelFacet;
 import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.world.generation.WorldFacet;
-import org.terasology.world.generation.facets.base.FieldFacet2D;
+import org.terasology.world.generation.facets.SeaLevelFacet;
+import org.terasology.world.generation.facets.SurfaceHeightFacet;
+import org.terasology.world.generation.facets.SurfaceHumidityFacet;
+import org.terasology.world.generation.facets.SurfaceTemperatureFacet;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.core.ConfigPanel;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
-import org.terasology.worldviewer.layers.CoreBiomeFacetLayer;
 import org.terasology.worldviewer.layers.FacetLayer;
-import org.terasology.worldviewer.layers.FieldFacetLayer;
-import org.terasology.worldviewer.layers.FloraFacetLayer;
-import org.terasology.worldviewer.layers.GraphFacetLayer;
-import org.terasology.worldviewer.layers.MoistureModelFacetLayer;
-import org.terasology.worldviewer.layers.PreviewFacetLayer;
-import org.terasology.worldviewer.layers.RiverModelFacetLayer;
-import org.terasology.worldviewer.layers.TreeFacetLayer;
-import org.terasology.worldviewer.layers.WhittakerBiomeFacetLayer;
+import org.terasology.worldviewer.layers.core.CoreBiomeFacetLayer;
+import org.terasology.worldviewer.layers.core.FloraFacetLayer;
+import org.terasology.worldviewer.layers.core.PreviewFacetLayer;
+import org.terasology.worldviewer.layers.core.TreeFacetLayer;
+import org.terasology.worldviewer.layers.engine.SeaLevelFacetLayer;
+import org.terasology.worldviewer.layers.engine.SurfaceHeightFacetLayer;
+import org.terasology.worldviewer.layers.engine.SurfaceHumidityFacetLayer;
+import org.terasology.worldviewer.layers.engine.SurfaceTemperatureFacetLayer;
+import org.terasology.worldviewer.layers.polyworld.GraphFacetLayer;
+import org.terasology.worldviewer.layers.polyworld.MoistureModelFacetLayer;
+import org.terasology.worldviewer.layers.polyworld.RiverModelFacetLayer;
+import org.terasology.worldviewer.layers.polyworld.WhittakerBiomeFacetLayer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -172,11 +178,20 @@ public class MainFrame extends JFrame {
 
         Map<Class<?>, Function<Class<?>, FacetLayer>> mapping = Maps.newLinkedHashMap();
 
+        mapping.put(SeaLevelFacet.class,
+                clazz -> new SeaLevelFacetLayer());
+
         mapping.put(World2dPreviewFacet.class,
                 clazz -> new PreviewFacetLayer());
 
-        mapping.put(FieldFacet2D.class,
-                clazz -> new FieldFacetLayer((Class<FieldFacet2D>) clazz, 0, 5));
+        mapping.put(SurfaceHeightFacet.class,
+                clazz -> new SurfaceHeightFacetLayer());
+
+        mapping.put(SurfaceTemperatureFacet.class,
+                clazz -> new SurfaceTemperatureFacetLayer());
+
+        mapping.put(SurfaceHumidityFacet.class,
+                clazz -> new SurfaceHumidityFacetLayer());
 
         mapping.put(WhittakerBiomeFacet.class,
                 clazz -> new WhittakerBiomeFacetLayer());
