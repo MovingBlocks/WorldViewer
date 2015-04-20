@@ -31,7 +31,7 @@ public class CmdLineConfigs {
     @Option(name = "-skip", usage = "skip the initial selection dialog and use defaults")
     boolean skipSelect;
 
-    @Option(name = "-worldGen", metaVar = "<class>", usage = "The world generator to use")
+    @Option(name = "-worldGen", metaVar = "<class>", usage = "The world generator (URI) to use")
     String worldGen;
 
     @Option(name = "-seed", metaVar = "<string>", usage = "The seed value to use")

@@ -27,7 +27,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -45,11 +47,13 @@ import org.terasology.engine.TerasologyConstants;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
 import org.terasology.module.ClasspathModule;
+import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;
 import org.terasology.module.ModuleEnvironment;
 import org.terasology.module.ModuleLoader;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataReader;
+import org.terasology.module.TableModuleRegistry;
 import org.terasology.module.sandbox.PermissionProviderFactory;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.assets.texture.Texture;
@@ -82,6 +86,8 @@ public final class TinyEnvironment {
 
         setupConfig();
 
+        setupModuleManager();
+
         setupAssetManager();
 
         setupBlockManager();
@@ -89,18 +95,20 @@ public final class TinyEnvironment {
         setupWorldGen();
     }
 
+    private static void setupModuleManager() throws IOException {
+        TinyModuleManager modMan = new TinyModuleManager();
+        CoreRegistry.put(ModuleManager.class, modMan);
+        CoreRegistry.put(TinyModuleManager.class, modMan);
+    }
+
     private static void setupConfig() {
         Config config = new Config();
         CoreRegistry.put(Config.class, config);
     }
 
-    private static void setupAssetManager() throws IOException {
-        Collection<Module> mods = loadModules();
-
-        PermissionProviderFactory securityManager = Mockito.mock(PermissionProviderFactory.class);
-        ModuleEnvironment env = new ModuleEnvironment(mods, securityManager, Collections.emptyList());
-
-        AssetManager assetManager = new AssetManagerImpl(env);
+    private static void setupAssetManager() {
+        ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
+        AssetManager assetManager = new AssetManagerImpl(moduleManager.getEnvironment());
         AssetType.registerAssetTypes(assetManager);
         assetManager.setAssetFactory(AssetType.TEXTURE, new AssetFactory<TextureData, Texture>() {
             @Override
@@ -112,64 +120,26 @@ public final class TinyEnvironment {
         CoreRegistry.put(AssetManager.class, assetManager);
     }
 
-    private static Collection<Module> loadModules() throws IOException {
-        try {
-            Module engine = loadEngineModule();
+    public static void addModules(List<File> jars) {
+        TinyModuleManager moduleManager = CoreRegistry.get(TinyModuleManager.class);
+        ModuleEnvironment oldEnv = moduleManager.getEnvironment();
 
-            String[] cpEntries = getClassPath();
+        List<Module> existingMods = oldEnv.getModulesOrderedByDependencies();
 
-            Collection<Module> mods = Lists.newArrayList(engine);
-
-            ModuleLoader moduleLoader = new ModuleLoader();
-            moduleLoader.setModuleInfoPath(TerasologyConstants.MODULE_INFO_FILENAME);
-            for (String pathStr : cpEntries) {
-                Path modulePath = Paths.get(pathStr);
-                Path codeLoc = moduleLoader.getDirectoryCodeLocation();
-                if (modulePath.endsWith(codeLoc)) {
-                    for (int i = 0; i < codeLoc.getNameCount(); i++) {
-                        modulePath = modulePath.getParent();
-                    }
-                }
-                Module mod = moduleLoader.load(modulePath);
-                if (mod != null) {
-                    logger.info("Loading module: {}", mod);
-                    mods.add(mod);
-                }
+        Set<Module> mods = new HashSet<>(existingMods);
+        for (File file : jars) {
+            try {
+                Module mod = moduleManager.load(file.toPath());
+                mods.add(mod);
+            } catch (IOException e) {
+                logger.error("Failed to load a module from {}", file);
             }
-            return mods;
-        } catch (URISyntaxException e) {
-            throw new IOException("Failed to load engine module", e);
         }
-    }
 
-    private static String[] getClassPath() throws IOException {
-        // If the application is launched from the command line through java -jar
-        // the classpath attribute is ignored and read from the jar's MANIFEST.MF file
-        // instead. We classpath will then just contain WorldViewer.jar. We need to
-        // manually parse the entries in that case :-(
-
-        // Use the classloader for this class, not the default one to ensure that
-        // only MANIFEST.MF from this jar is loaded (if it exists).
-        ClassLoader classLoader = TinyEnvironment.class.getClassLoader();
-        URL manifestResource = classLoader.getResource("/META-INF/MANIFEST.MF");
-        if (manifestResource != null) {
-            try (InputStream is = manifestResource.openStream()) {
-                Manifest manifest = new Manifest(is);
-                String classpath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-                return classpath.split(" ");
-            }
-        } else {
-            String classpath = System.getProperty("java.class.path");
-            return classpath.split(File.pathSeparator);
-        }
-    }
-
-    private static Module loadEngineModule() throws IOException, URISyntaxException {
-        ModuleMetadataReader metadataReader = new ModuleMetadataReader();
-        try (Reader reader = new InputStreamReader(ModuleManager.class.getResourceAsStream("/engine-module.txt"), TerasologyConstants.CHARSET)) {
-            ModuleMetadata metadata = metadataReader.read(reader);
-            return ClasspathModule.create(metadata, ModuleManager.class, Module.class);
-        }
+        // TODO: merge with #setupAssetManager()
+        ModuleEnvironment newEnv = moduleManager.loadEnvironment(mods, true);
+        AssetManager assetManager = CoreRegistry.get(AssetManager.class);
+        assetManager.setEnvironment(newEnv);
     }
 
     private static void setupBlockManager() {

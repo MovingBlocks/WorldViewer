@@ -21,10 +21,10 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import org.terasology.worldviewer.WorldGenerators;
+import org.terasology.world.generator.internal.WorldGeneratorInfo;
 
 /**
- * It actually implements ListCellRenderer<WorldGenerator>, but since DefaultListCellRenderer
+ * It actually implements ListCellRenderer<WorldGeneratorInfo>, but since DefaultListCellRenderer
  * uses Object, this isn't allowed in Java.
  * @author Martin Steiger
  */
@@ -34,7 +34,7 @@ public class WorldGenCellRenderer extends DefaultListCellRenderer {
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        String text = WorldGenerators.getAnnotatedDisplayName((Class<?>) value);
+        String text = ((WorldGeneratorInfo) value).getDisplayName();
         return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
     }
 }

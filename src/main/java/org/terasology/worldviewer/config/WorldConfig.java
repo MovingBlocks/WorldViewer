@@ -16,6 +16,8 @@
 
 package org.terasology.worldviewer.config;
 
+import org.terasology.engine.SimpleUri;
+
 
 /**
  * Stores world-related config params.
@@ -23,16 +25,16 @@ package org.terasology.worldviewer.config;
  */
 public class WorldConfig {
 
-    private String worldGenClass = "org.terasology.core.world.generator.worldGenerators.PerlinFacetedWorldGenerator";
+    private SimpleUri worldGen = new SimpleUri("core", "facetedperlin");
 
     private String worldSeed = "sdfsfdf";
 
-    public String getWorldGenClass() {
-        return worldGenClass;
+    public SimpleUri getWorldGen() {
+        return worldGen;
     }
 
-    public void setWorldGenClass(String worldGenClass) {
-        this.worldGenClass = worldGenClass;
+    public void setWorldGenClass(SimpleUri worldGen) {
+        this.worldGen = worldGen;
     }
 
     public String getWorldSeed() {

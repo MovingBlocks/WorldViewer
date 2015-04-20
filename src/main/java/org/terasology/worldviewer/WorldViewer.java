@@ -39,8 +39,11 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.engine.SimpleUri;
 import org.terasology.engine.splash.SplashScreen;
+import org.terasology.world.generator.UnresolvedWorldGeneratorException;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.env.TinyEnvironment;
@@ -143,24 +146,24 @@ public final class WorldViewer {
             }
         }
 
-        String worldGenClass = wgConfig.getWorldGenClass();
+        SimpleUri worldGenUri = wgConfig.getWorldGen();
         String worldSeed = wgConfig.getWorldSeed();
 
         if (cmdLineOpts.worldGen != null) {
-            worldGenClass = cmdLineOpts.worldGen;
+            worldGenUri = new SimpleUri(cmdLineOpts.worldGen);
         }
 
         if (cmdLineOpts.seed != null) {
             worldSeed = cmdLineOpts.seed;
         }
 
-        WorldGenerator worldGen = WorldGenerators.createWorldGenerator(worldGenClass);
-        if (worldGen != null) {
+        try {
+            WorldGenerator worldGen = new WorldGeneratorManager().createGenerator(worldGenUri);
             worldGen.setWorldSeed(worldSeed);
             worldGen.initialize();
             createAndShowMainFrame(worldGen, config);
-        } else {
-            String message = "Could not load any world generator class";
+        } catch (UnresolvedWorldGeneratorException ex) {
+            String message = "<html>Could not create world generator<br>" + ex + "</html>";
             JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

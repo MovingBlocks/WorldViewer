@@ -17,19 +17,39 @@
 package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FileDialog;
 import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileFilter;
 
+import org.terasology.asset.AssetManager;
+import org.terasology.engine.SimpleUri;
+import org.terasology.engine.TerasologyConstants;
+import org.terasology.module.Module;
+import org.terasology.module.ModuleEnvironment;
+import org.terasology.module.ModuleLoader;
+import org.terasology.module.ModuleMetadataReader;
+import org.terasology.registry.CoreRegistry;
+import org.terasology.world.generator.internal.WorldGeneratorInfo;
+import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.worldviewer.config.WorldConfig;
+import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.gui.WorldGenCellRenderer;
 
 /**
@@ -41,7 +61,7 @@ public class SelectWorldGenDialog extends JDialog {
     private static final long serialVersionUID = 257345717408006930L;
 
     private final JOptionPane optionPane;
-    private final JComboBox<Class<?>> wgSelectCombo;
+    private final JComboBox<WorldGeneratorInfo> wgSelectCombo;
     private final TextField seedText;
 
     public SelectWorldGenDialog(WorldConfig wgConfig) {
@@ -52,23 +72,15 @@ public class SelectWorldGenDialog extends JDialog {
         seedText = new TextField(wgConfig.getWorldSeed());
 
         wgSelectCombo = new JComboBox<>();
-
-        Set<Class<?>> worldGenSet = WorldGenerators.findOnClasspath();
-        Class<?>[] worldGens = worldGenSet.toArray(new Class<?>[0]);
-        Arrays.sort(worldGens, Comparator.comparing(clazz -> WorldGenerators.getAnnotatedDisplayName(clazz)));
-
-        for (Class<?> wg : worldGens) {
-            wgSelectCombo.addItem(wg);
-        }
-
-        int idx = findWorldGenIndex(worldGens, wgConfig.getWorldGenClass());
-        wgSelectCombo.setSelectedIndex(idx >= 0 ? idx : 0);
         wgSelectCombo.setRenderer(new WorldGenCellRenderer());
 
         panel.add(wgSelectCombo, BorderLayout.NORTH);
         panel.add(new JLabel("Seed"), BorderLayout.WEST);
         panel.add(seedText, BorderLayout.CENTER);
-        panel.add(new JLabel("<html><b>Note: </b>You can skip this dialog by<br/>supplying the -skip cmd. line argument</html>"), BorderLayout.SOUTH);
+        JButton importButton = new JButton("Import");
+        panel.add(importButton, BorderLayout.SOUTH);
+        importButton.addActionListener(e -> showImportModuleDialog());
+//        panel.add(new JLabel("<html><b>Note: </b>You can skip this dialog by<br/>supplying the -skip cmd. line argument</html>"), BorderLayout.SOUTH);
 
         optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
         optionPane.addPropertyChangeListener(e -> {
@@ -79,29 +91,52 @@ public class SelectWorldGenDialog extends JDialog {
             }
         });
 
+        updateWorldGenCombo();
+
+        trySelect(wgConfig.getWorldGen());
+
         setContentPane(optionPane);
         setResizable(false);
+    }
+
+    private void updateWorldGenCombo() {
+        List<WorldGeneratorInfo> worldGens = new WorldGeneratorManager().getWorldGenerators();
+//        worldGensArrays.sort(worldGens, Comparator.comparing(clazz -> WorldGenerators.getAnnotatedDisplayName(clazz)));
+
+        wgSelectCombo.removeAllItems();
+        for (WorldGeneratorInfo wg : worldGens) {
+            wgSelectCombo.addItem(wg);
+        }
+    }
+
+    private void showImportModuleDialog() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.addChoosableFileFilter(new JarFileFilter());
+        fileChooser.setMultiSelectionEnabled(true);
+        fileChooser.setDialogTitle("Select module JARs to import");
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            TinyEnvironment.addModules(Arrays.asList(fileChooser.getSelectedFiles()));
+        }
+        updateWorldGenCombo();
     }
 
     private void updateConfig(WorldConfig wgConfig) {
         int idx = wgSelectCombo.getSelectedIndex();
         if (idx >= 0) {
-            Class<?> clazz = wgSelectCombo.getItemAt(idx);
-            wgConfig.setWorldGenClass(clazz.getCanonicalName());
+            WorldGeneratorInfo info = wgSelectCombo.getItemAt(idx);
+            wgConfig.setWorldGenClass(info.getUri());
         }
 
         wgConfig.setWorldSeed(seedText.getText());
     }
 
-    private int findWorldGenIndex(Class<?>[] worldGens, String worldGenClass) {
-        for (int idx = 0; idx < worldGens.length; idx++) {
-            Class<?> wg = worldGens[idx];
-            if (wg.getName().equals(worldGenClass)) {
-                return idx;
+    private void trySelect(SimpleUri worldGen) {
+        for (int idx = 0; idx < wgSelectCombo.getItemCount(); idx++) {
+            WorldGeneratorInfo wg = wgSelectCombo.getItemAt(idx);
+            if (wg.getUri().equals(worldGen)) {
+                wgSelectCombo.setSelectedIndex(idx);
             }
         }
-
-        return -1;
     }
 
     /**
@@ -119,5 +154,20 @@ public class SelectWorldGenDialog extends JDialog {
         return (Integer) optionPane.getValue();
     }
 
+    /**
+     * A filter for jar files (case-insensitive).
+     */
+    private static class JarFileFilter extends FileFilter {
+        @Override
+        public boolean accept(File file) {
+            return file.getName().toLowerCase().endsWith(".jar");
+        }
+
+        @Override
+        public String getDescription()
+        {
+            return "(*.jar) Jar File";
+        }
+    }
 }
 
