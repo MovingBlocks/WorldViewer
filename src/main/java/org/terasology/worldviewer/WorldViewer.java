@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.splash.SplashScreen;
+import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generator.UnresolvedWorldGeneratorException;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
@@ -158,7 +159,8 @@ public final class WorldViewer {
         }
 
         try {
-            WorldGenerator worldGen = new WorldGeneratorManager().createGenerator(worldGenUri);
+            WorldGeneratorManager worldGeneratorManager = CoreRegistry.get(WorldGeneratorManager.class);
+            WorldGenerator worldGen = worldGeneratorManager.createGenerator(worldGenUri);
             worldGen.setWorldSeed(worldSeed);
             worldGen.initialize();
             createAndShowMainFrame(worldGen, config);

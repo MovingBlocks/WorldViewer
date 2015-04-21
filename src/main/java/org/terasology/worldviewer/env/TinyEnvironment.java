@@ -61,6 +61,7 @@ import org.terasology.rendering.assets.texture.TextureData;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.BlockUri;
+import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.world.generator.plugin.WorldGeneratorPlugin;
 import org.terasology.world.generator.plugin.WorldGeneratorPluginLibrary;
 
@@ -140,6 +141,8 @@ public final class TinyEnvironment {
         ModuleEnvironment newEnv = moduleManager.loadEnvironment(mods, true);
         AssetManager assetManager = CoreRegistry.get(AssetManager.class);
         assetManager.setEnvironment(newEnv);
+
+        CoreRegistry.get(WorldGeneratorManager.class).refresh();
     }
 
     private static void setupBlockManager() {
@@ -152,6 +155,7 @@ public final class TinyEnvironment {
     }
 
     private static void setupWorldGen() {
+        CoreRegistry.putPermanently(WorldGeneratorManager.class, new WorldGeneratorManager());
         CoreRegistry.putPermanently(WorldGeneratorPluginLibrary.class, new WorldGeneratorPluginLibrary() {
 
             @Override

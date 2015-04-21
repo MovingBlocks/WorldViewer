@@ -16,18 +16,16 @@
 
 package org.terasology.worldviewer;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.FileDialog;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.TextField;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -35,22 +33,24 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.TableModel;
 
-import org.terasology.asset.AssetManager;
 import org.terasology.engine.SimpleUri;
-import org.terasology.engine.TerasologyConstants;
+import org.terasology.engine.module.ModuleManager;
 import org.terasology.module.Module;
-import org.terasology.module.ModuleEnvironment;
-import org.terasology.module.ModuleLoader;
-import org.terasology.module.ModuleMetadataReader;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generator.internal.WorldGeneratorInfo;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.gui.WorldGenCellRenderer;
+
+import com.google.common.collect.Lists;
 
 /**
  * A modal dialogs for the selection of a world generator.
@@ -64,25 +64,75 @@ public class SelectWorldGenDialog extends JDialog {
     private final JComboBox<WorldGeneratorInfo> wgSelectCombo;
     private final TextField seedText;
 
+    private JTable moduleList;
+
+    private JFileChooser jarFileChooser;
+
+    private JFileChooser folderChooser;
+
     public SelectWorldGenDialog(WorldConfig wgConfig) {
         super(null, "Select World Generator", ModalityType.APPLICATION_MODAL);
 
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(0, 10, 10, 10));
-        seedText = new TextField(wgConfig.getWorldSeed());
+        // since file choosers are fields, the LRU folder is kept
+        jarFileChooser = new JFileChooser();
+        JarFileFilter filter = new JarFileFilter();
+        jarFileChooser.addChoosableFileFilter(filter);
+        jarFileChooser.setFileFilter(filter);
+        jarFileChooser.setMultiSelectionEnabled(true);
+        jarFileChooser.setDialogTitle("Select module JARs to import");
 
+        folderChooser = new JFileChooser();
+        folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        folderChooser.setMultiSelectionEnabled(true);
+        folderChooser.setDialogTitle("Select module folders to import");
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        panel.setBorder(new EmptyBorder(0, 10, 10, 10));
+
+        gbc.gridy = 0;
+        panel.add(new JLabel("World Generator"), gbc.clone());
         wgSelectCombo = new JComboBox<>();
         wgSelectCombo.setRenderer(new WorldGenCellRenderer());
+        panel.add(wgSelectCombo, gbc.clone());
 
-        panel.add(wgSelectCombo, BorderLayout.NORTH);
-        panel.add(new JLabel("Seed"), BorderLayout.WEST);
-        panel.add(seedText, BorderLayout.CENTER);
-        JButton importButton = new JButton("Import");
-        panel.add(importButton, BorderLayout.SOUTH);
-        importButton.addActionListener(e -> showImportModuleDialog());
-//        panel.add(new JLabel("<html><b>Note: </b>You can skip this dialog by<br/>supplying the -skip cmd. line argument</html>"), BorderLayout.SOUTH);
+        gbc.gridy = 1;
+        panel.add(new JLabel("Seed"), gbc.clone());
+        seedText = new TextField(wgConfig.getWorldSeed());
+        panel.add(seedText, gbc.clone());
 
-        optionPane = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+        gbc.gridwidth = 2;
+
+        gbc.gridy = 2;
+        panel.add(new JLabel("Loaded modules:"), gbc.clone());
+
+        gbc.gridy = 3;
+        moduleList = new JTable();
+        moduleList.setBorder(BorderFactory.createEtchedBorder());
+        moduleList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        moduleList.getTableHeader().setReorderingAllowed(false);
+        JScrollPane tableScrollPane = new JScrollPane(moduleList);
+        tableScrollPane.setPreferredSize(new Dimension(250, 150));
+        panel.add(tableScrollPane, gbc.clone());
+
+        gbc.gridy = 4;
+        JButton importJarButton = new JButton("Import Module JAR");
+        importJarButton.addActionListener(e -> showImportModuleJarDialog());
+        panel.add(importJarButton, gbc.clone());
+
+        gbc.gridy = 5;
+        JButton importFolderButton = new JButton("Import Module Folder");
+        importFolderButton.addActionListener(e -> showImportModuleFolderDialog());
+        panel.add(importFolderButton, gbc.clone());
+
+
+        gbc.gridy = 6;
+        String infoText = "<html><b>Note: </b>You can skip this dialog by<br/>supplying the -skip cmd. line argument</html>";
+        panel.add(new JLabel(infoText), gbc.clone());
+
+        optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
         optionPane.addPropertyChangeListener(e -> {
             if (isVisible() && (e.getPropertyName().equals(JOptionPane.VALUE_PROPERTY))) {
                 setVisible(false);
@@ -92,6 +142,7 @@ public class SelectWorldGenDialog extends JDialog {
         });
 
         updateWorldGenCombo();
+        updateModuleList();
 
         trySelect(wgConfig.getWorldGen());
 
@@ -99,9 +150,15 @@ public class SelectWorldGenDialog extends JDialog {
         setResizable(false);
     }
 
+    private void updateModuleList() {
+        Iterable<Module> modules = CoreRegistry.get(ModuleManager.class).getEnvironment();
+        TableModel dataModel = new ModuleTableModel(Lists.newArrayList(modules));
+        moduleList.setModel(dataModel);
+        moduleList.getColumnModel().getColumn(1).setPreferredWidth(10);
+    }
+
     private void updateWorldGenCombo() {
-        List<WorldGeneratorInfo> worldGens = new WorldGeneratorManager().getWorldGenerators();
-//        worldGensArrays.sort(worldGens, Comparator.comparing(clazz -> WorldGenerators.getAnnotatedDisplayName(clazz)));
+        List<WorldGeneratorInfo> worldGens = CoreRegistry.get(WorldGeneratorManager.class).getWorldGenerators();
 
         wgSelectCombo.removeAllItems();
         for (WorldGeneratorInfo wg : worldGens) {
@@ -109,15 +166,20 @@ public class SelectWorldGenDialog extends JDialog {
         }
     }
 
-    private void showImportModuleDialog() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.addChoosableFileFilter(new JarFileFilter());
-        fileChooser.setMultiSelectionEnabled(true);
-        fileChooser.setDialogTitle("Select module JARs to import");
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            TinyEnvironment.addModules(Arrays.asList(fileChooser.getSelectedFiles()));
+    private void showImportModuleJarDialog() {
+        if (jarFileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            TinyEnvironment.addModules(Arrays.asList(jarFileChooser.getSelectedFiles()));
         }
         updateWorldGenCombo();
+        updateModuleList();
+    }
+
+    private void showImportModuleFolderDialog() {
+        if (folderChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            TinyEnvironment.addModules(Arrays.asList(folderChooser.getSelectedFiles()));
+        }
+        updateWorldGenCombo();
+        updateModuleList();
     }
 
     private void updateConfig(WorldConfig wgConfig) {
@@ -160,12 +222,12 @@ public class SelectWorldGenDialog extends JDialog {
     private static class JarFileFilter extends FileFilter {
         @Override
         public boolean accept(File file) {
-            return file.getName().toLowerCase().endsWith(".jar");
+            // show directories, too
+            return file.isDirectory() || file.getName().toLowerCase().endsWith(".jar");
         }
 
         @Override
-        public String getDescription()
-        {
+        public String getDescription() {
             return "(*.jar) Jar File";
         }
     }
