@@ -76,7 +76,7 @@ import com.google.common.math.IntMath;
  * The main viewer component
  * @author Martin Steiger
  */
-public final class Viewer extends JComponent implements AutoCloseable {
+public final class Viewer extends JComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(Viewer.class);
 
@@ -91,7 +91,7 @@ public final class Viewer extends JComponent implements AutoCloseable {
     private final int numThreads = Runtime.getRuntime().availableProcessors();
     private final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
     private final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads, numThreads * 2,
-            1L, TimeUnit.SECONDS, workQueue, Executors.defaultThreadFactory());
+            1L, TimeUnit.SECONDS, workQueue, new TileThreadFactory());
 
     private final CacheLoader<Vector2i, Region> regionLoader = new CacheLoader<Vector2i, Region>() {
 
@@ -267,7 +267,6 @@ public final class Viewer extends JComponent implements AutoCloseable {
         updateImageCache();
      }
 
-    @Override
     public void close() {
         int cx = (int) camera.getPos().getX();
         int cy = (int) camera.getPos().getY();
