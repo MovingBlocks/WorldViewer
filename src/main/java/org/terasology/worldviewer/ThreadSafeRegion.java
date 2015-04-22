@@ -46,4 +46,10 @@ public class ThreadSafeRegion implements Region {
     public Region3i getRegion() {
         return base.getRegion();
     }
+
+    @Override
+    public String toString()
+    {
+        return "ThreadSafeRegion ["+ getRegion() + "]";
+    }
 }
