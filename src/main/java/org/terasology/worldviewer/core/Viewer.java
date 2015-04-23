@@ -30,15 +30,18 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -74,6 +77,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.math.IntMath;
 
 /**
@@ -92,7 +96,10 @@ public final class Viewer extends JComponent {
     private final BufferedImage dummyImg;
     private final BufferedImage failedImg;
 
-    private final List<Future<?>> workQueue = new ArrayList<>();
+    /**
+     * Contains both queued tasks and those that are in progress.
+     */
+    private final Collection<Future<BufferedImage>> taskList;
     private final ThreadPoolExecutor threadPool;
 
     private final LoadingCache<Vector2i, Region> regionCache;
@@ -123,9 +130,11 @@ public final class Viewer extends JComponent {
 
         int minThreads = Runtime.getRuntime().availableProcessors() * 2;
         int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
-        BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+
+        BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(); // unlimited queue size
         TileThreadFactory threadFactory = new TileThreadFactory();
         threadPool = new ThreadPoolExecutor(minThreads, maxThreads, 60, TimeUnit.SECONDS, queue, threadFactory);
+        taskList = Sets.newSetFromMap(new ConcurrentHashMap<>(cacheSize)); // estimated size
 
         CacheLoader<Vector2i, Region> regionLoader = new CacheLoader<Vector2i, Region>() {
 
@@ -140,7 +149,7 @@ public final class Viewer extends JComponent {
 
             @Override
             public BufferedImage load(Vector2i pos) throws Exception {
-                threadPool.execute(new UpdateImageCache(pos));
+                enqueueTile(pos);
                 return dummyImg;
             }
         };
@@ -218,7 +227,7 @@ public final class Viewer extends JComponent {
      * @return the number of tiles that is currently waiting for being processed
      */
     public int getPendingTiles() {
-        return threadPool.getQueue().size();
+        return taskList.size();
     }
 
     /**
@@ -389,22 +398,44 @@ public final class Viewer extends JComponent {
     /**
      * Called whenever a facet layer configuration changes
      */
-    void updateImageCache() {
-        for (Future<?> task : workQueue) {
+    private void updateImageCache() {
+        for (Future<?> task : taskList) {
             task.cancel(true);
         }
-        threadPool.purge();
+
+        List<Vector2i> usedTiles = new ArrayList<>(imageCache.asMap().keySet());
 
         // shuffle the order of new tasks
         // If the queue is cleared repeatedly before all tasks are run
         // some tiles will never be updated otherwise
-        List<Vector2i> inCache = new ArrayList<>(imageCache.asMap().keySet());
-        Collections.shuffle(inCache);
+        Collections.shuffle(usedTiles);
 
-        for (Vector2i pos : inCache) {
-            Future<?> task = threadPool.submit(new UpdateImageCache(pos));
-            workQueue.add(task);
+        for (Vector2i pos : usedTiles) {
+            enqueueTile(pos);
         }
+    }
+
+    private void enqueueTile(Vector2i pos) {
+        RunnableFuture<BufferedImage> task = new FutureTask<BufferedImage>(new UpdateImageCache(pos)) {
+
+            @Override
+            protected void done() {
+                if (!isCancelled()) {
+                    BufferedImage result;
+                    try {
+                        result = get();
+                    } catch (ExecutionException | InterruptedException e) {
+                        logger.error("Could not rasterize tile {}", pos, e);
+                        result = failedImg;
+                    }
+                    imageCache.put(pos, result);
+                    repaint();
+                }
+                taskList.remove(this);
+            }
+        };
+        taskList.add(task);
+        threadPool.execute(task);
     }
 
     /**
@@ -430,7 +461,7 @@ public final class Viewer extends JComponent {
         return image;
     }
 
-    private class UpdateImageCache implements Runnable {
+    private class UpdateImageCache implements Callable<BufferedImage> {
 
         private final Vector2i pos;
 
@@ -439,21 +470,11 @@ public final class Viewer extends JComponent {
         }
 
         @Override
-        public void run() {
+        public BufferedImage call() {
             Region region = regionCache.getUnchecked(pos);
             BufferedImage image;
-            try {
-                image = rasterize(region);
-            } catch (Exception e) {
-                logger.error("Could not rasterize tile {}", pos, e);
-                image = failedImg;
-            }
-            if (Thread.currentThread().isInterrupted()) {
-                return;
-            }
-            // there is a tiny change that the Thread is interrupted here
-            imageCache.put(pos, image);
-            repaint();
+            image = rasterize(region);
+            return image;
         }
     }
 }
