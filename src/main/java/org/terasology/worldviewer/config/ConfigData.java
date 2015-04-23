@@ -19,6 +19,7 @@ package org.terasology.worldviewer.config;
 import java.util.Map;
 
 import org.terasology.engine.SimpleUri;
+import org.terasology.naming.Version;
 
 import com.google.common.collect.Maps;
 
@@ -27,6 +28,8 @@ import com.google.common.collect.Maps;
  * @author Martin Steiger
  */
 class ConfigData {
+
+    Version version = new Version(0, 0, 0);
 
     ViewConfig viewConfig = new ViewConfig();
 

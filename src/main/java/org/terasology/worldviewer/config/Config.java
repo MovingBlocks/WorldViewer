@@ -24,13 +24,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.TerasologyConstants;
+import org.terasology.naming.Version;
+import org.terasology.naming.gson.VersionTypeAdapter;
 import org.terasology.utilities.gson.UriTypeAdapterFactory;
 import org.terasology.worldviewer.layers.FacetLayer;
+
+import version.GitVersion;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -49,8 +55,11 @@ public class Config {
 
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Class.class, new ClassTypeAdapter())
+            .registerTypeAdapter(Version.class, new VersionTypeAdapter())
             .registerTypeAdapterFactory(new UriTypeAdapterFactory())
             .setPrettyPrinting().create();
+
+    private static final Version OLDEST_COMPATIBLE_VERSION = new Version(0, 8, 1);
 
     private ConfigData data;
 
@@ -184,7 +193,21 @@ public class Config {
         logger.info("Reading config file {}", configFile);
 
         try (Reader reader = Files.newBufferedReader(configFile, TerasologyConstants.CHARSET)) {
-            ConfigData data = GSON.fromJson(reader, ConfigData.class);
+            // peek into config file to find the version
+            Version foundVersion = new Version(0, 0, 0);
+            JsonElement tree = GSON.fromJson(reader, JsonElement.class);
+            if (tree != null && tree.isJsonObject()) {
+                JsonElement versionElement = tree.getAsJsonObject().get("version");
+                if (versionElement != null) {
+                    foundVersion = new Version(versionElement.getAsString());
+                }
+            }
+            if (foundVersion.compareTo(OLDEST_COMPATIBLE_VERSION) < 0) {
+                logger.info("Config file is outdated (v{}) - creating new config", foundVersion);
+                return new Config();
+            }
+            ConfigData data = GSON.fromJson(tree, ConfigData.class);
+
             return new Config(data);
         }
 
@@ -198,7 +221,14 @@ public class Config {
         logger.info("Writing config file to {}", configFile);
 
         try (BufferedWriter writer = Files.newBufferedWriter(configFile, TerasologyConstants.CHARSET)) {
-            GSON.toJson(config.getData(), writer);
+            ConfigData data = config.getData();
+            String version = GitVersion.getVersion();
+            Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+).*");
+            Matcher matcher = p.matcher(version);
+            if (matcher.matches()) {
+                data.version = new Version(matcher.group(1));
+            }
+            GSON.toJson(data, writer);
         }
         catch (JsonParseException | IOException e) {
             logger.error("Could not save config file", e);
