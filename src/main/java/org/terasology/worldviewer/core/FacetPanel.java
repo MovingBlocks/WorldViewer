@@ -28,6 +28,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DropMode;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -36,8 +37,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
-import org.terasology.rendering.nui.properties.Checkbox;
-import org.terasology.rendering.nui.properties.OneOf.Enum;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.gui.UIBindings;
 import org.terasology.worldviewer.layers.FacetLayer;
@@ -132,37 +131,38 @@ public class FacetPanel extends JPanel {
 
     private void processAnnotations(JPanel panel, FacetLayer layer, Field field) {
         FacetConfig config = layer.getConfig();
+        JComponent comp = null;
+
         JSpinner spinner = UIBindings.processRangeAnnotation(config, field);
         if (spinner != null) {
             spinner.addChangeListener(event -> layer.notifyObservers());
-
-            JLabel label = new JLabel(spinner.getName());
-            label.setToolTipText(spinner.getToolTipText());
-
-            panel.add(label);
-            panel.add(spinner);
+            comp = spinner;
         }
 
         JCheckBox checkbox = UIBindings.processCheckboxAnnotation(config, field, "visible");
         if (checkbox != null) {
             checkbox.addChangeListener(event -> layer.notifyObservers());
-
-            JLabel label = new JLabel(checkbox.getName());
-            label.setToolTipText(checkbox.getToolTipText());
-
-            panel.add(label);
-            panel.add(checkbox);
+            comp = checkbox;
         }
 
-        JComboBox<?> combo = UIBindings.processEnumAnnotation(config, field);
-        if (combo != null) {
-            combo.addActionListener(event -> layer.notifyObservers());
+        JComboBox<?> listCombo = UIBindings.processListAnnotation(config, field);
+        if (listCombo != null) {
+            listCombo.addActionListener(event -> layer.notifyObservers());
+            comp = listCombo;
+        }
 
-            JLabel label = new JLabel(combo.getName());
-            label.setToolTipText(combo.getToolTipText());
+        JComboBox<?> enumCombo = UIBindings.processEnumAnnotation(config, field);
+        if (enumCombo != null) {
+            enumCombo.addActionListener(event -> layer.notifyObservers());
+            comp = enumCombo;
+        }
+
+        if (comp != null) {
+            JLabel label = new JLabel(comp.getName());
+            label.setToolTipText(comp.getToolTipText());
 
             panel.add(label);
-            panel.add(combo);
+            panel.add(comp);
         }
     }
 }

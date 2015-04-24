@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -171,10 +172,22 @@ public class ConfigPanel extends JPanel {
             comp = spinner;
         }
 
-        JComboBox<?> combo = UIBindings.processListAnnotation(obj, field);
-        if (combo != null) {
-            combo.addActionListener(event -> notifyObservers());
-            comp = combo;
+        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(obj, field, "active");
+        if (checkbox != null) {
+            checkbox.addChangeListener(event -> notifyObservers());
+            comp = checkbox;
+        }
+
+        JComboBox<?> listCombo = UIBindings.processListAnnotation(obj, field);
+        if (listCombo != null) {
+            listCombo.addActionListener(event -> notifyObservers());
+            comp = listCombo;
+        }
+
+        JComboBox<?> enumCombo = UIBindings.processEnumAnnotation(obj, field);
+        if (enumCombo != null) {
+            enumCombo.addActionListener(event -> notifyObservers());
+            comp = enumCombo;
         }
 
         if (comp != null) {
