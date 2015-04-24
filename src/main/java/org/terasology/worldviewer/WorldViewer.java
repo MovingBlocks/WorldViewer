@@ -49,7 +49,7 @@ import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.env.TinyEnvironment;
 
-import version.GitVersion;
+import org.terasology.worldviewer.version.VersionInfo;
 
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 
@@ -88,7 +88,7 @@ public final class WorldViewer {
             parser.parseArgument(args);
 
             if (cmdLineOpts.help) {
-                System.out.println("WorldViewer - Version " + GitVersion.getVersion());
+                System.out.println("WorldViewer - Version " + VersionInfo.getVersion());
                 parser.printUsage(System.out);
                 return;
             }
@@ -173,7 +173,7 @@ public final class WorldViewer {
     private static void createAndShowMainFrame(WorldGenerator worldGen, Config config) {
         JFrame frame = new MainFrame(worldGen, config);
         frame.setIconImages(loadIcons());
-        frame.setTitle("WorldViewer " + GitVersion.getVersion());
+        frame.setTitle("WorldViewer " + VersionInfo.getVersion());
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

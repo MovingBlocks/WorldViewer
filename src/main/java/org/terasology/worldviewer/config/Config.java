@@ -24,8 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +33,7 @@ import org.terasology.naming.Version;
 import org.terasology.naming.gson.VersionTypeAdapter;
 import org.terasology.utilities.gson.UriTypeAdapterFactory;
 import org.terasology.worldviewer.layers.FacetLayer;
-
-import version.GitVersion;
+import org.terasology.worldviewer.version.VersionInfo;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -222,12 +219,7 @@ public class Config {
 
         try (BufferedWriter writer = Files.newBufferedWriter(configFile, TerasologyConstants.CHARSET)) {
             ConfigData data = config.getData();
-            String version = GitVersion.getVersion();
-            Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+).*");
-            Matcher matcher = p.matcher(version);
-            if (matcher.matches()) {
-                data.version = new Version(matcher.group(1));
-            }
+            data.version = VersionInfo.getVersion();
             GSON.toJson(data, writer);
         }
         catch (JsonParseException | IOException e) {

@@ -12,7 +12,7 @@ apply plugin: 'findbugs'
 apply plugin: 'application'
 
 group = 'org.terasology'
-version = getGitDesc()
+version = getFullVersion()
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -28,40 +28,57 @@ repositories {
     }
 }
 
-import java.text.SimpleDateFormat;
-
-def env = System.getenv()
-def versionInfoFile = new File(sourceSets.main.output.resourcesDir, 'versionInfo.properties')
-    
 def getGitDesc() {
-    def cmd = "git describe --match ?.?*"
+    def cmd = 'git describe --long --match *.*'
 
     try {
         def proc = cmd.execute()
-        proc.waitFor()                    // wait for the command to finish
-        return proc.in.text.trim()        // "out" from the process is "in" for gradle
+        proc.waitFor()                        // wait for the command to finish
+        def desc = proc.in.text.trim()        // "out" from the process is "in" for gradle
+        return desc;
     } catch (IOException e) {
-        logger.warn("Could not run '$cmd' - using date - {}", e.getLocalizedMessage());
-        return new Date().format('yyyy-MM-dd-HH-mm-ss');
+        logger.warn("Could not run '$cmd'")
+        return "0.0-0-0000000"
     }
 }
 
+def getVersionInfo() {
+    def desc = getGitDesc()
+    def matcher = desc =~ "(\\d+)\\.(\\d+)-(\\d+)-g([0-9A-Za-z]*)"
+    if (!matcher || !matcher.matches()) {
+       logger.warn("Version '$desc' does not match format: 'd.d-d-gHHHHHHH'")
+       return ["0", "0", "0", "0000000"]
+    } else {
+        def major = matcher.group(1)
+        def minor = matcher.group(2)
+        def patch = matcher.group(3)
+        def sha = matcher.group(4)
+        return [major, minor, patch, sha]
+    }
+}
 
-task createVersionJavaFile(type:Copy) {
+def getFullVersion() {
+    def (major, minor, patch, sha) = getVersionInfo()
+    return "$major.$minor.$patch+$sha";
+}
+
+task createVersionFile(type:Copy) {
     description = 'Creates a java version file based on the template in the resources folder'
-    def version = getGitDesc()
     
     inputs.property('version', version)    // trigger executing by setting a property
 
-    from('src/main/resources/GitVersion.template')
-    into('src/main/java/version')
+    from ('src/main/resources/VersionInfo.template')
+    into ('src/main/java/org/terasology/worldviewer/version')
     rename '(.*).template', '$1.java'
 
-    expand(GIT_VERSION: version)
+    def (major, minor, patch, sha) = getVersionInfo()
     
-    doLast {
-        logger.lifecycle("Updated 'GitVersion.java' to version $version");
-    }
+    expand(
+        BUILD_VERSION_MAJOR: major,
+        BUILD_VERSION_MINOR: minor,
+        BUILD_VERSION_PATCH: patch,
+        BUILD_SHA: sha,
+        BUILD_TIME: java.time.ZonedDateTime.now().toString());
 }
 
 
@@ -69,8 +86,8 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
 }
 
-compileJava.dependsOn createVersionJavaFile
-eclipseProject.dependsOn createVersionJavaFile
+compileJava.dependsOn createVersionFile
+eclipseProject.dependsOn createVersionFile
 
 configurations {
     codeMetrics
@@ -118,18 +135,6 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives sourceJar
     archives javadocJar
-}
-
-task createVersionInfoFile {
-    File infoFile = new File(buildDir, "version.txt")
-    outputs.file infoFile
-    doLast {
-        infoFile.write("Version $version")
-    }
-}
-
-applicationDistribution.from(createVersionInfoFile) {
-//    into "docs"
 }
 
 jar {

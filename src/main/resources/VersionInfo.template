@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package version;
+package org.terasology.worldviewer.version;
+
+import java.time.ZonedDateTime;
+
+import org.terasology.naming.Version;
 
 /**
  * Do not modify this file! All changed will be overwritten.
@@ -22,16 +26,30 @@ package version;
  * See build.gradle for the task and for the definition of the version string
  * @author Martin Steiger
  */
-public final class GitVersion {
+public final class VersionInfo {
 
-    private GitVersion() {
+    private VersionInfo() {
         // no instances!
     }
 
     /**
-     * @return The version string as defined by "git describe --dirty"
+     * @return The version identifier as defined by the build script
      */ 
-    public static String getVersion() {
-        return "${GIT_VERSION}";
+    public static Version getVersion() {
+        return new Version($BUILD_VERSION_MAJOR, $BUILD_VERSION_MINOR, $BUILD_VERSION_PATCH);
+    }
+
+    /**
+     * @return The commit that was used for the build
+     */ 
+    public static String getBuildCommit() {
+        return "$BUILD_SHA";
+    }
+    
+    /**
+     * @return The timestamp when the build was started
+     */ 
+    public static ZonedDateTime getBuildTime() {
+        return ZonedDateTime.parse("$BUILD_TIME");
     }
 }
