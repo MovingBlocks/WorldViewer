@@ -33,7 +33,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.math.Region3i;
 import org.terasology.math.TeraMath;
+import org.terasology.math.geom.BaseVector2i;
 import org.terasology.math.geom.ImmutableVector2i;
 import org.terasology.math.geom.Rect2i;
 import org.terasology.math.geom.Vector2i;
@@ -252,13 +255,13 @@ public final class Viewer extends JComponent {
         Graphics2D g = (Graphics2D) g1;
         AffineTransform orgTrans = g.getTransform();
 
-        Rect2i visWorld = getVisibleArea(camera, getWidth(), getHeight());
-        Rect2i visChunks = toChunkArea(visWorld);
+        Rect2i visWorld = camera.getVisibleArea(getWidth(), getHeight());
+        Rect2i visTiles = worldToTileArea(visWorld);
 
         g.scale(camera.getZoom(), camera.getZoom());
         g.translate(-visWorld.minX(), -visWorld.minY());
 
-        drawTiles(g, visChunks);
+        drawTiles(g, visTiles);
 
         // draw world overlays
         for (Overlay ovly : worldOverlays) {
@@ -295,21 +298,7 @@ public final class Viewer extends JComponent {
         threadPool.shutdownNow();
     }
 
-    // TODO: consider moving this to Camera (default method?)
-    private static Rect2i getVisibleArea(Camera camera, int width, int height) {
-        int cx = TeraMath.floorToInt(camera.getPos().getX());
-        int cy = TeraMath.floorToInt(camera.getPos().getY());
-
-        // Compensate rounding errors by adding 2px to the visible window size
-        int w = (int) (width / camera.getZoom()) + 2;
-        int h = (int) (height / camera.getZoom()) + 2;
-        int minX = cx - w / 2;
-        int minY = cy - h / 2;
-        Rect2i visWorld = Rect2i.createFromMinAndSize(minX, minY, w, h);
-        return visWorld;
-    }
-
-    private static Rect2i toChunkArea(Rect2i area) {
+    private static Rect2i worldToTileArea(Rect2i area) {
         int chunkMinX = IntMath.divide(area.minX(), TILE_SIZE_X, RoundingMode.FLOOR);
         int chunkMinZ = IntMath.divide(area.minY(), TILE_SIZE_Y, RoundingMode.FLOOR);
 
@@ -404,16 +393,31 @@ public final class Viewer extends JComponent {
             task.cancel(true);
         }
 
-        List<ImmutableVector2i> usedTiles = new ArrayList<>(imageCache.asMap().keySet());
+        Set<ImmutableVector2i> cachedTiles = imageCache.asMap().keySet();
+        Set<ImmutableVector2i> oldTiles = new HashSet<>(cachedTiles);
+
+        Rect2i visWorld = camera.getVisibleArea(getWidth(), getHeight());
+        Rect2i visTileArea = worldToTileArea(visWorld);
+
+        List<ImmutableVector2i> visTiles = new ArrayList<>(visTileArea.area());
+
+        // the iterator vector cannot be used for permanent storage - it must be copied
+        for (BaseVector2i pos : visTileArea.contents()) {
+            visTiles.add(new ImmutableVector2i(pos));
+        }
 
         // shuffle the order of new tasks
         // If the queue is cleared repeatedly before all tasks are run
-        // some tiles will never be updated otherwise
-        Collections.shuffle(usedTiles);
+        // some tiles will updated only in the last iteration
+        // Plus, it looks nicer :-)
+        Collections.shuffle(visTiles);
 
-        for (ImmutableVector2i pos : usedTiles) {
-            enqueueTile(pos);
+        for (ImmutableVector2i tile : visTiles) {
+            oldTiles.remove(tile);
+            enqueueTile(tile);
         }
+
+        imageCache.invalidateAll(oldTiles);
     }
 
     private void enqueueTile(ImmutableVector2i pos) {

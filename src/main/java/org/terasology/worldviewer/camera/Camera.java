@@ -18,7 +18,9 @@ package org.terasology.worldviewer.camera;
 
 import java.util.Collection;
 
+import org.terasology.math.TeraMath;
 import org.terasology.math.geom.ImmutableVector2f;
+import org.terasology.math.geom.Rect2i;
 import org.terasology.math.geom.Vector2f;
 
 import com.google.common.collect.Lists;
@@ -67,4 +69,21 @@ public class Camera {
         listeners.remove(listener);
     }
 
+    /**
+     * @param width the width of the window
+     * @param height the height of the window
+     * @return the window that is currently visible by the camera
+     */
+    public Rect2i getVisibleArea(int width, int height) {
+        int cx = TeraMath.floorToInt(pos.getX());
+        int cy = TeraMath.floorToInt(pos.getY());
+
+        // Compensate rounding errors by adding 2px to the visible window size
+        int w = (int) (width / getZoom()) + 2;
+        int h = (int) (height / getZoom()) + 2;
+        int minX = cx - w / 2;
+        int minY = cy - h / 2;
+        Rect2i visWorld = Rect2i.createFromMinAndSize(minX, minY, w, h);
+        return visWorld;
+    }
 }
