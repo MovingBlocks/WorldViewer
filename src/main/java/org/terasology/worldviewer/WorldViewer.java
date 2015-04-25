@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +50,6 @@ import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.env.TinyEnvironment;
-
 import org.terasology.worldviewer.version.VersionInfo;
 
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
@@ -120,10 +121,14 @@ public final class WorldViewer {
     private static void logStatus() {
       logger.info("Starting ...");
 
+      DateTimeFormatter dateFormat = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
       logger.debug("Java: {} {} {}", System.getProperty("java.version"), System.getProperty("java.vendor"), System.getProperty("java.home"));
       logger.debug("Java VM: {} {} {}", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
       logger.debug("OS: {} {} {}", System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
       logger.debug("Max. Memory: {} MB", Runtime.getRuntime().maxMemory() / (1024 * 1024));
+      logger.debug("Version: {}", VersionInfo.getVersion());
+      logger.debug("Built: {}", VersionInfo.getBuildTime().format(dateFormat));
+      logger.debug("Commit: {}", VersionInfo.getBuildCommit());
 
       String classpath = System.getProperty("java.class.path");
       String[] cpEntries = classpath.split(File.pathSeparator);
