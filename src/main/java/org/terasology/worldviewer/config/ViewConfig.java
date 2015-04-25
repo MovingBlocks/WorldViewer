@@ -16,7 +16,7 @@
 
 package org.terasology.worldviewer.config;
 
-import org.terasology.math.Vector2i;
+import org.terasology.math.geom.Vector2i;
 
 /**
  * Stores view-related config params.

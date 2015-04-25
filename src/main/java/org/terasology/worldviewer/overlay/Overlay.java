@@ -18,7 +18,7 @@ package org.terasology.worldviewer.overlay;
 
 import java.awt.Graphics2D;
 
-import org.terasology.math.Rect2i;
+import org.terasology.math.geom.Rect2i;
 
 /**
  * TODO Type description

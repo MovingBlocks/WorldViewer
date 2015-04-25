@@ -21,7 +21,7 @@ import java.awt.Graphics2D;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.terasology.math.Rect2i;
+import org.terasology.math.geom.Rect2i;
 import org.terasology.rendering.nui.Color;
 import org.terasology.worldviewer.render.RandomObjectColors;
 

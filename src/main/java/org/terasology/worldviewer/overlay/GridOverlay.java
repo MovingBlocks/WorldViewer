@@ -21,7 +21,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.math.RoundingMode;
 
-import org.terasology.math.Rect2i;
+import org.terasology.math.geom.Rect2i;
 
 import com.google.common.math.IntMath;
 

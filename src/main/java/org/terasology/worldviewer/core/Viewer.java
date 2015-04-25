@@ -49,10 +49,11 @@ import javax.swing.JComponent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.math.Rect2i;
 import org.terasology.math.Region3i;
 import org.terasology.math.TeraMath;
-import org.terasology.math.Vector2i;
+import org.terasology.math.geom.ImmutableVector2i;
+import org.terasology.math.geom.Rect2i;
+import org.terasology.math.geom.Vector2i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.rendering.nui.HorizontalAlign;
 import org.terasology.world.chunks.ChunkConstants;
@@ -102,8 +103,8 @@ public final class Viewer extends JComponent {
     private final Collection<Future<BufferedImage>> taskList;
     private final ThreadPoolExecutor threadPool;
 
-    private final LoadingCache<Vector2i, Region> regionCache;
-    private final LoadingCache<Vector2i, BufferedImage> imageCache;
+    private final LoadingCache<ImmutableVector2i, Region> regionCache;
+    private final LoadingCache<ImmutableVector2i, BufferedImage> imageCache;
 
     private final Camera camera = new Camera();
     private final WorldGenerator worldGen;
@@ -136,19 +137,19 @@ public final class Viewer extends JComponent {
         threadPool = new ThreadPoolExecutor(minThreads, maxThreads, 60, TimeUnit.SECONDS, queue, threadFactory);
         taskList = Sets.newSetFromMap(new ConcurrentHashMap<>(cacheSize)); // estimated size
 
-        CacheLoader<Vector2i, Region> regionLoader = new CacheLoader<Vector2i, Region>() {
+        CacheLoader<ImmutableVector2i, Region> regionLoader = new CacheLoader<ImmutableVector2i, Region>() {
 
             @Override
-            public Region load(Vector2i tilePos) {
+            public Region load(ImmutableVector2i tilePos) {
                 Region region = createRegion(tilePos);
                 return region;
             }
         };
 
-        CacheLoader<Vector2i, BufferedImage> imageLoader = new CacheLoader<Vector2i, BufferedImage>() {
+        CacheLoader<ImmutableVector2i, BufferedImage> imageLoader = new CacheLoader<ImmutableVector2i, BufferedImage>() {
 
             @Override
-            public BufferedImage load(Vector2i pos) throws Exception {
+            public BufferedImage load(ImmutableVector2i pos) throws Exception {
                 enqueueTile(pos);
                 return dummyImg;
             }
@@ -333,7 +334,7 @@ public final class Viewer extends JComponent {
 
         for (int z = visChunks.minY(); z < visChunks.maxY(); z++) {
             for (int x = visChunks.minX(); x < visChunks.maxX(); x++) {
-                Vector2i pos = new Vector2i(x, z);
+                ImmutableVector2i pos = new ImmutableVector2i(x, z);
                 BufferedImage image = imageCache.getUnchecked(pos);
                 g.drawImage(image, x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
             }
@@ -352,7 +353,7 @@ public final class Viewer extends JComponent {
             int tileX = IntMath.divide(wx, TILE_SIZE_X, RoundingMode.FLOOR);
             int tileY = IntMath.divide(wy, TILE_SIZE_Y, RoundingMode.FLOOR);
 
-            Vector2i tilePos = new Vector2i(tileX, tileY);
+            ImmutableVector2i tilePos = new ImmutableVector2i(tileX, tileY);
             Region region = regionCache.getUnchecked(tilePos);
 
             StringBuffer sb = new StringBuffer();
@@ -374,12 +375,12 @@ public final class Viewer extends JComponent {
         }
     }
 
-    private Region createRegion(Vector2i chunkPos) {
+    private Region createRegion(ImmutableVector2i chunkPos) {
 
         int vertChunks = 4; // 4 chunks high (relevant for trees, etc)
 
-        int minX = chunkPos.x * TILE_SIZE_X;
-        int minZ = chunkPos.y * TILE_SIZE_Y;
+        int minX = chunkPos.getX() * TILE_SIZE_X;
+        int minZ = chunkPos.getY() * TILE_SIZE_Y;
         int height = vertChunks * ChunkConstants.SIZE_Y;
         Region3i area3d = Region3i.createFromMinAndSize(new Vector3i(minX, 0, minZ), new Vector3i(TILE_SIZE_X, height, TILE_SIZE_Y));
         World world = worldGen.getWorld();
@@ -403,19 +404,19 @@ public final class Viewer extends JComponent {
             task.cancel(true);
         }
 
-        List<Vector2i> usedTiles = new ArrayList<>(imageCache.asMap().keySet());
+        List<ImmutableVector2i> usedTiles = new ArrayList<>(imageCache.asMap().keySet());
 
         // shuffle the order of new tasks
         // If the queue is cleared repeatedly before all tasks are run
         // some tiles will never be updated otherwise
         Collections.shuffle(usedTiles);
 
-        for (Vector2i pos : usedTiles) {
+        for (ImmutableVector2i pos : usedTiles) {
             enqueueTile(pos);
         }
     }
 
-    private void enqueueTile(Vector2i pos) {
+    private void enqueueTile(ImmutableVector2i pos) {
         RunnableFuture<BufferedImage> task = new FutureTask<BufferedImage>(new UpdateImageCache(pos)) {
 
             @Override
@@ -463,9 +464,9 @@ public final class Viewer extends JComponent {
 
     private class UpdateImageCache implements Callable<BufferedImage> {
 
-        private final Vector2i pos;
+        private final ImmutableVector2i pos;
 
-        public UpdateImageCache(Vector2i pos) {
+        public UpdateImageCache(ImmutableVector2i pos) {
             this.pos = pos;
         }
 

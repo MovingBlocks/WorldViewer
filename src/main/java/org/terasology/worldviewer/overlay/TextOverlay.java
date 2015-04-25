@@ -24,7 +24,7 @@ import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.util.function.Supplier;
 
-import org.terasology.math.Rect2i;
+import org.terasology.math.geom.Rect2i;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.rendering.nui.HorizontalAlign;
 import org.terasology.rendering.nui.VerticalAlign;
