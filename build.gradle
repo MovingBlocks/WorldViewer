@@ -29,7 +29,7 @@ repositories {
 }
 
 def getGitDesc() {
-    def cmd = 'git describe --long --match *.*'
+    def cmd = 'git describe --long --match *.*.0'
 
     try {
         def proc = cmd.execute()
@@ -38,15 +38,15 @@ def getGitDesc() {
         return desc;
     } catch (IOException e) {
         logger.warn("Could not run '$cmd'")
-        return "0.0-0-0000000"
+        return "0.0.0-0-0000000"
     }
 }
 
 def getVersionInfo() {
     def desc = getGitDesc()
-    def matcher = desc =~ "(\\d+)\\.(\\d+)-(\\d+)-g([0-9A-Za-z]*)"
+    def matcher = desc =~ "(\\d+)\\.(\\d+)\\.0-(\\d+)-g([0-9A-Za-z]*)"
     if (!matcher || !matcher.matches()) {
-       logger.warn("Version '$desc' does not match format: 'd.d-d-gHHHHHHH'")
+       logger.warn("Version '$desc' does not match format: 'd.d.0-d-gHHHHHHH'")
        return ["0", "0", "0", "0000000"]
     } else {
         def major = matcher.group(1)
