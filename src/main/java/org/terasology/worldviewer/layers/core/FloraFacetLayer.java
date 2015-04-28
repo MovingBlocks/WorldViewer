@@ -18,6 +18,7 @@ package org.terasology.worldviewer.layers.core;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBufferInt;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -29,6 +30,9 @@ import org.terasology.math.geom.Vector3i;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
+import org.terasology.worldviewer.color.Blender;
+import org.terasology.worldviewer.color.Blenders;
+import org.terasology.worldviewer.color.ColorModels;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 
 /**
@@ -51,7 +55,8 @@ public class FloraFacetLayer extends AbstractFacetLayer {
 
         Graphics2D g = img.createGraphics();
         int width = img.getWidth();
-
+        ColorModel colorModel = img.getColorModel();
+        Blender blender = Blenders.forColorModel(ColorModels.RGBA, colorModel);
         DataBufferInt dataBuffer = (DataBufferInt) img.getRaster().getDataBuffer();
 
         for (Entry<Vector3i, FloraType> entry : treeFacet.getRelativeEntries().entrySet()) {
@@ -63,20 +68,7 @@ public class FloraFacetLayer extends AbstractFacetLayer {
             int src = color.rgba();
             int dst = dataBuffer.getElem(wz * width + wx);
 
-            int sr = (src >> 24) & 0xFF;
-            int sg = (src >> 16) & 0xFF;
-            int sb = (src >> 8) & 0xFF;
-            int a = src & 0xFF;
-
-            int dr = (dst >> 16) & 0xFF;
-            int dg = (dst >> 8) & 0xFF;
-            int db = dst & 0xFF;
-
-            int mb = (a * sb + (0xFF - a) * db) / 0xFF;
-            int mg = (a * sg + (0xFF - a) * dg) / 0xFF;
-            int mr = (a * sr + (0xFF - a) * dr) / 0xFF;
-
-            int mix = mb | (mg << 8) | (mr << 16);
+            int mix = blender.blend(src, dst);
             dataBuffer.setElem(wz * width + wx, mix);
         }
 

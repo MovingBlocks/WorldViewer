@@ -17,18 +17,17 @@
 package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBufferInt;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
-
-import com.google.common.base.Stopwatch;
+import org.terasology.worldviewer.color.Blender;
+import org.terasology.worldviewer.color.Blenders;
+import org.terasology.worldviewer.color.ColorModels;
 
 /**
  * Provides info about an {@link ObjectFacet2D}.
@@ -36,8 +35,6 @@ import com.google.common.base.Stopwatch;
  * @author Martin Steiger
  */
 public class NominalFacetLayer<E> extends AbstractFacetLayer {
-
-    private static final Logger logger = LoggerFactory.getLogger(NominalFacetLayer.class);
 
     private final Function<? super E, Color> colorMap;
     private final Class<? extends ObjectFacet2D<E>> facetClass;
@@ -51,30 +48,34 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
     public void render(BufferedImage img, Region region) {
         ObjectFacet2D<E> facet = region.getFacet(facetClass);
 
-        Stopwatch sw = Stopwatch.createStarted();
-
         int width = img.getWidth();
         int height = img.getHeight();
 
+        ColorModel colorModel = img.getColorModel();
+        Blender blender = Blenders.forColorModel(ColorModels.RGBA, colorModel);
         DataBufferInt dataBuffer = (DataBufferInt) img.getRaster().getDataBuffer();
 
         for (int z = 0; z < height; z++) {
             for (int x = 0; x < width; x++) {
                 Color src = getColor(facet, x, z);
-                int mix = src.rgba() >> 8;
-                dataBuffer.setElem(z * width + x, mix);
+                int blend = blender.get(src.rgba());
+                dataBuffer.setElem(z * width + x, blend);
             }
-        }
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("Rendered regions in {}ms.", sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
-    private Color getColor(ObjectFacet2D<E> facet, int x, int z) {
+    /**
+     * Computes the color of the facet at a given world coordinate.
+     * @param facet the underlying facet
+     * @param x the world x coordinate
+     * @param z the world z coordinate
+     * @return the color at the given world coords. Never <code>null</code>.
+     */
+    protected Color getColor(ObjectFacet2D<E> facet, int x, int z) {
         E val = facet.get(x, z);
-        if (val == null)
-            return Color.MAGENTA;
+        if (val == null) {
+            return MISSING;
+        }
 
         return colorMap.apply(val);
     }

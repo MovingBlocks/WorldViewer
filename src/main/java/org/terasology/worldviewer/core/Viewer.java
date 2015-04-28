@@ -28,6 +28,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.DirectColorModel;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,6 +72,7 @@ import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.camera.CameraKeyController;
 import org.terasology.worldviewer.camera.CameraMouseController;
 import org.terasology.worldviewer.camera.RepaintingCameraListener;
+import org.terasology.worldviewer.color.ColorModels;
 import org.terasology.worldviewer.config.ViewConfig;
 import org.terasology.worldviewer.gui.CursorPositionListener;
 import org.terasology.worldviewer.gui.RepaintingMouseListener;
@@ -77,6 +82,7 @@ import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 import org.terasology.worldviewer.overlay.TextOverlay;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -456,15 +462,33 @@ public final class Viewer extends JComponent {
         int width = extent.x;
         int height = extent.z;
 
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = image.createGraphics();
+        DirectColorModel colorModel = ColorModels.ARGB;
 
-        for (FacetLayer layer : facetLayers) {
-            if (layer.isVisible()) {
-                layer.render(image, region);
+        int[] masks = colorModel.getMasks();
+        DataBufferInt imageBuffer = new DataBufferInt(width * height);
+        WritableRaster raster = Raster.createPackedRaster(imageBuffer, width, height, width, masks, null);
+        BufferedImage image = new BufferedImage(colorModel, raster, false, null);
+
+        Graphics2D g = image.createGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, width, height);
+
+        try {
+            Stopwatch sw = Stopwatch.createStarted();
+
+            for (FacetLayer layer : facetLayers) {
+                if (layer.isVisible()) {
+                    layer.render(image, region);
+                }
             }
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("Rendered region in {}ms.", sw.elapsed(TimeUnit.MILLISECONDS));
+            }
+        } finally {
+            g.dispose();
         }
-        g.dispose();
+
         return image;
     }
 

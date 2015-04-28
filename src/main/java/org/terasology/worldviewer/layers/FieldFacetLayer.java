@@ -17,28 +17,28 @@
 package org.terasology.worldviewer.layers;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBufferInt;
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.math.TeraMath;
 import org.terasology.rendering.nui.Color;
 import org.terasology.rendering.nui.properties.Range;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
+import org.terasology.worldviewer.color.Blender;
+import org.terasology.worldviewer.color.Blenders;
+import org.terasology.worldviewer.color.ColorModels;
 import org.terasology.worldviewer.config.FacetConfig;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.math.DoubleMath;
 
 /**
- * TODO Type description
+ * Provides info about an {@link FieldFacet2D}.
  * @author Martin Steiger
  */
 public class FieldFacetLayer extends AbstractFacetLayer {
@@ -47,10 +47,6 @@ public class FieldFacetLayer extends AbstractFacetLayer {
             .range(0, 256)
             .mapToObj(i -> new Color(i, i, i))
             .collect(Collectors.toList());
-
-    private static final Color MISSING = Color.MAGENTA;
-
-    private static final Logger logger = LoggerFactory.getLogger(FieldFacetLayer.class);
 
     private Config config = new Config();
 
@@ -79,32 +75,32 @@ public class FieldFacetLayer extends AbstractFacetLayer {
     public void render(BufferedImage img, Region region) {
         FieldFacet2D facet = region.getFacet(config.clazz);
 
-        Stopwatch sw = Stopwatch.createStarted();
-
         int width = img.getWidth();
         int height = img.getHeight();
+        ColorModel colorModel = img.getColorModel();
+        Blender blender = Blenders.forColorModel(ColorModels.RGBA, colorModel);
 
         DataBufferInt dataBuffer = (DataBufferInt) img.getRaster().getDataBuffer();
 
         for (int z = 0; z < height; z++) {
             for (int x = 0; x < width; x++) {
                 Color col = getColor(facet, x, z);
-                int src = col.rgba() >> 8; // we ignore alpha  | (col.a() << 24);
+                int src = col.rgba();
                 int dst = dataBuffer.getElem(z * width + x);
-                int mix = 0xFF000000;
-                mix |= Math.min(0x0000FF, (dst & 0x0000FF) + (src & 0x0000FF));
-                mix |= Math.min(0x00FF00, (dst & 0x00FF00) + (src & 0x00FF00));
-                mix |= Math.min(0xFF0000, (dst & 0xFF0000) + (src & 0xFF0000));
+                int mix = blender.add(src, dst);
                 dataBuffer.setElem(z * width + x, mix);
             }
         }
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("Rendered regions in {}ms.", sw.elapsed(TimeUnit.MILLISECONDS));
-        }
     }
 
-    private Color getColor(FieldFacet2D facet, int x, int z) {
+    /**
+     * Computes the color of the facet at a given world coordinate.
+     * @param facet the underlying facet
+     * @param x the world x coordinate
+     * @param z the world z coordinate
+     * @return the color at the given world coords. Never <code>null</code>.
+     */
+    protected Color getColor(FieldFacet2D facet, int x, int z) {
         double value = facet.get(x, z);
         if (Double.isFinite(value)) {
             int round = DoubleMath.roundToInt(config.offset + config.scale * value, RoundingMode.HALF_UP);
