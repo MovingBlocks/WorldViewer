@@ -284,6 +284,8 @@ public final class Viewer extends JComponent {
     }
 
     public void invalidateWorld() {
+        worldGen.initialize();
+
         regionCache.invalidateAll();
         updateImageCache();
      }
