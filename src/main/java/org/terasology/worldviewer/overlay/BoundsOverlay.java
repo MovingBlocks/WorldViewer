@@ -21,6 +21,7 @@ import java.awt.Graphics2D;
 import java.util.Collection;
 import java.util.function.Function;
 
+import org.terasology.math.geom.ImmutableVector2i;
 import org.terasology.math.geom.Rect2i;
 import org.terasology.rendering.nui.Color;
 import org.terasology.worldviewer.render.RandomObjectColors;
@@ -29,7 +30,7 @@ import org.terasology.worldviewer.render.RandomObjectColors;
  * Renders a collection of colored rectangles
  * @author Martin Steiger
  */
-public class BoundsOverlay extends AbstractOverlay {
+public class BoundsOverlay extends AbstractOverlay implements WorldOverlay {
 
     private Function<Rect2i, Collection<Rect2i>> func;
     private Function<Object, Color> colorFunc;
@@ -40,7 +41,7 @@ public class BoundsOverlay extends AbstractOverlay {
     }
 
     @Override
-    public void render(Graphics2D g, Rect2i area) {
+    public void render(Graphics2D g, Rect2i area, ImmutableVector2i cursor) {
 
         int sw = 2;
         g.setStroke(new BasicStroke(sw));

@@ -21,6 +21,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.math.RoundingMode;
 
+import org.terasology.math.geom.ImmutableVector2i;
 import org.terasology.math.geom.Rect2i;
 
 import com.google.common.math.IntMath;
@@ -29,7 +30,7 @@ import com.google.common.math.IntMath;
  * Renders a grid that is aligned along tile borders
  * @author Martin Steiger
  */
-public class GridOverlay extends AbstractOverlay {
+public class GridOverlay extends AbstractOverlay implements WorldOverlay {
 
     private Color originGridColor = new Color(192, 192, 192, 224);
     private Color majorGridColor = new Color(128, 128, 128, 160);
@@ -46,7 +47,7 @@ public class GridOverlay extends AbstractOverlay {
     }
 
     @Override
-    public void render(Graphics2D g, Rect2i area) {
+    public void render(Graphics2D g, Rect2i area, ImmutableVector2i cursor) {
         int tileMinX = IntMath.divide(area.minX(), tileSizeX, RoundingMode.FLOOR);
         int tileMinZ = IntMath.divide(area.minY(), tileSizeY, RoundingMode.FLOOR);
 

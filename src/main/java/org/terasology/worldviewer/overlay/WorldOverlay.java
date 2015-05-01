@@ -16,20 +16,9 @@
 
 package org.terasology.worldviewer.overlay;
 
-import java.awt.Graphics2D;
-
-import org.terasology.math.geom.ImmutableVector2i;
-import org.terasology.math.geom.Rect2i;
-
 /**
- * Overlays are rendered live on top of the world.
- * @author Martin Steiger
+ * Indicates that the overlay uses world coordinates.
  */
-public interface Overlay {
+public interface WorldOverlay extends Overlay {
 
-    void render(Graphics2D g, Rect2i area, ImmutableVector2i cursor);
-
-    void setVisible(boolean yesno);
-
-    boolean isVisible();
 }

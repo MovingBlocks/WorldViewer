@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 MovingBlocks
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"){ }
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,20 +16,9 @@
 
 package org.terasology.worldviewer.overlay;
 
-import java.awt.Graphics2D;
-
-import org.terasology.math.geom.ImmutableVector2i;
-import org.terasology.math.geom.Rect2i;
-
 /**
- * Overlays are rendered live on top of the world.
- * @author Martin Steiger
+ * Indicates that the overlay lives in screen space.
  */
-public interface Overlay {
+public interface ScreenOverlay extends Overlay {
 
-    void render(Graphics2D g, Rect2i area, ImmutableVector2i cursor);
-
-    void setVisible(boolean yesno);
-
-    boolean isVisible();
 }

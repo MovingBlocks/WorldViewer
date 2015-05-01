@@ -24,6 +24,7 @@ import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.util.function.Supplier;
 
+import org.terasology.math.geom.ImmutableVector2i;
 import org.terasology.math.geom.Rect2i;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.rendering.nui.HorizontalAlign;
@@ -33,7 +34,7 @@ import org.terasology.rendering.nui.VerticalAlign;
  * Renders a grid that is aligned along tile borders
  * @author Martin Steiger
  */
-public class TextOverlay extends AbstractOverlay {
+public class TextOverlay extends AbstractOverlay implements ScreenOverlay {
 
     private final Supplier<String> textSupp;
 
@@ -103,7 +104,7 @@ public class TextOverlay extends AbstractOverlay {
     }
 
     @Override
-    public void render(Graphics2D g, Rect2i area) {
+    public void render(Graphics2D g, Rect2i area, ImmutableVector2i cursor) {
 
         Rect2i mgArea = Rect2i.createFromMinAndMax(
                 area.minX() + mgLeft,

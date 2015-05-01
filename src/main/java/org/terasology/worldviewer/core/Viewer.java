@@ -80,7 +80,9 @@ import org.terasology.worldviewer.gui.Tooltip;
 import org.terasology.worldviewer.layers.FacetLayer;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
+import org.terasology.worldviewer.overlay.ScreenOverlay;
 import org.terasology.worldviewer.overlay.TextOverlay;
+import org.terasology.worldviewer.overlay.WorldOverlay;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
@@ -122,8 +124,8 @@ public final class Viewer extends JComponent {
 
     private final ViewConfig viewConfig;
 
-    private final Deque<Overlay> worldOverlays = Lists.newLinkedList();
-    private final Deque<Overlay> screenOverlays = Lists.newLinkedList();
+    private final Deque<WorldOverlay> worldOverlays = Lists.newLinkedList();
+    private final Deque<ScreenOverlay> screenOverlays = Lists.newLinkedList();
 
     private final List<FacetLayer> facetLayers;
 
@@ -269,10 +271,22 @@ public final class Viewer extends JComponent {
 
         drawTiles(g, visTiles);
 
+        Point curPos = curPosListener.getCursorPosition();
+
+        ImmutableVector2i screenCursor = null;
+        ImmutableVector2i worldCursor = null;
+        if (curPos != null) {
+            screenCursor = new ImmutableVector2i(curPos.x, curPos.y);
+
+            int wx = visWorld.minX() + TeraMath.floorToInt(curPos.x / camera.getZoom());
+            int wy = visWorld.minY() + TeraMath.floorToInt(curPos.y / camera.getZoom());
+            worldCursor = new ImmutableVector2i(wx, wy);
+        }
+
         // draw world overlays
         for (Overlay ovly : worldOverlays) {
             if (ovly.isVisible()) {
-                ovly.render(g, visWorld);
+                ovly.render(g, visWorld, worldCursor);
             }
         }
 
@@ -282,7 +296,7 @@ public final class Viewer extends JComponent {
         Rect2i windowRect = Rect2i.createFromMinAndSize(0, 0, getWidth(), getHeight());
         for (Overlay ovly : screenOverlays) {
             if (ovly.isVisible()) {
-                ovly.render(g, windowRect);
+                ovly.render(g, windowRect, screenCursor);
             }
         }
 
@@ -340,6 +354,16 @@ public final class Viewer extends JComponent {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     }
 
+    private Region getRegion(BaseVector2i pos) {
+
+        int tileX = IntMath.divide(pos.getX(), TILE_SIZE_X, RoundingMode.FLOOR);
+        int tileY = IntMath.divide(pos.getY(), TILE_SIZE_Y, RoundingMode.FLOOR);
+
+        ImmutableVector2i tilePos = new ImmutableVector2i(tileX, tileY);
+        Region region = regionCache.getUnchecked(tilePos);
+        return region;
+    }
+
     private void drawTooltip(Graphics2D g, Rect2i area) {
         Point curPos = curPosListener.getCursorPosition();
 
@@ -347,11 +371,7 @@ public final class Viewer extends JComponent {
             int wx = area.minX() + TeraMath.floorToInt(curPos.x / camera.getZoom());
             int wy = area.minY() + TeraMath.floorToInt(curPos.y / camera.getZoom());
 
-            int tileX = IntMath.divide(wx, TILE_SIZE_X, RoundingMode.FLOOR);
-            int tileY = IntMath.divide(wy, TILE_SIZE_Y, RoundingMode.FLOOR);
-
-            ImmutableVector2i tilePos = new ImmutableVector2i(tileX, tileY);
-            Region region = regionCache.getUnchecked(tilePos);
+            Region region = getRegion(new Vector2i(wx, wy));
 
             StringBuffer sb = new StringBuffer();
             for (FacetLayer layer : facetLayers) {
