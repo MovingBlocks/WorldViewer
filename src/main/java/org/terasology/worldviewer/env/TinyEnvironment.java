@@ -18,20 +18,10 @@ package org.terasology.worldviewer.env;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -43,18 +33,10 @@ import org.terasology.asset.AssetManagerImpl;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.config.Config;
-import org.terasology.engine.TerasologyConstants;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
-import org.terasology.module.ClasspathModule;
-import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;
 import org.terasology.module.ModuleEnvironment;
-import org.terasology.module.ModuleLoader;
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataReader;
-import org.terasology.module.TableModuleRegistry;
-import org.terasology.module.sandbox.PermissionProviderFactory;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
@@ -64,8 +46,6 @@ import org.terasology.world.block.BlockUri;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.world.generator.plugin.WorldGeneratorPlugin;
 import org.terasology.world.generator.plugin.WorldGeneratorPluginLibrary;
-
-import com.google.common.collect.Lists;
 
 /**
  * Setup a tiny Terasology environment

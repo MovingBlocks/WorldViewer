@@ -171,7 +171,6 @@ public class MainFrame extends JFrame {
         setMinimumSize(new Dimension(850, 530));
     }
 
-    @SuppressWarnings("unchecked")
     private static Collection<FacetLayer> getLayers(Class<? extends WorldFacet> facetClass) {
 
         List<FacetLayer> result = Lists.newArrayList();

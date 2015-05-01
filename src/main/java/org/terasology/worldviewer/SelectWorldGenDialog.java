@@ -186,7 +186,7 @@ public class SelectWorldGenDialog extends JDialog {
         int idx = wgSelectCombo.getSelectedIndex();
         if (idx >= 0) {
             WorldGeneratorInfo info = wgSelectCombo.getItemAt(idx);
-            wgConfig.setWorldGenClass(info.getUri());
+            wgConfig.setWorldGen(info.getUri());
         }
 
         wgConfig.setWorldSeed(seedText.getText());

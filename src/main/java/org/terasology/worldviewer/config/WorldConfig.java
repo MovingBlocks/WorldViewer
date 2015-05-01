@@ -33,7 +33,7 @@ public class WorldConfig {
         return worldGen;
     }
 
-    public void setWorldGenClass(SimpleUri worldGen) {
+    public void setWorldGen(SimpleUri worldGen) {
         this.worldGen = worldGen;
     }
 

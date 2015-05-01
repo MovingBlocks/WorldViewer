@@ -20,7 +20,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -38,9 +37,6 @@ import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.picker.CirclePicker;
 import org.terasology.worldviewer.picker.CirclePickerAll;
-import org.terasology.worldviewer.picker.CirclePickerClosest;
-
-import com.google.common.collect.Lists;
 
 /**
  * Renders the tree coverage based on {@link TreeFacet}
