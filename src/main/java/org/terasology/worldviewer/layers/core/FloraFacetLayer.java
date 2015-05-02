@@ -29,25 +29,21 @@ import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.color.Blender;
 import org.terasology.worldviewer.color.Blenders;
 import org.terasology.worldviewer.color.ColorModels;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * Renders the flora coverage based on {@link FloraFacet}.
  * @author Martin Steiger
  */
+@Renders(FloraFacet.class)
 public class FloraFacetLayer extends AbstractFacetLayer {
 
     private Function<FloraType, Color> colorFunc = new CoreFloraColors();
     private Function<FloraType, String> labelFunc = Object::toString;
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return FloraFacet.class;
-    }
 
     @Override
     public void render(BufferedImage img, Region region) {

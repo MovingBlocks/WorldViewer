@@ -20,7 +20,6 @@ import java.awt.image.BufferedImage;
 
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.core.Observer;
 
@@ -34,12 +33,6 @@ public interface FacetLayer  {
      * The color for missing/wrong values.
      */
     Color MISSING = Color.MAGENTA;
-
-
-    /**
-     * @return the target facet class
-     */
-    Class<? extends WorldFacet> getFacetClass();
 
     /**
      * Renders the content of a facet to an image

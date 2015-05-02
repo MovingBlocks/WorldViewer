@@ -18,11 +18,13 @@ package org.terasology.worldviewer.layers.engine;
 
 import org.terasology.world.generation.facets.SurfaceTemperatureFacet;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * Provides information about the surface temperature.
  * @author Martin Steiger
  */
+@Renders(SurfaceTemperatureFacet.class)
 public class SurfaceTemperatureFacetLayer extends FieldFacetLayer {
 
     public SurfaceTemperatureFacetLayer(Config config) {

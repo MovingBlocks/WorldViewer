@@ -19,11 +19,13 @@ package org.terasology.worldviewer.layers.core;
 import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.worldviewer.layers.NominalFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * Maps {@link CoreBiome} facet to corresponding colors.
  * @author Martin Steiger
  */
+@Renders(BiomeFacet.class)
 public class CoreBiomeFacetLayer extends NominalFacetLayer<CoreBiome> {
 
     public CoreBiomeFacetLayer() {

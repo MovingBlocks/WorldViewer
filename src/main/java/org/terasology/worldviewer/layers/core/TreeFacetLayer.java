@@ -33,8 +33,8 @@ import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector2f;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 import org.terasology.worldviewer.picker.CirclePicker;
 import org.terasology.worldviewer.picker.CirclePickerAll;
 
@@ -43,16 +43,12 @@ import org.terasology.worldviewer.picker.CirclePickerAll;
  * and provides aggregating tool tips.
  * @author Martin Steiger
  */
+@Renders(TreeFacet.class)
 public class TreeFacetLayer extends AbstractFacetLayer {
 
     private Function<TreeGenerator, Integer> radiusFunc = ignore -> 5;
     private Function<TreeGenerator, Color> colorFunc = ignore -> Color.GREEN.darker();
     private Function<TreeGenerator, String> labelFunc = ignore -> "Tree";
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return TreeFacet.class;
-    }
 
     @Override
     public void render(BufferedImage img, Region region) {

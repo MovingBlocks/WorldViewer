@@ -28,7 +28,6 @@ import org.terasology.math.TeraMath;
 import org.terasology.rendering.nui.Color;
 import org.terasology.rendering.nui.properties.Range;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.FieldFacet2D;
 import org.terasology.worldviewer.color.Blender;
 import org.terasology.worldviewer.color.Blenders;
@@ -41,7 +40,7 @@ import com.google.common.math.DoubleMath;
  * Provides info about an {@link FieldFacet2D}.
  * @author Martin Steiger
  */
-public class FieldFacetLayer extends AbstractFacetLayer {
+public abstract class FieldFacetLayer extends AbstractFacetLayer {
 
     private static final List<Color> GRAYS = IntStream
             .range(0, 256)
@@ -109,11 +108,6 @@ public class FieldFacetLayer extends AbstractFacetLayer {
         } else {
             return MISSING;
         }
-    }
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return config.clazz;
     }
 
     public double getOffset() {

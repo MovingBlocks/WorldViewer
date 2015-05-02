@@ -22,18 +22,14 @@ import java.awt.image.BufferedImage;
 
 import org.terasology.core.world.generator.facets.World2dPreviewFacet;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * @author Martin Steiger
  */
+@Renders(World2dPreviewFacet.class)
 public class PreviewFacetLayer extends AbstractFacetLayer {
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return World2dPreviewFacet.class;
-    }
 
     @Override
     public void render(BufferedImage img, Region region) {

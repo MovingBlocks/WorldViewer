@@ -18,11 +18,13 @@ package org.terasology.worldviewer.layers.engine;
 
 import org.terasology.world.generation.facets.SurfaceHumidityFacet;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * Provides information about the surface humidity.
  * @author Martin Steiger
  */
+@Renders(SurfaceHumidityFacet.class)
 public class SurfaceHumidityFacetLayer extends FieldFacetLayer {
 
     public SurfaceHumidityFacetLayer(Config config) {

@@ -23,7 +23,6 @@ import java.util.function.Function;
 
 import org.terasology.rendering.nui.Color;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generation.facets.base.ObjectFacet2D;
 import org.terasology.worldviewer.color.Blender;
 import org.terasology.worldviewer.color.Blenders;
@@ -34,7 +33,7 @@ import org.terasology.worldviewer.color.ColorModels;
  * @param <E> the object type
  * @author Martin Steiger
  */
-public class NominalFacetLayer<E> extends AbstractFacetLayer {
+public abstract class NominalFacetLayer<E> extends AbstractFacetLayer {
 
     private final Function<? super E, Color> colorMap;
     private final Class<? extends ObjectFacet2D<E>> facetClass;
@@ -88,10 +87,5 @@ public class NominalFacetLayer<E> extends AbstractFacetLayer {
             return "<missing>";
         }
         return val.toString();
-    }
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return facetClass;
     }
 }

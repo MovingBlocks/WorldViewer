@@ -39,15 +39,16 @@ import org.terasology.polyworld.graph.GraphFacet;
 import org.terasology.polyworld.graph.Region;
 import org.terasology.polyworld.graph.Triangle;
 import org.terasology.rendering.nui.properties.Checkbox;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 /**
  * Draws the generated graph on a AWT graphics instance
  * @author Martin Steiger
  */
+@Renders(GraphFacet.class)
 public class GraphFacetLayer extends AbstractFacetLayer {
 
     private Config config = new Config();
@@ -62,11 +63,6 @@ public class GraphFacetLayer extends AbstractFacetLayer {
      */
     public GraphFacetLayer(Config config) {
         this.config = config;
-    }
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return GraphFacet.class;
     }
 
     @Override

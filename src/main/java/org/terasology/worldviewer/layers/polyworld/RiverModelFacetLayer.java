@@ -27,24 +27,20 @@ import org.terasology.polyworld.graph.Graph;
 import org.terasology.polyworld.rivers.RiverModel;
 import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.world.generation.Region;
-import org.terasology.world.generation.WorldFacet;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * Draws the generated rivers on a AWT graphics instance
  * @author Martin Steiger
  */
+@Renders(RiverModelFacet.class)
 public class RiverModelFacetLayer extends AbstractFacetLayer {
 
     private Color riverColor = new Color(0x225588ff);
 
     public RiverModelFacetLayer() {
         // use default settings
-    }
-
-    @Override
-    public Class<? extends WorldFacet> getFacetClass() {
-        return RiverModelFacet.class;
     }
 
     @Override

@@ -18,11 +18,13 @@ package org.terasology.worldviewer.layers.engine;
 
 import org.terasology.world.generation.facets.SurfaceHeightFacet;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 /**
  * Provides information about the surface height level.
  * @author Martin Steiger
  */
+@Renders(SurfaceHeightFacet.class)
 public class SurfaceHeightFacetLayer extends FieldFacetLayer {
 
     public SurfaceHeightFacetLayer(Config config) {
