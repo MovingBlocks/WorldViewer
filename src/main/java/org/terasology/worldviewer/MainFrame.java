@@ -18,11 +18,10 @@ package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -33,19 +32,9 @@ import javax.swing.border.EmptyBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.core.world.generator.facets.BiomeFacet;
-import org.terasology.core.world.generator.facets.FloraFacet;
-import org.terasology.core.world.generator.facets.TreeFacet;
-import org.terasology.core.world.generator.facets.World2dPreviewFacet;
-import org.terasology.polyworld.biome.WhittakerBiomeFacet;
-import org.terasology.polyworld.graph.GraphFacet;
-import org.terasology.polyworld.moisture.MoistureModelFacet;
-import org.terasology.polyworld.rivers.RiverModelFacet;
+import org.terasology.engine.module.ModuleManager;
+import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generation.WorldFacet;
-import org.terasology.world.generation.facets.SeaLevelFacet;
-import org.terasology.world.generation.facets.SurfaceHeightFacet;
-import org.terasology.world.generation.facets.SurfaceHumidityFacet;
-import org.terasology.world.generation.facets.SurfaceTemperatureFacet;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.config.Config;
@@ -53,21 +42,9 @@ import org.terasology.worldviewer.core.ConfigPanel;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
 import org.terasology.worldviewer.layers.FacetLayer;
-import org.terasology.worldviewer.layers.core.CoreBiomeFacetLayer;
-import org.terasology.worldviewer.layers.core.FloraFacetLayer;
-import org.terasology.worldviewer.layers.core.PreviewFacetLayer;
-import org.terasology.worldviewer.layers.core.TreeFacetLayer;
-import org.terasology.worldviewer.layers.engine.SeaLevelFacetLayer;
-import org.terasology.worldviewer.layers.engine.SurfaceHeightFacetLayer;
-import org.terasology.worldviewer.layers.engine.SurfaceHumidityFacetLayer;
-import org.terasology.worldviewer.layers.engine.SurfaceTemperatureFacetLayer;
-import org.terasology.worldviewer.layers.polyworld.GraphFacetLayer;
-import org.terasology.worldviewer.layers.polyworld.MoistureModelFacetLayer;
-import org.terasology.worldviewer.layers.polyworld.RiverModelFacetLayer;
-import org.terasology.worldviewer.layers.polyworld.WhittakerBiomeFacetLayer;
+import org.terasology.worldviewer.layers.Renders;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * The main MapViewer JFrame
@@ -101,10 +78,21 @@ public class MainFrame extends JFrame {
 
         List<FacetLayer> loadedLayers = Lists.newArrayList();
 
+        ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
+        Iterable<Class<? extends FacetLayer>> layers = moduleManager.getEnvironment().getSubtypesOf(FacetLayer.class);
+
         // Fill it with default values first
         for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
-            loadedLayers.addAll(getLayers(facet));
+            loadedLayers.addAll(createLayersFor(facet, layers));
         }
+
+        // sort by annotated z-order
+        loadedLayers.sort((l1, l2) -> {
+            int o1 = l1.getClass().getAnnotation(Renders.class).order();
+            int o2 = l2.getClass().getAnnotation(Renders.class).order();
+
+            return Integer.compare(o1, o2);
+        });
 
         // Then try to replace them with those from the config file
         try {
@@ -171,58 +159,29 @@ public class MainFrame extends JFrame {
         setMinimumSize(new Dimension(850, 530));
     }
 
-    private static Collection<FacetLayer> getLayers(Class<? extends WorldFacet> facetClass) {
+    private static Collection<FacetLayer> createLayersFor(Class<? extends WorldFacet> facetClass,
+            Iterable<Class<? extends FacetLayer>> layers) {
 
-        List<FacetLayer> result = Lists.newArrayList();
+        Collection<FacetLayer> result = new ArrayList<>();
 
-        Map<Class<?>, Function<Class<?>, FacetLayer>> mapping = Maps.newLinkedHashMap();
-
-        mapping.put(SeaLevelFacet.class,
-                clazz -> new SeaLevelFacetLayer());
-
-        mapping.put(World2dPreviewFacet.class,
-                clazz -> new PreviewFacetLayer());
-
-        mapping.put(SurfaceHeightFacet.class,
-                clazz -> new SurfaceHeightFacetLayer());
-
-        mapping.put(SurfaceTemperatureFacet.class,
-                clazz -> new SurfaceTemperatureFacetLayer());
-
-        mapping.put(SurfaceHumidityFacet.class,
-                clazz -> new SurfaceHumidityFacetLayer());
-
-        mapping.put(WhittakerBiomeFacet.class,
-                clazz -> new WhittakerBiomeFacetLayer());
-
-        mapping.put(BiomeFacet.class,
-                clazz -> new CoreBiomeFacetLayer());
-
-        mapping.put(MoistureModelFacet.class,
-                clazz -> new MoistureModelFacetLayer());
-
-        mapping.put(RiverModelFacet.class,
-                clazz -> new RiverModelFacetLayer());
-
-        mapping.put(GraphFacet.class,
-                clazz -> new GraphFacetLayer());
-
-        mapping.put(FloraFacet.class,
-                clazz -> new FloraFacetLayer());
-
-        mapping.put(TreeFacet.class,
-                clazz -> new TreeFacetLayer());
-
-        for (Class<?> clazz : mapping.keySet()) {
-            if (clazz.isAssignableFrom(facetClass)) {
-                result.add(mapping.get(clazz).apply(facetClass));
+        for (Class<? extends FacetLayer> layer : layers) {
+            Renders anno = layer.getAnnotation(Renders.class);
+            if (anno == null) {
+                if (!Modifier.isAbstract(layer.getModifiers())) {
+                    // ignore abstract classes
+                    logger.warn("FacetLayer class {} is not annotated with @Renders", layer);
+                }
+            } else {
+                if (facetClass.equals(anno.value())) {
+                    try {
+                        FacetLayer instance = layer.newInstance();
+                        result.add(instance);
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        logger.warn("Could not call default constructor for {}", layer);
+                    }
+                }
             }
         }
-
-//        if (ObjectFacet2D.class.isAssignableFrom(facetClass)) {
-//            Class<ObjectFacet2D<Object>> cast = (Class<ObjectFacet2D<Object>>) facetClass;
-//            result.add(new NominalFacetLayer<Object>(cast, new RandomObjectColors()));
-//        }
 
         if (result.isEmpty()) {
             logger.warn("No layers found for facet {}", facetClass.getName());

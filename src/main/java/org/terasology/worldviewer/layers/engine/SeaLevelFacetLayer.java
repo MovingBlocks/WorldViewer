@@ -27,7 +27,7 @@ import org.terasology.worldviewer.layers.Renders;
  * Provides information about the sea level.
  * @author Martin Steiger
  */
-@Renders(SeaLevelFacet.class)
+@Renders(value = SeaLevelFacet.class, order = -1)
 public class SeaLevelFacetLayer extends AbstractFacetLayer {
 
     @Override

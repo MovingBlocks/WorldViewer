@@ -42,13 +42,14 @@ import org.terasology.rendering.nui.properties.Checkbox;
 import org.terasology.worldviewer.config.FacetConfig;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 /**
  * Draws the generated graph on a AWT graphics instance
  * @author Martin Steiger
  */
-@Renders(GraphFacet.class)
+@Renders(value = GraphFacet.class, order = ZOrder.BIOME + 1)
 public class GraphFacetLayer extends AbstractFacetLayer {
 
     private Config config = new Config();

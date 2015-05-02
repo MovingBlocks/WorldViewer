@@ -28,8 +28,12 @@ import org.terasology.worldviewer.layers.Renders;
 /**
  * @author Martin Steiger
  */
-@Renders(World2dPreviewFacet.class)
+@Renders(value = World2dPreviewFacet.class, order = -1)
 public class PreviewFacetLayer extends AbstractFacetLayer {
+
+    public PreviewFacetLayer() {
+        setVisible(false);
+    }
 
     @Override
     public void render(BufferedImage img, Region region) {

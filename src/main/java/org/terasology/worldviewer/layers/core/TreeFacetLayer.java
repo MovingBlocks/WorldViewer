@@ -35,6 +35,7 @@ import org.terasology.math.geom.Vector3i;
 import org.terasology.world.generation.Region;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 import org.terasology.worldviewer.picker.CirclePicker;
 import org.terasology.worldviewer.picker.CirclePickerAll;
 
@@ -43,7 +44,7 @@ import org.terasology.worldviewer.picker.CirclePickerAll;
  * and provides aggregating tool tips.
  * @author Martin Steiger
  */
-@Renders(TreeFacet.class)
+@Renders(value = TreeFacet.class, order = ZOrder.TREES)
 public class TreeFacetLayer extends AbstractFacetLayer {
 
     private Function<TreeGenerator, Integer> radiusFunc = ignore -> 5;

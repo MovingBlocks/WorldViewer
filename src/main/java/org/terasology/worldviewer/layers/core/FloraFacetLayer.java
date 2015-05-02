@@ -34,12 +34,13 @@ import org.terasology.worldviewer.color.Blenders;
 import org.terasology.worldviewer.color.ColorModels;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 
 /**
  * Renders the flora coverage based on {@link FloraFacet}.
  * @author Martin Steiger
  */
-@Renders(FloraFacet.class)
+@Renders(value = FloraFacet.class, order = ZOrder.FLORA)
 public class FloraFacetLayer extends AbstractFacetLayer {
 
     private Function<FloraType, Color> colorFunc = new CoreFloraColors();

@@ -19,12 +19,13 @@ package org.terasology.worldviewer.layers.engine;
 import org.terasology.world.generation.facets.SurfaceHumidityFacet;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 
 /**
  * Provides information about the surface humidity.
  * @author Martin Steiger
  */
-@Renders(SurfaceHumidityFacet.class)
+@Renders(value = SurfaceHumidityFacet.class, order = ZOrder.SURFACE)
 public class SurfaceHumidityFacetLayer extends FieldFacetLayer {
 
     public SurfaceHumidityFacetLayer(Config config) {
@@ -33,5 +34,6 @@ public class SurfaceHumidityFacetLayer extends FieldFacetLayer {
 
     public SurfaceHumidityFacetLayer() {
         super(SurfaceHumidityFacet.class, 0d, 100d);
+        setVisible(false);
     }
 }

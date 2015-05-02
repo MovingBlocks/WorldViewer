@@ -19,12 +19,13 @@ package org.terasology.worldviewer.layers.engine;
 import org.terasology.world.generation.facets.SurfaceTemperatureFacet;
 import org.terasology.worldviewer.layers.FieldFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 
 /**
  * Provides information about the surface temperature.
  * @author Martin Steiger
  */
-@Renders(SurfaceTemperatureFacet.class)
+@Renders(value = SurfaceTemperatureFacet.class, order = ZOrder.SURFACE)
 public class SurfaceTemperatureFacetLayer extends FieldFacetLayer {
 
     public SurfaceTemperatureFacetLayer(Config config) {
@@ -33,5 +34,6 @@ public class SurfaceTemperatureFacetLayer extends FieldFacetLayer {
 
     public SurfaceTemperatureFacetLayer() {
         super(SurfaceTemperatureFacet.class, 0d, 100d);
+        setVisible(false);
     }
 }

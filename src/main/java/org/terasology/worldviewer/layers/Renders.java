@@ -34,4 +34,6 @@ public @interface Renders {
      * @return the target facet class
      */
     Class<? extends WorldFacet> value();
+
+    int order();
 }

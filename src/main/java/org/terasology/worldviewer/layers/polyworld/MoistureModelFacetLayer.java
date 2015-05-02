@@ -36,6 +36,7 @@ import org.terasology.polyworld.moisture.MoistureModelFacet;
 import org.terasology.world.generation.Region;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 import com.google.common.base.Stopwatch;
@@ -44,7 +45,7 @@ import com.google.common.base.Stopwatch;
  * TODO Convert this into a more general class that supports different graph-based value look-ups
  * @author Martin Steiger
  */
-@Renders(MoistureModelFacet.class)
+@Renders(value = MoistureModelFacet.class, order = ZOrder.BIOME + 10)
 public class MoistureModelFacetLayer extends AbstractFacetLayer {
 
     private static final Logger logger = LoggerFactory.getLogger(MoistureModelFacetLayer.class);

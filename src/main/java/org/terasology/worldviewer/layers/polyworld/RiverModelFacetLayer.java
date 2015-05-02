@@ -29,12 +29,13 @@ import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.world.generation.Region;
 import org.terasology.worldviewer.layers.AbstractFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 
 /**
  * Draws the generated rivers on a AWT graphics instance
  * @author Martin Steiger
  */
-@Renders(RiverModelFacet.class)
+@Renders(value = RiverModelFacet.class, order = ZOrder.BIOME + 5)
 public class RiverModelFacetLayer extends AbstractFacetLayer {
 
     private Color riverColor = new Color(0x225588ff);

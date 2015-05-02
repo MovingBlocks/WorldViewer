@@ -20,12 +20,13 @@ import org.terasology.core.world.CoreBiome;
 import org.terasology.core.world.generator.facets.BiomeFacet;
 import org.terasology.worldviewer.layers.NominalFacetLayer;
 import org.terasology.worldviewer.layers.Renders;
+import org.terasology.worldviewer.layers.ZOrder;
 
 /**
  * Maps {@link CoreBiome} facet to corresponding colors.
  * @author Martin Steiger
  */
-@Renders(BiomeFacet.class)
+@Renders(value = BiomeFacet.class, order = ZOrder.BIOME)
 public class CoreBiomeFacetLayer extends NominalFacetLayer<CoreBiome> {
 
     public CoreBiomeFacetLayer() {

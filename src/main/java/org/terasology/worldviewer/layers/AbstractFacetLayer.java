@@ -29,7 +29,7 @@ import org.terasology.worldviewer.core.Observer;
  */
 public abstract class AbstractFacetLayer implements FacetLayer {
 
-    private boolean isVisible;
+    private boolean isVisible = true;
 
     private final Collection<Observer<FacetLayer>> observers = new CopyOnWriteArrayList<>();
 
