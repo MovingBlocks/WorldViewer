@@ -27,11 +27,15 @@ import org.terasology.worldviewer.layers.Renders;
 @Renders(SurfaceHeightFacet.class)
 public class SurfaceHeightFacetLayer extends FieldFacetLayer {
 
+    /**
+     * This is called through reflection.
+     * @param config the configuration params
+     */
     public SurfaceHeightFacetLayer(Config config) {
-        super(config);
+        super(SurfaceHeightFacet.class, config);
     }
 
     public SurfaceHeightFacetLayer() {
-        super(SurfaceHeightFacet.class, 0d, 1.5d);
+        super(SurfaceHeightFacet.class, 0d, 1.0d);
     }
 }

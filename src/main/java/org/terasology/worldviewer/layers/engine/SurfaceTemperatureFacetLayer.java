@@ -28,7 +28,7 @@ import org.terasology.worldviewer.layers.Renders;
 public class SurfaceTemperatureFacetLayer extends FieldFacetLayer {
 
     public SurfaceTemperatureFacetLayer(Config config) {
-        super(config);
+        super(SurfaceTemperatureFacet.class, config);
     }
 
     public SurfaceTemperatureFacetLayer() {

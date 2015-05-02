@@ -28,7 +28,7 @@ import org.terasology.worldviewer.layers.Renders;
 public class SurfaceHumidityFacetLayer extends FieldFacetLayer {
 
     public SurfaceHumidityFacetLayer(Config config) {
-        super(config);
+        super(SurfaceHumidityFacet.class, config);
     }
 
     public SurfaceHumidityFacetLayer() {
