@@ -24,7 +24,7 @@ import org.terasology.math.geom.Vector2i;
  */
 public class ViewConfig {
 
-    private Vector2i camPos = new Vector2i(512, 512);
+    private Vector2i camPos = new Vector2i(0, 0);
     private float zoomFactor = 1f;
 
     public Vector2i getCamPos() {
