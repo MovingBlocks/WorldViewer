@@ -32,7 +32,8 @@ import org.terasology.engine.TerasologyConstants;
 import org.terasology.naming.Version;
 import org.terasology.naming.gson.VersionTypeAdapter;
 import org.terasology.utilities.gson.UriTypeAdapterFactory;
-import org.terasology.worldviewer.layers.FacetLayer;
+import org.terasology.world.viewer.config.FacetConfig;
+import org.terasology.world.viewer.layers.FacetLayer;
 import org.terasology.worldviewer.version.VersionInfo;
 
 import com.google.common.collect.Lists;

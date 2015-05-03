@@ -37,9 +37,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
-import org.terasology.worldviewer.config.FacetConfig;
+import org.terasology.world.viewer.config.FacetConfig;
+import org.terasology.world.viewer.layers.FacetLayer;
 import org.terasology.worldviewer.gui.UIBindings;
-import org.terasology.worldviewer.layers.FacetLayer;
 
 /**
  * The facet layer configuration panel (at the left)

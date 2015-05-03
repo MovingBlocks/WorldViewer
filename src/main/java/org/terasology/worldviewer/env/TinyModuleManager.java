@@ -89,9 +89,11 @@ public class TinyModuleManager implements ModuleManager {
     }
 
     private Module loadEngineModule() {
-        try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("/engine-module.txt"), TerasologyConstants.CHARSET)) {
+        // TODO: define an explicit marker class and rename package for class Terasology (which is not in engine)
+        Class<?> marker = org.terasology.game.Game.class;
+        try (Reader reader = new InputStreamReader(marker.getResourceAsStream("/engine-module.txt"), TerasologyConstants.CHARSET)) {
             ModuleMetadata metadata = metadataReader.read(reader);
-            return ClasspathModule.create(metadata, getClass(), Module.class);
+            return ClasspathModule.create(metadata, marker, Module.class);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read engine metadata", e);
         } catch (URISyntaxException e) {

@@ -16,7 +16,8 @@
 
 package org.terasology.worldviewer.config;
 
-import org.terasology.worldviewer.layers.FacetLayer;
+import org.terasology.world.viewer.config.FacetConfig;
+import org.terasology.world.viewer.layers.FacetLayer;
 
 import com.google.gson.JsonElement;
 

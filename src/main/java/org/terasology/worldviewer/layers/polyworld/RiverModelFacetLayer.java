@@ -27,9 +27,9 @@ import org.terasology.polyworld.graph.Graph;
 import org.terasology.polyworld.rivers.RiverModel;
 import org.terasology.polyworld.rivers.RiverModelFacet;
 import org.terasology.world.generation.Region;
-import org.terasology.worldviewer.layers.AbstractFacetLayer;
-import org.terasology.worldviewer.layers.Renders;
-import org.terasology.worldviewer.layers.ZOrder;
+import org.terasology.world.viewer.layers.AbstractFacetLayer;
+import org.terasology.world.viewer.layers.Renders;
+import org.terasology.world.viewer.layers.ZOrder;
 
 /**
  * Draws the generated rivers on a AWT graphics instance

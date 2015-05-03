@@ -18,10 +18,9 @@ package org.terasology.worldviewer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -36,13 +35,13 @@ import org.terasology.engine.module.ModuleManager;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generator.WorldGenerator;
+import org.terasology.world.viewer.layers.FacetLayer;
+import org.terasology.world.viewer.layers.FacetLayers;
 import org.terasology.worldviewer.camera.Camera;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.core.ConfigPanel;
 import org.terasology.worldviewer.core.FacetPanel;
 import org.terasology.worldviewer.core.Viewer;
-import org.terasology.worldviewer.layers.FacetLayer;
-import org.terasology.worldviewer.layers.Renders;
 
 import com.google.common.collect.Lists;
 
@@ -76,23 +75,12 @@ public class MainFrame extends JFrame {
         this.worldGen = worldGen;
         this.config = config;
 
-        List<FacetLayer> loadedLayers = Lists.newArrayList();
-
         ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
-        Iterable<Class<? extends FacetLayer>> layers = moduleManager.getEnvironment().getSubtypesOf(FacetLayer.class);
 
-        // Fill it with default values first
-        for (Class<? extends WorldFacet> facet : worldGen.getWorld().getAllFacets()) {
-            loadedLayers.addAll(createLayersFor(facet, layers));
-        }
+        Set<Class<? extends WorldFacet>> facets = worldGen.getWorld().getAllFacets();
 
-        // sort by annotated z-order
-        loadedLayers.sort((l1, l2) -> {
-            int o1 = l1.getClass().getAnnotation(Renders.class).order();
-            int o2 = l2.getClass().getAnnotation(Renders.class).order();
-
-            return Integer.compare(o1, o2);
-        });
+        // Create with default values first
+        List<FacetLayer> loadedLayers = FacetLayers.createLayersFor(facets, moduleManager.getEnvironment());
 
         // Then try to replace them with those from the config file
         try {
@@ -157,37 +145,6 @@ public class MainFrame extends JFrame {
         statusBar.setBorder(new EmptyBorder(2, 5, 2, 5));
 
         setMinimumSize(new Dimension(850, 530));
-    }
-
-    private static Collection<FacetLayer> createLayersFor(Class<? extends WorldFacet> facetClass,
-            Iterable<Class<? extends FacetLayer>> layers) {
-
-        Collection<FacetLayer> result = new ArrayList<>();
-
-        for (Class<? extends FacetLayer> layer : layers) {
-            Renders anno = layer.getAnnotation(Renders.class);
-            if (anno == null) {
-                if (!Modifier.isAbstract(layer.getModifiers())) {
-                    // ignore abstract classes
-                    logger.warn("FacetLayer class {} is not annotated with @Renders", layer);
-                }
-            } else {
-                if (facetClass.equals(anno.value())) {
-                    try {
-                        FacetLayer instance = layer.newInstance();
-                        result.add(instance);
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        logger.warn("Could not call default constructor for {}", layer);
-                    }
-                }
-            }
-        }
-
-        if (result.isEmpty()) {
-            logger.warn("No layers found for facet {}", facetClass.getName());
-        }
-
-        return result;
     }
 
     @Override

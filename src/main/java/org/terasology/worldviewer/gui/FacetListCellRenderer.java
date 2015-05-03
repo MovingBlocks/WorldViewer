@@ -22,7 +22,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-import org.terasology.worldviewer.layers.FacetLayer;
+import org.terasology.world.viewer.layers.FacetLayer;
 
 /**
  * Renders cells as checkboxes. Interaction does not seem to be possible.

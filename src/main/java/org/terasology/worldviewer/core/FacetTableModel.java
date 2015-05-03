@@ -20,7 +20,7 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.terasology.worldviewer.layers.FacetLayer;
+import org.terasology.world.viewer.layers.FacetLayer;
 
 import com.google.common.collect.ImmutableList;
 

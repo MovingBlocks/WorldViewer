@@ -34,9 +34,9 @@ import org.terasology.polyworld.graph.Graph;
 import org.terasology.polyworld.moisture.MoistureModel;
 import org.terasology.polyworld.moisture.MoistureModelFacet;
 import org.terasology.world.generation.Region;
-import org.terasology.worldviewer.layers.AbstractFacetLayer;
-import org.terasology.worldviewer.layers.Renders;
-import org.terasology.worldviewer.layers.ZOrder;
+import org.terasology.world.viewer.layers.AbstractFacetLayer;
+import org.terasology.world.viewer.layers.Renders;
+import org.terasology.world.viewer.layers.ZOrder;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 import com.google.common.base.Stopwatch;

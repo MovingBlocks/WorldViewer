@@ -18,9 +18,9 @@ package org.terasology.worldviewer.layers.polyworld;
 
 import org.terasology.polyworld.biome.WhittakerBiome;
 import org.terasology.polyworld.biome.WhittakerBiomeFacet;
-import org.terasology.worldviewer.layers.NominalFacetLayer;
-import org.terasology.worldviewer.layers.Renders;
-import org.terasology.worldviewer.layers.ZOrder;
+import org.terasology.world.viewer.layers.NominalFacetLayer;
+import org.terasology.world.viewer.layers.Renders;
+import org.terasology.world.viewer.layers.ZOrder;
 
 /**
  * Maps {@link WhittakerBiome} facet to corresponding colors.

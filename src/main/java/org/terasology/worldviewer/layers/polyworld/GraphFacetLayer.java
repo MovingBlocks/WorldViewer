@@ -39,10 +39,10 @@ import org.terasology.polyworld.graph.GraphFacet;
 import org.terasology.polyworld.graph.Region;
 import org.terasology.polyworld.graph.Triangle;
 import org.terasology.rendering.nui.properties.Checkbox;
-import org.terasology.worldviewer.config.FacetConfig;
-import org.terasology.worldviewer.layers.AbstractFacetLayer;
-import org.terasology.worldviewer.layers.Renders;
-import org.terasology.worldviewer.layers.ZOrder;
+import org.terasology.world.viewer.config.FacetConfig;
+import org.terasology.world.viewer.layers.AbstractFacetLayer;
+import org.terasology.world.viewer.layers.Renders;
+import org.terasology.world.viewer.layers.ZOrder;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
 
 /**
