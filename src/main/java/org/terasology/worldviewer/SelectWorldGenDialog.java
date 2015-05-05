@@ -109,10 +109,19 @@ public class SelectWorldGenDialog extends JDialog {
         panel.add(new JLabel("Loaded modules:"), gbc.clone());
 
         gbc.gridy = 3;
-        moduleList = new JTable();
+        moduleList = new JTable() {
+
+            private static final long serialVersionUID = 3315774652323052959L;
+
+            @Override
+            public boolean getScrollableTracksViewportHeight() {
+                return getPreferredSize().height < getParent().getHeight();
+            }
+        };
         moduleList.setBorder(BorderFactory.createEtchedBorder());
         moduleList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         moduleList.getTableHeader().setReorderingAllowed(false);
+        moduleList.setBorder(BorderFactory.createEmptyBorder());
         JScrollPane tableScrollPane = new JScrollPane(moduleList);
         tableScrollPane.setPreferredSize(new Dimension(250, 150));
         panel.add(tableScrollPane, gbc.clone());
