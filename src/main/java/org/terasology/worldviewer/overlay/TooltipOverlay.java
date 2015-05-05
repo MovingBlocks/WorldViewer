@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 MovingBlocks
+ * Copyright 2015 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,36 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.gui;
+package org.terasology.worldviewer.overlay;
 
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.util.function.Function;
+
+import org.terasology.math.geom.ImmutableVector2i;
+import org.terasology.math.geom.Rect2i;
 
 /**
- * Draws tooltips
- * @author Martin Steiger
+ * Shows the tooltip
  */
-public final class Tooltip {
+public class TooltipOverlay extends AbstractOverlay implements ScreenOverlay {
 
-    private Tooltip() {
-        // no instances!
+    private Function<? super ImmutableVector2i, String> tooltipTextFunc;
+
+    public TooltipOverlay(Function<? super ImmutableVector2i, String> tooltipTextFunc) {
+        this.tooltipTextFunc = tooltipTextFunc;
     }
 
-    public static void draw(Graphics2D g, int wx, int wy, String text) {
+    @Override
+    public void render(Graphics2D g, Rect2i area, ImmutableVector2i cursor) {
+        if (cursor == null) {
+            return;
+        }
+
+        String text = tooltipTextFunc.apply(cursor);
+        int wx = cursor.getX();
+        int wy = cursor.getY();
         int offX = 5;
         int offY = 5;
 
@@ -65,5 +78,6 @@ public final class Tooltip {
             y += fm.getHeight();
         }
 
+        g.dispose();
     }
 }

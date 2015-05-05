@@ -77,11 +77,11 @@ import org.terasology.worldviewer.camera.RepaintingCameraListener;
 import org.terasology.worldviewer.config.ViewConfig;
 import org.terasology.worldviewer.gui.CursorPositionListener;
 import org.terasology.worldviewer.gui.RepaintingMouseListener;
-import org.terasology.worldviewer.gui.Tooltip;
 import org.terasology.worldviewer.overlay.GridOverlay;
 import org.terasology.worldviewer.overlay.Overlay;
 import org.terasology.worldviewer.overlay.ScreenOverlay;
 import org.terasology.worldviewer.overlay.TextOverlay;
+import org.terasology.worldviewer.overlay.TooltipOverlay;
 import org.terasology.worldviewer.overlay.WorldOverlay;
 
 import com.google.common.base.Stopwatch;
@@ -187,6 +187,11 @@ public final class Viewer extends JComponent {
         zoomOverlay.setVisible(false);
         camera.addListener(new ZoomOverlayUpdater(this, zoomOverlay));
         screenOverlays.add(zoomOverlay);
+        ScreenOverlay tooltipOverlay = new TooltipOverlay(screen -> {
+            Rect2i visWorld = camera.getVisibleArea(getWidth(), getHeight());
+            return getTooltip(toWorld(visWorld, screen));
+            });
+        screenOverlays.add(tooltipOverlay);
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -277,10 +282,7 @@ public final class Viewer extends JComponent {
         ImmutableVector2i worldCursor = null;
         if (curPos != null) {
             screenCursor = new ImmutableVector2i(curPos.x, curPos.y);
-
-            int wx = visWorld.minX() + TeraMath.floorToInt(curPos.x / camera.getZoom());
-            int wy = visWorld.minY() + TeraMath.floorToInt(curPos.y / camera.getZoom());
-            worldCursor = new ImmutableVector2i(wx, wy);
+            worldCursor = toWorld(visWorld, screenCursor);
         }
 
         // draw world overlays
@@ -299,8 +301,12 @@ public final class Viewer extends JComponent {
                 ovly.render(g, windowRect, screenCursor);
             }
         }
+    }
 
-        drawTooltip(g, visWorld);
+    private ImmutableVector2i toWorld(Rect2i visWorld, BaseVector2i screen) {
+        int wx = visWorld.minX() + TeraMath.floorToInt(screen.getX() / camera.getZoom());
+        int wy = visWorld.minY() + TeraMath.floorToInt(screen.getY() / camera.getZoom());
+        return new ImmutableVector2i(wx, wy);
     }
 
     public void invalidateWorld() {
@@ -364,32 +370,25 @@ public final class Viewer extends JComponent {
         return region;
     }
 
-    private void drawTooltip(Graphics2D g, Rect2i area) {
-        Point curPos = curPosListener.getCursorPosition();
+    private String getTooltip(BaseVector2i world) {
+        Region region = getRegion(world);
 
-        if (curPos != null) {
-            int wx = area.minX() + TeraMath.floorToInt(curPos.x / camera.getZoom());
-            int wy = area.minY() + TeraMath.floorToInt(curPos.y / camera.getZoom());
-
-            Region region = getRegion(new Vector2i(wx, wy));
-
-            StringBuffer sb = new StringBuffer();
-            for (FacetLayer layer : facetLayers) {
-                if (layer.isVisible()) {
-                    try {
-                        String layerText = layer.getWorldText(region, wx, wy);
-                        if (layerText != null) {
-                            sb.append("\n").append(layerText);
-                        }
-                    } catch (Exception e) {
-                        sb.append("\n<failed>");
+        StringBuffer sb = new StringBuffer();
+        for (FacetLayer layer : facetLayers) {
+            if (layer.isVisible()) {
+                try {
+                    String layerText = layer.getWorldText(region, world.getX(), world.getY());
+                    if (layerText != null) {
+                        sb.append("\n").append(layerText);
                     }
+                } catch (Exception e) {
+                    sb.append("\n<failed>");
                 }
             }
-
-            String tooltip = String.format("%d / %d%s", wx, wy, sb.toString());
-            Tooltip.draw(g, curPos.x, curPos.y, tooltip);
         }
+
+        String tooltip = String.format("%d / %d%s", world.getX(), world.getY(), sb.toString());
+        return tooltip;
     }
 
     private Region createRegion(ImmutableVector2i chunkPos) {
