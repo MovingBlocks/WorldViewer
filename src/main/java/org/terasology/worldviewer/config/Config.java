@@ -32,8 +32,8 @@ import org.terasology.engine.TerasologyConstants;
 import org.terasology.naming.Version;
 import org.terasology.naming.gson.VersionTypeAdapter;
 import org.terasology.utilities.gson.UriTypeAdapterFactory;
-import org.terasology.world.viewer.config.FacetConfig;
 import org.terasology.world.viewer.layers.FacetLayer;
+import org.terasology.world.viewer.layers.FacetLayerConfig;
 import org.terasology.worldviewer.version.VersionInfo;
 
 import com.google.common.collect.Lists;
@@ -114,7 +114,7 @@ public class Config {
             if (removeDefault(facetClass, defLayers)) {
                 FacetLayer layer;
                 if (entry.getConfigClass() != null) {
-                    FacetConfig conf = GSON.fromJson(entry.getData(), entry.getConfigClass());
+                    FacetLayerConfig conf = GSON.fromJson(entry.getData(), entry.getConfigClass());
                     layer = createInstance(facetClass, conf);
                 } else {
                     layer = createInstance(facetClass);
@@ -150,7 +150,7 @@ public class Config {
         }
     }
 
-    private FacetLayer createInstance(Class<? extends FacetLayer> facetClass, FacetConfig conf) {
+    private FacetLayer createInstance(Class<? extends FacetLayer> facetClass, FacetLayerConfig conf) {
         try {
             Constructor<? extends FacetLayer> c = facetClass.getConstructor(conf.getClass());
             return c.newInstance(conf);

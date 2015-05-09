@@ -39,8 +39,8 @@ import org.terasology.polyworld.graph.GraphFacet;
 import org.terasology.polyworld.graph.Region;
 import org.terasology.polyworld.graph.Triangle;
 import org.terasology.rendering.nui.properties.Checkbox;
-import org.terasology.world.viewer.config.FacetConfig;
 import org.terasology.world.viewer.layers.AbstractFacetLayer;
+import org.terasology.world.viewer.layers.FacetLayerConfig;
 import org.terasology.world.viewer.layers.Renders;
 import org.terasology.world.viewer.layers.ZOrder;
 import org.terasology.worldviewer.picker.CirclePickerClosest;
@@ -259,7 +259,7 @@ public class GraphFacetLayer extends AbstractFacetLayer {
 
         g.setColor(Color.ORANGE);
         for (Region regs : centers) {
-            Vector2f c = regs.getCenter();
+            BaseVector2f c = regs.getCenter();
             g.fill(new Rectangle2D.Double(c.getX() - 1, c.getY() - 1, 2, 2));
         }
     }
@@ -285,14 +285,14 @@ public class GraphFacetLayer extends AbstractFacetLayer {
     }
 
     @Override
-    public FacetConfig getConfig() {
+    public FacetLayerConfig getConfig() {
         return config;
     }
 
     /**
      * Persistent data
      */
-    private static class Config implements FacetConfig {
+    private static class Config implements FacetLayerConfig {
         @Checkbox private boolean showEdges = true;
         @Checkbox private boolean showBounds = true;
         @Checkbox private boolean showCorners = true;

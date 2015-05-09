@@ -16,15 +16,15 @@
 
 package org.terasology.worldviewer.config;
 
-import org.terasology.world.viewer.config.FacetConfig;
 import org.terasology.world.viewer.layers.FacetLayer;
+import org.terasology.world.viewer.layers.FacetLayerConfig;
 
 import com.google.gson.JsonElement;
 
 class ConfigEntry {
 
     private Class<? extends FacetLayer> facetClass;
-    private Class<? extends FacetConfig> configClass;
+    private Class<? extends FacetLayerConfig> configClass;
     private JsonElement data;
     private boolean visible;
 
@@ -39,7 +39,7 @@ class ConfigEntry {
         return facetClass;
     }
 
-    public Class<? extends FacetConfig> getConfigClass() {
+    public Class<? extends FacetLayerConfig> getConfigClass() {
         return configClass;
     }
 

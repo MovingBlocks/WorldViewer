@@ -37,8 +37,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
-import org.terasology.world.viewer.config.FacetConfig;
 import org.terasology.world.viewer.layers.FacetLayer;
+import org.terasology.world.viewer.layers.FacetLayerConfig;
 import org.terasology.worldviewer.gui.UIBindings;
 
 /**
@@ -112,7 +112,7 @@ public class FacetPanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2));
 
-        FacetConfig config = layer.getConfig();
+        FacetLayerConfig config = layer.getConfig();
         if (config != null) {
             for (Field field : config.getClass().getDeclaredFields()) {
 
@@ -130,7 +130,7 @@ public class FacetPanel extends JPanel {
     }
 
     private void processAnnotations(JPanel panel, FacetLayer layer, Field field) {
-        FacetConfig config = layer.getConfig();
+        FacetLayerConfig config = layer.getConfig();
         JComponent comp = null;
 
         JSpinner spinner = UIBindings.processRangeAnnotation(config, field);

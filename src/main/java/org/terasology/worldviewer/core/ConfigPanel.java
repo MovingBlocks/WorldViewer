@@ -41,10 +41,10 @@ import javax.swing.border.MatteBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.engine.Observer;
 import org.terasology.entitySystem.Component;
 import org.terasology.world.generator.WorldConfigurator;
 import org.terasology.world.generator.WorldGenerator;
-import org.terasology.world.viewer.core.Observer;
 import org.terasology.worldviewer.WorldGenerators;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.gui.UIBindings;
