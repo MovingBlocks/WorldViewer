@@ -20,7 +20,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.TextField;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -35,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
@@ -62,7 +62,7 @@ public class SelectWorldGenDialog extends JDialog {
 
     private final JOptionPane optionPane;
     private final JComboBox<WorldGeneratorInfo> wgSelectCombo;
-    private final TextField seedText;
+    private final JTextField seedText;
 
     private JTable moduleList;
 
@@ -100,7 +100,7 @@ public class SelectWorldGenDialog extends JDialog {
 
         gbc.gridy = 1;
         panel.add(new JLabel("Seed"), gbc.clone());
-        seedText = new TextField(wgConfig.getWorldSeed());
+        seedText = new JTextField(wgConfig.getWorldSeed());
         panel.add(seedText, gbc.clone());
 
         gbc.gridwidth = 2;

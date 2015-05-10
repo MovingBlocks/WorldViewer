@@ -52,8 +52,6 @@ import org.terasology.worldviewer.config.WorldConfig;
 import org.terasology.worldviewer.env.TinyEnvironment;
 import org.terasology.worldviewer.version.VersionInfo;
 
-import com.jgoodies.looks.plastic.PlasticLookAndFeel;
-
 /**
  * Preview generated world in Swing
  * @author Martin Steiger
@@ -111,7 +109,7 @@ public final class WorldViewer {
 
     private static void setupLookAndFeel() {
         try {
-            UIManager.setLookAndFeel(new PlasticLookAndFeel());
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             // we don't really care about l&f that much, so we just eat the exception
             logger.error("Cannot set look & feel", e);

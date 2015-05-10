@@ -116,9 +116,6 @@ dependencies {
 
     // Mockups for Environments
     compile (group: 'org.mockito', name: 'mockito-all', version: '1.10.19')
-
-    // Swing look & feel
-    compile (group: 'com.jgoodies', name: 'jgoodies-looks', version: '2.5.3')
 }
 
 task sourceJar(type: Jar) {
