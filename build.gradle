@@ -107,7 +107,11 @@ dependencies {
     compile (group: 'org.terasology.modules', name: 'Core', version: '+')
     compile (group: 'org.terasology', name: 'TeraMath', version: '+')
 
-    compile(group: 'org.terasology.modules', name: 'CommonWorld', version: '+')
+    compile(group: 'org.terasology.modules', name: 'Cities', version: '+')
+    compile(group: 'org.terasology.modules', name: 'Pathfinding', version: '+')
+    compile(group: 'org.terasology.modules', name: 'TutorialWorldGeneration', version: '+')
+    compile(group: 'org.terasology.modules', name: 'LightAndShadow', version: '+')
+    compile(group: 'org.terasology.modules', name: 'WoodAndStone', version: '+')
     compile(group: 'org.terasology.modules', name: 'PolyWorld', version: '+')
 
     // Mockups for Environments
