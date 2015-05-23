@@ -169,6 +169,7 @@ public final class WorldViewer {
             createAndShowMainFrame(worldGen, config);
         } catch (UnresolvedWorldGeneratorException ex) {
             String message = "<html>Could not create world generator<br>" + ex + "</html>";
+            logger.error("Could not create world generator {}", worldGenUri, ex);
             JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

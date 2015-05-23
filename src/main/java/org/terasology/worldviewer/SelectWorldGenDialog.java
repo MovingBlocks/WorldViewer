@@ -123,7 +123,7 @@ public class SelectWorldGenDialog extends JDialog {
         moduleList.getTableHeader().setReorderingAllowed(false);
         moduleList.setBorder(BorderFactory.createEmptyBorder());
         JScrollPane tableScrollPane = new JScrollPane(moduleList);
-        tableScrollPane.setPreferredSize(new Dimension(250, 150));
+        tableScrollPane.setPreferredSize(new Dimension(270, 150));
         panel.add(tableScrollPane, gbc.clone());
 
         gbc.gridy = 4;
@@ -160,10 +160,19 @@ public class SelectWorldGenDialog extends JDialog {
     }
 
     private void updateModuleList() {
-        Iterable<Module> modules = CoreRegistry.get(ModuleManager.class).getEnvironment();
-        TableModel dataModel = new ModuleTableModel(Lists.newArrayList(modules));
+        ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
+        List<Module> modules = Lists.newArrayList(moduleManager.getEnvironment());
+
+        // Sort by display name (alphabetically, case-insensitive, localized)
+        modules.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(
+                o1.getMetadata().getDisplayName().value(),
+                o2.getMetadata().getDisplayName().value()));
+
+        TableModel dataModel = new ModuleTableModel(modules);
         moduleList.setModel(dataModel);
+        moduleList.getColumnModel().getColumn(0).setPreferredWidth(120);
         moduleList.getColumnModel().getColumn(1).setPreferredWidth(10);
+        moduleList.getColumnModel().getColumn(2).setPreferredWidth(10);
     }
 
     private void updateWorldGenCombo() {

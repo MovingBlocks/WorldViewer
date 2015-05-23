@@ -20,7 +20,9 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.terasology.module.ArchiveModule;
 import org.terasology.module.Module;
+import org.terasology.module.PathModule;
 
 import com.google.common.collect.ImmutableList;
 
@@ -33,7 +35,7 @@ public class ModuleTableModel extends AbstractTableModel {
     private static final long serialVersionUID = -2702157486079272558L;
     private final List<Module> modules;
 
-    private final List<String> columnNames = ImmutableList.of("Name", "Version");
+    private final List<String> columnNames = ImmutableList.of("Name", "Version", "Type");
 
     public ModuleTableModel(List<Module> modules) {
         this.modules = modules;
@@ -46,7 +48,7 @@ public class ModuleTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -56,12 +58,23 @@ public class ModuleTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        Module module = modules.get(rowIndex);
+
         switch (columnIndex) {
             case 0:
-                return modules.get(rowIndex).getId();
+                return module.getId();
 
             case 1:
-                return modules.get(rowIndex).getVersion();
+                return module.getVersion();
+
+            case 2:
+                if (module instanceof ArchiveModule) {
+                    return "jar";
+                }
+                if (module instanceof PathModule) {
+                    return "path";
+                }
+                return "unknown";
 
             default:
                 throw new UnsupportedOperationException("Invalid column index");
