@@ -23,6 +23,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -133,17 +136,24 @@ public class TinyModuleManager implements ModuleManager {
         String[] cpEntries = getClassPath();
 
         for (String pathStr : cpEntries) {
-            Path modulePath = Paths.get(pathStr);
-            Path codeLoc = moduleLoader.getDirectoryCodeLocation();
-            if (modulePath.endsWith(codeLoc)) {
-                for (int i = 0; i < codeLoc.getNameCount(); i++) {
-                    modulePath = modulePath.getParent();
+            try {
+                Path modulePath = Paths.get(pathStr);
+                // The eclipse JUnit runner adds src/test/resources even if it doesn't exist
+                if (Files.exists(modulePath, LinkOption.NOFOLLOW_LINKS)) {
+                    Path codeLoc = moduleLoader.getDirectoryCodeLocation();
+                    if (modulePath.endsWith(codeLoc)) {
+                        for (int i = 0; i < codeLoc.getNameCount(); i++) {
+                            modulePath = modulePath.getParent();
+                        }
+                    }
+                    Module mod = moduleLoader.load(modulePath);
+                    if (mod != null) {
+                        logger.info("Loading module: {}", mod);
+                        registry.add(mod);
+                    }
                 }
-            }
-            Module mod = moduleLoader.load(modulePath);
-            if (mod != null) {
-                logger.info("Loading module: {}", mod);
-                registry.add(mod);
+            } catch (InvalidPathException e) {
+                logger.warn("Ignoring invalid path: {}", pathStr);
             }
         }
     }

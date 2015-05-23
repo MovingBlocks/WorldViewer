@@ -49,7 +49,6 @@ import org.terasology.worldviewer.WorldGenerators;
 import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.gui.UIBindings;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 public class ConfigPanel extends JPanel {
@@ -126,20 +125,17 @@ public class ConfigPanel extends JPanel {
         gbc.insets.top = 10;
         gbc.insets.bottom = 5;
 
-        Optional<WorldConfigurator> configOpt = worldGen.getConfigurator();
-        if (configOpt.isPresent()) {
-            WorldConfigurator configurator = configOpt.get();
-            for (Entry<String, Component> entry : configurator.getProperties().entrySet()) {
-                String label = entry.getKey();
-                Component ccomp = entry.getValue();
+        WorldConfigurator configurator = worldGen.getConfigurator();
+        for (Entry<String, Component> entry : configurator.getProperties().entrySet()) {
+            String label = entry.getKey();
+            Component ccomp = entry.getValue();
 
-                JLabel caption = new JLabel(" " + label, SwingConstants.LEADING); // add a little space for the label text
-                caption.setFont(caption.getFont().deriveFont(Font.BOLD));
-                caption.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
-                configPanel.add(caption, gbc.clone());
+            JLabel caption = new JLabel(" " + label, SwingConstants.LEADING); // add a little space for the label text
+            caption.setFont(caption.getFont().deriveFont(Font.BOLD));
+            caption.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
+            configPanel.add(caption, gbc.clone());
 
-                processComponent(configPanel, ccomp);
-            }
+            processComponent(configPanel, ccomp);
         }
 
         return configPanel;

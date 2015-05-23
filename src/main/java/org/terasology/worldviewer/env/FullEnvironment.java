@@ -212,7 +212,7 @@ public final class FullEnvironment {
 
         Config config = CoreRegistry.get(Config.class);
 
-        WorldConfigurator configurator = worldGen.getConfigurator().get();
+        WorldConfigurator configurator = worldGen.getConfigurator();
         for (Entry<String, Component> entry : configurator.getProperties().entrySet()) {
             Component comp = config.getModuleConfig(uri, entry.getKey(), entry.getValue().getClass());
 

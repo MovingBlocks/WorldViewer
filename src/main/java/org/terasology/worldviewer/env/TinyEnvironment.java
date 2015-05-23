@@ -33,6 +33,8 @@ import org.terasology.asset.AssetManagerImpl;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.config.Config;
+import org.terasology.context.Context;
+import org.terasology.context.internal.ContextImpl;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
 import org.terasology.module.Module;
@@ -65,6 +67,9 @@ public final class TinyEnvironment {
      */
     public static void setup() throws IOException {
 
+        Context context = new ContextImpl();
+        CoreRegistry.setContext(context);
+
         setupConfig();
 
         setupModuleManager();
@@ -73,7 +78,7 @@ public final class TinyEnvironment {
 
         setupBlockManager();
 
-        setupWorldGen();
+        setupWorldGen(context);
     }
 
     private static void setupModuleManager() throws IOException {
@@ -134,9 +139,9 @@ public final class TinyEnvironment {
         CoreRegistry.put(BlockManager.class, blockManager);
     }
 
-    private static void setupWorldGen() {
-        CoreRegistry.putPermanently(WorldGeneratorManager.class, new WorldGeneratorManager());
-        CoreRegistry.putPermanently(WorldGeneratorPluginLibrary.class, new WorldGeneratorPluginLibrary() {
+    private static void setupWorldGen(Context context) {
+        CoreRegistry.put(WorldGeneratorManager.class, new WorldGeneratorManager(context));
+        CoreRegistry.put(WorldGeneratorPluginLibrary.class, new WorldGeneratorPluginLibrary() {
 
             @Override
             public <U extends WorldGeneratorPlugin> List<U> instantiateAllOfType(Class<U> ofType) {
