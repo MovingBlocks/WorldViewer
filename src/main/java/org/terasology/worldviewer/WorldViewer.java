@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.splash.SplashScreen;
 import org.terasology.registry.CoreRegistry;
-import org.terasology.world.generator.UnresolvedWorldGeneratorException;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.worldviewer.config.Config;
@@ -167,7 +166,7 @@ public final class WorldViewer {
             worldGen.setWorldSeed(worldSeed);
             worldGen.initialize();
             createAndShowMainFrame(worldGen, config);
-        } catch (UnresolvedWorldGeneratorException ex) {
+        } catch (Exception ex) {
             String message = "<html>Could not create world generator<br>" + ex + "</html>";
             logger.error("Could not create world generator {}", worldGenUri, ex);
             JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
