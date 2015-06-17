@@ -21,8 +21,8 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.asset.AssetManager;
 import org.terasology.engine.SimpleUri;
+import org.terasology.engine.module.ModuleManager;
 import org.terasology.module.ModuleEnvironment;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generator.RegisterWorldGenerator;
@@ -47,7 +47,7 @@ public final class WorldGenerators {
      */
     public static Set<Class<?>> findOnClasspath() {
 
-        AssetManager assetManager = CoreRegistry.get(AssetManager.class);
+        ModuleManager assetManager = CoreRegistry.get(ModuleManager.class);
         ModuleEnvironment env = assetManager.getEnvironment();
         return Sets.newHashSet(env.getTypesAnnotatedWith(RegisterWorldGenerator.class));
     }

@@ -27,24 +27,46 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.asset.AssetFactory;
-import org.terasology.asset.AssetManager;
-import org.terasology.asset.AssetManagerImpl;
-import org.terasology.asset.AssetType;
-import org.terasology.asset.AssetUri;
+import org.terasology.assets.AssetFactory;
+import org.terasology.assets.management.AssetManager;
+import org.terasology.assets.module.ModuleAwareAssetTypeManager;
+import org.terasology.audio.Sound;
+import org.terasology.audio.StaticSound;
+import org.terasology.audio.StaticSoundData;
+import org.terasology.audio.StreamingSound;
+import org.terasology.audio.StreamingSoundData;
+import org.terasology.audio.nullAudio.NullSound;
+import org.terasology.audio.nullAudio.NullStreamingSound;
 import org.terasology.config.Config;
 import org.terasology.context.Context;
 import org.terasology.context.internal.ContextImpl;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
+import org.terasology.entitySystem.prefab.Prefab;
+import org.terasology.entitySystem.prefab.PrefabData;
+import org.terasology.entitySystem.prefab.internal.PojoPrefab;
 import org.terasology.module.Module;
 import org.terasology.module.ModuleEnvironment;
 import org.terasology.registry.CoreRegistry;
+import org.terasology.rendering.assets.texture.PNGTextureFormat;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.BlockUri;
+import org.terasology.world.block.family.AttachedToSurfaceFamilyFactory;
+import org.terasology.world.block.family.DefaultBlockFamilyFactoryRegistry;
+import org.terasology.world.block.family.HorizontalBlockFamilyFactory;
+import org.terasology.world.block.internal.BlockManagerImpl;
+import org.terasology.world.block.loader.BlockFamilyDefinition;
+import org.terasology.world.block.loader.BlockFamilyDefinitionData;
+import org.terasology.world.block.loader.BlockFamilyDefinitionFormat;
+import org.terasology.world.block.shapes.BlockShape;
+import org.terasology.world.block.shapes.BlockShapeData;
+import org.terasology.world.block.shapes.BlockShapeImpl;
+import org.terasology.world.block.sounds.BlockSounds;
+import org.terasology.world.block.sounds.BlockSoundsData;
+import org.terasology.world.block.tiles.NullWorldAtlas;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.world.generator.plugin.WorldGeneratorPlugin;
 import org.terasology.world.generator.plugin.WorldGeneratorPluginLibrary;
@@ -93,17 +115,40 @@ public final class TinyEnvironment {
     }
 
     private static void setupAssetManager() {
-        ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
-        AssetManager assetManager = new AssetManagerImpl(moduleManager.getEnvironment());
-        AssetType.registerAssetTypes(assetManager);
-        assetManager.setAssetFactory(AssetType.TEXTURE, new AssetFactory<TextureData, Texture>() {
-            @Override
-            public Texture buildAsset(AssetUri uri, TextureData data) {
-                return new HeadlessTexture(uri, data);
-            }
-        });
+        ModuleAwareAssetTypeManager assetTypeManager = new ModuleAwareAssetTypeManager();
 
-        CoreRegistry.put(AssetManager.class, assetManager);
+        assetTypeManager.registerCoreAssetType(Prefab.class,
+                (AssetFactory<Prefab, PrefabData>) PojoPrefab::new, false, "prefabs");
+        assetTypeManager.registerCoreAssetType(BlockShape.class,
+                (AssetFactory<BlockShape, BlockShapeData>) BlockShapeImpl::new, "shapes");
+        assetTypeManager.registerCoreAssetType(BlockSounds.class,
+                (AssetFactory<BlockSounds, BlockSoundsData>) BlockSounds::new, "blockSounds");
+        assetTypeManager.registerCoreAssetType(Texture.class,
+                (AssetFactory<Texture, TextureData>) HeadlessTexture::new, "textures", "fonts");
+        assetTypeManager.registerCoreAssetType(BlockFamilyDefinition.class,
+                (AssetFactory<BlockFamilyDefinition, BlockFamilyDefinitionData>) BlockFamilyDefinition::new, "blocks");
+
+        assetTypeManager.registerCoreAssetType(StaticSound.class,
+                (AssetFactory<StaticSound, StaticSoundData>) NullSound::new, "sounds");
+        assetTypeManager.registerCoreAssetType(StreamingSound.class,
+                (AssetFactory<StreamingSound, StreamingSoundData>) NullStreamingSound::new, "music");
+
+        DefaultBlockFamilyFactoryRegistry blockFamilyFactoryRegistry = new DefaultBlockFamilyFactoryRegistry();
+        blockFamilyFactoryRegistry.setBlockFamilyFactory("horizontal", new HorizontalBlockFamilyFactory());
+        blockFamilyFactoryRegistry.setBlockFamilyFactory("alignToSurface", new AttachedToSurfaceFamilyFactory());
+        assetTypeManager.registerCoreFormat(BlockFamilyDefinition.class, new BlockFamilyDefinitionFormat(assetTypeManager.getAssetManager(), blockFamilyFactoryRegistry));
+
+        assetTypeManager.registerCoreAssetType(Texture.class,
+                (AssetFactory<Texture, TextureData>) HeadlessTexture::new, "textures", "fonts");
+        assetTypeManager.registerCoreFormat(Texture.class, new PNGTextureFormat(Texture.FilterMode.NEAREST,
+                path -> path.getName(2).toString().equals("textures")));
+        assetTypeManager.registerCoreFormat(Texture.class, new PNGTextureFormat(Texture.FilterMode.LINEAR,
+                path -> path.getName(2).toString().equals("fonts")));
+
+        assetTypeManager.switchEnvironment(context.get(ModuleManager.class).getEnvironment());
+
+        context.put(ModuleAwareAssetTypeManager.class, assetTypeManager);
+        context.put(AssetManager.class, assetTypeManager.getAssetManager());
     }
 
     public static void addModules(List<File> jars) {
@@ -124,15 +169,26 @@ public final class TinyEnvironment {
 
         // TODO: merge with #setupAssetManager()
         ModuleEnvironment newEnv = moduleManager.loadEnvironment(mods, true);
-        AssetManager assetManager = CoreRegistry.get(AssetManager.class);
-        assetManager.setEnvironment(newEnv);
+        ModuleAwareAssetTypeManager assetTypeManager = CoreRegistry.get(ModuleAwareAssetTypeManager.class);
+        assetTypeManager.switchEnvironment(newEnv);
 
         CoreRegistry.get(WorldGeneratorManager.class).refresh();
     }
 
     private static void setupBlockManager() {
         BlockManager blockManager = Mockito.mock(BlockManager.class);
-        Block air = BlockManager.getAir();
+        Block air = new Block();
+        air.setTranslucent(true);
+        air.setTargetable(false);
+        air.setPenetrable(true);
+        air.setReplacementAllowed(true);
+        air.setShadowCasting(false);
+        air.setAttachmentAllowed(false);
+        air.setHardness(0);
+        air.setId((short) 0);
+        air.setDisplayName("Air");
+        air.setUri(BlockManager.AIR_ID);
+
         Mockito.when(blockManager.getBlock(Matchers.<BlockUri>any())).thenReturn(air);
         Mockito.when(blockManager.getBlock(Matchers.<String>any())).thenReturn(air);
 
