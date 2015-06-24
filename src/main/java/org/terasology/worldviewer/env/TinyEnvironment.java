@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.terasology.assets.AssetFactory;
 import org.terasology.assets.management.AssetManager;
 import org.terasology.assets.module.ModuleAwareAssetTypeManager;
-import org.terasology.audio.Sound;
 import org.terasology.audio.StaticSound;
 import org.terasology.audio.StaticSoundData;
 import org.terasology.audio.StreamingSound;
@@ -57,7 +56,6 @@ import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.AttachedToSurfaceFamilyFactory;
 import org.terasology.world.block.family.DefaultBlockFamilyFactoryRegistry;
 import org.terasology.world.block.family.HorizontalBlockFamilyFactory;
-import org.terasology.world.block.internal.BlockManagerImpl;
 import org.terasology.world.block.loader.BlockFamilyDefinition;
 import org.terasology.world.block.loader.BlockFamilyDefinitionData;
 import org.terasology.world.block.loader.BlockFamilyDefinitionFormat;
@@ -66,7 +64,6 @@ import org.terasology.world.block.shapes.BlockShapeData;
 import org.terasology.world.block.shapes.BlockShapeImpl;
 import org.terasology.world.block.sounds.BlockSounds;
 import org.terasology.world.block.sounds.BlockSoundsData;
-import org.terasology.world.block.tiles.NullWorldAtlas;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.world.generator.plugin.WorldGeneratorPlugin;
 import org.terasology.world.generator.plugin.WorldGeneratorPluginLibrary;
@@ -96,7 +93,7 @@ public final class TinyEnvironment {
 
         setupModuleManager();
 
-        setupAssetManager();
+        setupAssetManager(context);
 
         setupBlockManager();
 
@@ -114,7 +111,7 @@ public final class TinyEnvironment {
         CoreRegistry.put(Config.class, config);
     }
 
-    private static void setupAssetManager() {
+    private static void setupAssetManager(Context context) {
         ModuleAwareAssetTypeManager assetTypeManager = new ModuleAwareAssetTypeManager();
 
         assetTypeManager.registerCoreAssetType(Prefab.class,
