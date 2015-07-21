@@ -97,9 +97,9 @@ dependencies {
 
     codeMetrics(group: 'org.terasology.config', name: 'codemetrics', version: '1.0.0', ext: 'zip')
 
-    checkstyle ('com.puppycrawl.tools:checkstyle:6.5')
-    pmd ('net.sourceforge.pmd:pmd-core:5.3.0')
-    pmd ('net.sourceforge.pmd:pmd-java:5.3.0')
+    checkstyle ('com.puppycrawl.tools:checkstyle:6.8.1')
+    pmd ('net.sourceforge.pmd:pmd-core:5.3.2')
+    pmd ('net.sourceforge.pmd:pmd-java:5.3.2')
 
     compile (group: 'args4j', name: 'args4j', version: '2.32')
 
