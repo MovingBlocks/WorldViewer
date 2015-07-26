@@ -22,7 +22,6 @@ import java.awt.event.MouseEvent;
 
 /**
  * Stores the last known cursor position
- * @author Martin Steiger
  */
 public class CursorPositionListener extends MouseAdapter {
 

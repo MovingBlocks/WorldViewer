@@ -27,7 +27,6 @@ import com.google.gson.JsonSerializer;
 
 /**
  * Serializes Class<?> instances.
- * @author Martin Steiger
  */
 public class ClassTypeAdapter implements JsonDeserializer<Class<?>>, JsonSerializer<Class<?>> {
 

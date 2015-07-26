@@ -43,7 +43,6 @@ import org.terasology.worldviewer.gui.UIBindings;
 
 /**
  * The facet layer configuration panel (at the left)
- * @author Martin Steiger
  */
 public class FacetPanel extends JPanel {
 

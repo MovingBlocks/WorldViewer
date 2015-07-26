@@ -23,7 +23,6 @@ import java.awt.event.MouseWheelEvent;
 
 /**
  * Triggers a repaint on any mouse interaction
- * @author Martin Steiger
  */
 public class RepaintingMouseListener extends MouseAdapter {
 

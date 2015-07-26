@@ -72,7 +72,6 @@ import org.terasology.world.generator.plugin.WorldGeneratorPluginLibrary;
 
 /**
  * Setup a tiny Terasology environment
- * @author Martin Steiger
  */
 public final class TinyEnvironment {
 

@@ -47,7 +47,6 @@ import com.google.common.collect.Lists;
 
 /**
  * The main MapViewer JFrame
- * @author Martin Steiger
  */
 public class MainFrame extends JFrame {
 

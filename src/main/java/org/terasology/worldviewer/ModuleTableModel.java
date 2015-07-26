@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * A swing-based table model for modules.
- * @author Martin Steiger
  */
 public class ModuleTableModel extends AbstractTableModel {
 

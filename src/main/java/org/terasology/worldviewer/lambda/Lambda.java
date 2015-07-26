@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * @author Martin Steiger
  */
 public final class Lambda {
 

@@ -18,7 +18,6 @@ package org.terasology.worldviewer.overlay;
 
 
 /**
- * @author Martin Steiger
  */
 public abstract class AbstractOverlay implements Overlay {
 

@@ -18,7 +18,6 @@ package org.terasology.worldviewer.camera;
 
 /**
  * Notified when the camera setting changes
- * @author Martin Steiger
  */
 public interface CameraListener {
 

@@ -18,7 +18,6 @@ package org.terasology.worldviewer.core;
 
 /**
  * A "mix-in" interface to indicate support for reordering elements
- * @author Martin Steiger
  */
 public interface Reorderable {
     void reorder(int fromIndex, int toIndex);

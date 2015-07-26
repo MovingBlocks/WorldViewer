@@ -27,7 +27,6 @@ import com.google.common.collect.Lists;
 
 /**
  * Defines a simple camera
- * @author Martin Steiger
  */
 public class Camera {
     private final Vector2f pos = new Vector2f();

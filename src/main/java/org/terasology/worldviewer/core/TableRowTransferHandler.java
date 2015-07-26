@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Handles drag & drop row reordering.
  * Adapted from http://docs.oracle.com/javase/tutorial/uiswing/components/table.html
- * @author Martin Steiger
  */
 public class TableRowTransferHandler extends TransferHandler {
 

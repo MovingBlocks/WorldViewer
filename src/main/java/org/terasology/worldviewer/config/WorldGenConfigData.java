@@ -21,7 +21,6 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 /**
- * @author Martin Steiger
  */
 public class WorldGenConfigData {
     List<ConfigEntry> layers = Lists.newArrayList();

@@ -25,7 +25,6 @@ import com.google.common.collect.Maps;
 
 /**
  * The root class for all configs
- * @author Martin Steiger
  */
 class ConfigData {
 

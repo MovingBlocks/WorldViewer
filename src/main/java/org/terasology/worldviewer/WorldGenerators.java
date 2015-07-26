@@ -32,7 +32,6 @@ import com.google.common.collect.Sets;
 
 /**
  * Some helper methods for WorldGenerators
- * @author Martin Steiger
  */
 public final class WorldGenerators {
 

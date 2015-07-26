@@ -28,7 +28,6 @@ import com.google.common.math.IntMath;
 
 /**
  * Renders a grid that is aligned along tile borders
- * @author Martin Steiger
  */
 public class GridOverlay extends AbstractOverlay implements WorldOverlay {
 

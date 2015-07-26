@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * A {@link javax.swing.table.TableModel} that works on a list of {@link FacetLayer}s.
- * @author Martin Steiger
  */
 public class FacetTableModel extends AbstractTableModel implements Reorderable {
 

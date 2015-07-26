@@ -25,7 +25,6 @@ import org.terasology.worldviewer.overlay.TextOverlay;
 
 
 /**
- * @author Martin Steiger
  */
 public class ZoomOverlayUpdater implements CameraListener {
 

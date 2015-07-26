@@ -26,7 +26,6 @@ import org.terasology.world.generator.internal.WorldGeneratorInfo;
 /**
  * It actually implements ListCellRenderer<WorldGeneratorInfo>, but since DefaultListCellRenderer
  * uses Object, this isn't allowed in Java.
- * @author Martin Steiger
  */
 public class WorldGenCellRenderer extends DefaultListCellRenderer {
 

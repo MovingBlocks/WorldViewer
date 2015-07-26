@@ -21,7 +21,6 @@ import org.terasology.engine.SimpleUri;
 
 /**
  * Stores world-related config params.
- * @author Martin Steiger
  */
 public class WorldConfig {
 

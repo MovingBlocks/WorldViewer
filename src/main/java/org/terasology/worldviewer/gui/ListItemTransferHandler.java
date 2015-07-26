@@ -39,7 +39,6 @@ import com.google.common.collect.Lists;
  * Works only for {@link JList} with {@link DefaultListModel}.
  * Adapted from http://stackoverflow.com/questions/16586562/reordering-jlist-with-drag-and-drop
  * @param <T> the item type
- * @author Martin Steiger
  */
 public class ListItemTransferHandler<T> extends TransferHandler {
     private static final long serialVersionUID = -8755359045727856083L;

@@ -38,7 +38,6 @@ import org.terasology.worldviewer.lambda.Lambda;
 /**
  * Provides a set of static methods that binds a {@link Consumer} to a
  * Swing UI element based on individual fields.
- * @author Martin Steiger
  */
 public final class UIBindings {
 

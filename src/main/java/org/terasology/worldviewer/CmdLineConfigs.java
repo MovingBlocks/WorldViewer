@@ -21,7 +21,6 @@ import org.kohsuke.args4j.Option;
 
 /**
  * Command-line configuration options.
- * @author Martin Steiger
  */
 public class CmdLineConfigs {
 

@@ -23,7 +23,6 @@ import org.terasology.math.geom.Rect2i;
 
 /**
  * Overlays are rendered live on top of the world.
- * @author Martin Steiger
  */
 public interface Overlay {
 

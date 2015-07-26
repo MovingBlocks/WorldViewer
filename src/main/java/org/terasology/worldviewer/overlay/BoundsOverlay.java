@@ -28,7 +28,6 @@ import org.terasology.worldviewer.render.RandomObjectColors;
 
 /**
  * Renders a collection of colored rectangles
- * @author Martin Steiger
  */
 public class BoundsOverlay extends AbstractOverlay implements WorldOverlay {
 

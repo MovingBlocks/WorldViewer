@@ -24,7 +24,6 @@ import org.terasology.world.generation.WorldFacet;
  * A thread-safe wrapping class for {@link Region} that
  * synchronizes access to {@link #getFacet(Class)}. It assumes that
  * {@link #getRegion()} does not need synchronizing.
- * @author Martin Steiger
  */
 public class ThreadSafeRegion implements Region {
 

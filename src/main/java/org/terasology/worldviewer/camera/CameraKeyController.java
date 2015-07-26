@@ -21,7 +21,6 @@ import java.awt.event.KeyEvent;
 
 /**
  * Controls a camera based on keyboard interaction
- * @author Martin Steiger
  */
 public class CameraKeyController extends KeyAdapter {
 

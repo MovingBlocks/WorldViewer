@@ -94,7 +94,6 @@ import com.google.common.math.IntMath;
 
 /**
  * The main viewer component
- * @author Martin Steiger
  */
 public final class Viewer extends JComponent {
 

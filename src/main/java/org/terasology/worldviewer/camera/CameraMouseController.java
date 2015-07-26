@@ -31,7 +31,6 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Controls a camera based on mouse interaction
- * @author Martin Steiger
  */
 public class CameraMouseController extends MouseAdapter {
 

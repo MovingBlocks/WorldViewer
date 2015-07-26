@@ -20,7 +20,6 @@ import org.terasology.math.geom.Vector2i;
 
 /**
  * Stores view-related config params.
- * @author Martin Steiger
  */
 public class ViewConfig {
 

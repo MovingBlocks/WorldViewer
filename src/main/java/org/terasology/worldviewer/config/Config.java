@@ -45,7 +45,6 @@ import com.google.gson.JsonParseException;
 
 /**
  * The root class for all configs
- * @author Martin Steiger
  */
 public class Config {
 

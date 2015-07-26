@@ -32,7 +32,6 @@ import org.terasology.rendering.nui.VerticalAlign;
 
 /**
  * Renders a grid that is aligned along tile borders
- * @author Martin Steiger
  */
 public class TextOverlay extends AbstractOverlay implements ScreenOverlay {
 

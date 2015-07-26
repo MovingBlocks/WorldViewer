@@ -21,7 +21,6 @@ import java.awt.Component;
 /**
  * Repaints a component when the camera moves
  * or changes zoom.
- * @author Martin Steiger
  */
 public class RepaintingCameraListener implements CameraListener {
     private Component comp;

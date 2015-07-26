@@ -54,7 +54,6 @@ import com.google.common.collect.Lists;
 
 /**
  * A modal dialogs for the selection of a world generator.
- * @author Martin Steiger
  */
 public class SelectWorldGenDialog extends JDialog {
 

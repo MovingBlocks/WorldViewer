@@ -32,7 +32,6 @@ import com.google.common.util.concurrent.AtomicDouble;
  * and always returns the same color for the same object.
  * <br/><br/>
  * Brightness and saturation remain constant while the hue differs.
- * @author Martin Steiger
  */
 public class RandomObjectColors implements Function<Object, Color> {
 

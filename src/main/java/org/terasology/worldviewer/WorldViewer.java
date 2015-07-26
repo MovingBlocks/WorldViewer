@@ -53,7 +53,6 @@ import org.terasology.worldviewer.version.VersionInfo;
 
 /**
  * Preview generated world in Swing
- * @author Martin Steiger
  */
 public final class WorldViewer {
 

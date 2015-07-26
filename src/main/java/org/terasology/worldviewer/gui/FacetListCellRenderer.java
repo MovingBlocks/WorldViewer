@@ -26,7 +26,6 @@ import org.terasology.world.viewer.layers.FacetLayer;
 
 /**
  * Renders cells as checkboxes. Interaction does not seem to be possible.
- * @author Martin Steiger
  */
 public class FacetListCellRenderer implements ListCellRenderer<FacetLayer> {
 
