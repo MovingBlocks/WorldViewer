@@ -41,6 +41,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.context.Context;
 import org.terasology.engine.SimpleUri;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generator.WorldGenerator;
@@ -78,7 +79,7 @@ public final class WorldViewer {
 
         try {
 //            FullEnvironment.setup();
-            TinyEnvironment.setup();
+            Context context = TinyEnvironment.createContext();
 
             Config config = Config.load(CONFIG_PATH);
 
@@ -93,7 +94,7 @@ public final class WorldViewer {
 //            SplashScreen.getInstance().close();
             SwingUtilities.invokeLater(() -> {
                 setupLookAndFeel();
-                createAndShowGUI(config, cmdLineOpts);
+                createAndShowGUI(context, config, cmdLineOpts);
             });
         } catch (CmdLineException e) {
             System.err.println("Could not parse command line arguments: " + e.getMessage());
@@ -133,7 +134,7 @@ public final class WorldViewer {
       }
     }
 
-    private static void createAndShowGUI(Config config, CmdLineConfigs cmdLineOpts) {
+    private static void createAndShowGUI(Context context, Config config, CmdLineConfigs cmdLineOpts) {
 
         WorldConfig wgConfig = config.getWorldConfig();
 
@@ -161,7 +162,7 @@ public final class WorldViewer {
 
         try {
             WorldGeneratorManager worldGeneratorManager = CoreRegistry.get(WorldGeneratorManager.class);
-            WorldGenerator worldGen = worldGeneratorManager.createGenerator(worldGenUri);
+            WorldGenerator worldGen = worldGeneratorManager.createGenerator(worldGenUri, context);
             worldGen.setWorldSeed(worldSeed);
             worldGen.initialize();
             createAndShowMainFrame(worldGen, config);

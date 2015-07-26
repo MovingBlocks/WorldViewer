@@ -24,6 +24,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.terasology.context.Context;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.registry.CoreRegistry;
@@ -37,15 +38,18 @@ import org.terasology.worldviewer.config.ViewConfig;
 import org.terasology.worldviewer.env.TinyEnvironment;
 
 public class ViewerTest {
+
+    private Context context;
+
     @Before
     public void setup() throws IOException {
-        TinyEnvironment.setup();
+        context = TinyEnvironment.createContext();
     }
 
     @Test
     public void testViewer() throws UnresolvedWorldGeneratorException {
         WorldGeneratorManager worldGeneratorManager = CoreRegistry.get(WorldGeneratorManager.class);
-        WorldGenerator worldGen = worldGeneratorManager.createGenerator(new SimpleUri("core:facetedperlin"));
+        WorldGenerator worldGen = worldGeneratorManager.createGenerator(new SimpleUri("core:facetedperlin"), context);
         String worldSeed = "asdf";
         worldGen.setWorldSeed(worldSeed);
         worldGen.initialize();

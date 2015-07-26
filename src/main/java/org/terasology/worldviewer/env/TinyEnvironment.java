@@ -41,6 +41,8 @@ import org.terasology.context.Context;
 import org.terasology.context.internal.ContextImpl;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
+import org.terasology.entitySystem.entity.EntityManager;
+import org.terasology.entitySystem.entity.internal.PojoEntityManager;
 import org.terasology.entitySystem.prefab.Prefab;
 import org.terasology.entitySystem.prefab.PrefabData;
 import org.terasology.entitySystem.prefab.internal.PojoPrefab;
@@ -82,9 +84,10 @@ public final class TinyEnvironment {
 
     /**
      * Default setup order
+     * @return the generated context that refers to all created systems
      * @throws IOException if the engine could not be loaded
      */
-    public static void setup() throws IOException {
+    public static Context createContext() throws IOException {
 
         Context context = new ContextImpl();
         CoreRegistry.setContext(context);
@@ -98,6 +101,12 @@ public final class TinyEnvironment {
         setupBlockManager();
 
         setupWorldGen(context);
+
+        // Entity Manager
+        PojoEntityManager entityManager = new PojoEntityManager();
+        CoreRegistry.put(EntityManager.class, entityManager);
+
+        return context;
     }
 
     private static void setupModuleManager() throws IOException {
