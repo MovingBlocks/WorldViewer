@@ -22,9 +22,9 @@ You can watch one of the following video tutorials to get an idea how it works:
 Download
 -----------
 
-[![Build Status](http://jenkins.terasology.org/job/WorldViewerNightly/badge/icon)](http://jenkins.terasology.org/job/WorldViewerNightly/)
+[![Build Status](http://jenkins.terasology.org/job/WorldViewer/badge/icon)](http://jenkins.terasology.org/job/WorldViewerNightly/)
 
-You can download the [latest nightly build](http://jenkins.terasology.org/job/WorldViewerNightly/lastSuccessfulBuild/artifact/build/distributions/WorldViewer.zip) from our Jenkins server.
+You can download the [latest build](http://jenkins.terasology.org/job/WorldViewer/lastSuccessfulBuild/artifact/build/distributions/WorldViewer.zip) from our Jenkins server.
 
 You need [Java 8](http://java.com/download) and at least 3 GB memory to run WorldViewer. 
 
