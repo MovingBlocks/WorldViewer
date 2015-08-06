@@ -329,8 +329,8 @@ public final class Viewer extends JComponent {
         int chunkMinX = IntMath.divide(area.minX(), TILE_SIZE_X, RoundingMode.FLOOR);
         int chunkMinZ = IntMath.divide(area.minY(), TILE_SIZE_Y, RoundingMode.FLOOR);
 
-        int chunkMaxX = IntMath.divide(area.maxX(), TILE_SIZE_X, RoundingMode.CEILING);
-        int chunkMaxZ = IntMath.divide(area.maxY(), TILE_SIZE_Y, RoundingMode.CEILING);
+        int chunkMaxX = IntMath.divide(area.maxX(), TILE_SIZE_X, RoundingMode.FLOOR);
+        int chunkMaxZ = IntMath.divide(area.maxY(), TILE_SIZE_Y, RoundingMode.FLOOR);
 
         return Rect2i.createFromMinAndMax(chunkMinX, chunkMinZ, chunkMaxX, chunkMaxZ);
     }
@@ -348,8 +348,8 @@ public final class Viewer extends JComponent {
         }
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
 
-        for (int z = visChunks.minY(); z < visChunks.maxY(); z++) {
-            for (int x = visChunks.minX(); x < visChunks.maxX(); x++) {
+        for (int z = visChunks.minY(); z <= visChunks.maxY(); z++) {
+            for (int x = visChunks.minX(); x <= visChunks.maxX(); x++) {
                 ImmutableVector2i pos = new ImmutableVector2i(x, z);
                 BufferedImage image = imageCache.getUnchecked(pos);
                 g.drawImage(image, x * TILE_SIZE_X, z * TILE_SIZE_Y, null);
