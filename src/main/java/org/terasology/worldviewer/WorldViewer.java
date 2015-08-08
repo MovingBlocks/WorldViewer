@@ -17,6 +17,7 @@
 package org.terasology.worldviewer;
 
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -44,6 +45,11 @@ import org.slf4j.LoggerFactory;
 import org.terasology.context.Context;
 import org.terasology.engine.SimpleUri;
 import org.terasology.registry.CoreRegistry;
+import org.terasology.splash.SplashScreen;
+import org.terasology.splash.SplashScreenBuilder;
+import org.terasology.splash.overlay.AnimatedBoxRowOverlay;
+import org.terasology.splash.overlay.RectOverlay;
+import org.terasology.splash.overlay.TextOverlay;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.worldviewer.config.Config;
@@ -74,23 +80,23 @@ public final class WorldViewer {
         CmdLineConfigs cmdLineOpts = new CmdLineConfigs();
         CmdLineParser parser = new CmdLineParser(cmdLineOpts);
 
-//        SplashScreen.getInstance().post("Loading ...");
-
         try {
-//            FullEnvironment.setup();
-            Context context = TinyEnvironment.createContext();
-
-            Config config = Config.load(CONFIG_PATH);
-
             parser.parseArgument(args);
-
             if (cmdLineOpts.help) {
                 System.out.println("WorldViewer - Version " + VersionInfo.getVersion());
                 parser.printUsage(System.out);
                 return;
             }
 
-//            SplashScreen.getInstance().close();
+            SplashScreen splashScreen = createSplashScreen();
+            splashScreen.post("Loading ...");
+
+//          FullEnvironment.setup();
+            Context context = TinyEnvironment.createContext(splashScreen);
+
+            Config config = Config.load(CONFIG_PATH);
+
+            splashScreen.close();
             SwingUtilities.invokeLater(() -> {
                 setupLookAndFeel();
                 createAndShowGUI(context, config, cmdLineOpts);
@@ -103,6 +109,25 @@ public final class WorldViewer {
             System.err.println("Could not load modules: " + e.getMessage());
             return;
         }
+    }
+
+    private static SplashScreen createSplashScreen() {
+        SplashScreenBuilder builder = new SplashScreenBuilder();
+        int imageHeight = 332;
+        int maxTextWidth = 450;
+        int width = 600;
+        int height = 30;
+        int left = 20;
+        int top = imageHeight - height - 20;
+
+        Rectangle rectRc = new Rectangle(left, top, width, height);
+        Rectangle textRc = new Rectangle(left + 10, top + 5, maxTextWidth, height);
+        Rectangle boxRc = new Rectangle(left + maxTextWidth + 10, top, width - maxTextWidth - 20, height);
+        return builder
+                .add(new RectOverlay(rectRc))
+                .add(new TextOverlay(textRc))
+                .add(new AnimatedBoxRowOverlay(boxRc))
+                .build();
     }
 
     private static void setupLookAndFeel() {

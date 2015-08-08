@@ -52,6 +52,7 @@ import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.assets.texture.PNGTextureFormat;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
+import org.terasology.splash.SplashScreen;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.BlockUri;
@@ -83,24 +84,31 @@ public final class TinyEnvironment {
 
     /**
      * Default setup order
+     * @param splashScreen the splash screen
      * @return the generated context that refers to all created systems
      * @throws IOException if the engine could not be loaded
      */
-    public static Context createContext() throws IOException {
+    public static Context createContext(SplashScreen splashScreen) throws IOException {
 
         Context context = new ContextImpl();
         CoreRegistry.setContext(context);
 
+        splashScreen.post("Loading config ..");
         setupConfig();
 
+        splashScreen.post("Loading module manager ..");
         setupModuleManager();
 
+        splashScreen.post("Loading asset manager ..");
         setupAssetManager(context);
 
+        splashScreen.post("Loading block manager ..");
         setupBlockManager();
 
+        splashScreen.post("Loading world generators ..");
         setupWorldGen(context);
 
+        splashScreen.post("Loading entity manager ..");
         // Entity Manager
         PojoEntityManager entityManager = new PojoEntityManager();
         CoreRegistry.put(EntityManager.class, entityManager);

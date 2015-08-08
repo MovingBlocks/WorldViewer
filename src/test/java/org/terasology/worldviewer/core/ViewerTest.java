@@ -28,6 +28,7 @@ import org.terasology.context.Context;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.registry.CoreRegistry;
+import org.terasology.splash.SplashScreenBuilder;
 import org.terasology.world.generation.WorldFacet;
 import org.terasology.world.generator.UnresolvedWorldGeneratorException;
 import org.terasology.world.generator.WorldGenerator;
@@ -43,7 +44,7 @@ public class ViewerTest {
 
     @Before
     public void setup() throws IOException {
-        context = TinyEnvironment.createContext();
+        context = TinyEnvironment.createContext(new SplashScreenBuilder().build());
     }
 
     @Test
