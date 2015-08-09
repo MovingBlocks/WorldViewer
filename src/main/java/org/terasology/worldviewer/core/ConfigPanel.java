@@ -50,6 +50,9 @@ import org.terasology.worldviewer.config.Config;
 import org.terasology.worldviewer.gui.UIBindings;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class ConfigPanel extends JPanel {
 
@@ -106,10 +109,27 @@ public class ConfigPanel extends JPanel {
         observers.remove(obs);
     }
 
-    private void notifyObservers() {
+    private void notifyObservers(String group, Field field, Object value) {
+        WorldConfigurator configurator = worldGen.getConfigurator();
+        Component comp = configurator.getProperties().get(group);
+        Component clone = cloneAndSet(comp, field.getName(), value);
+
+        // first notify the world generator about the new component
+        configurator.setProperty(group, clone);
+
+        // then notify all observers
         for (Observer<WorldGenerator> obs : observers) {
             obs.update(worldGen);
         }
+    }
+
+    private static Component cloneAndSet(Component object, String field, Object value) {
+        Gson gson = new Gson();
+        JsonObject json = (JsonObject) gson.toJsonTree(object);
+        JsonElement jsonValue = gson.toJsonTree(value);
+        json.add(field, jsonValue);
+        Component clone = gson.fromJson(json, object.getClass());
+        return clone;
     }
 
     private JPanel createConfigPanel() {
@@ -135,20 +155,28 @@ public class ConfigPanel extends JPanel {
             caption.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
             configPanel.add(caption, gbc.clone());
 
-            processComponent(configPanel, ccomp);
+            processComponent(configPanel, label, ccomp);
         }
 
         return configPanel;
     }
 
-    private void processComponent(Container panel, Component ccomp) {
+    private void processComponent(Container panel, String key, Component ccomp) {
         for (Field field : ccomp.getClass().getDeclaredFields()) {
             Annotation[] anns = field.getAnnotations();
             // check only on annotated fields
             if (anns.length > 0) {
                 try {
-                    field.setAccessible(true);
-                    process(panel, ccomp, field);
+                    boolean isAcc = field.isAccessible();
+                    if (!isAcc) {
+                        field.setAccessible(true);
+                    } else {
+                        logger.warn("Field '{}' should be private", field);
+                    }
+                    process(panel, key, ccomp, field);
+                    if (!isAcc) {
+                        field.setAccessible(false);
+                    }
                 } catch (IllegalArgumentException e) {
                     logger.warn("Could not access field \"{}-{}\"", ccomp.getClass(), field.getName(), e);
                 }
@@ -156,34 +184,34 @@ public class ConfigPanel extends JPanel {
         }
     }
 
-    private void process(Container parent, Object obj, Field field) {
+    private void process(Container parent, String key, Component component, Field field) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridy = GridBagConstraints.RELATIVE;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JComponent comp = null;
 
-        JSpinner spinner = UIBindings.processRangeAnnotation(obj, field);
+        JSpinner spinner = UIBindings.processRangeAnnotation(component, field);
         if (spinner != null) {
-            spinner.addChangeListener(event -> notifyObservers());
+            spinner.addChangeListener(event -> notifyObservers(key, field, spinner.getValue()));
             comp = spinner;
         }
 
-        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(obj, field, "active");
+        JCheckBox checkbox = UIBindings.processCheckboxAnnotation(component, field, "active");
         if (checkbox != null) {
-            checkbox.addChangeListener(event -> notifyObservers());
+            checkbox.addChangeListener(event -> notifyObservers(key, field, checkbox.isSelected()));
             comp = checkbox;
         }
 
-        JComboBox<?> listCombo = UIBindings.processListAnnotation(obj, field);
+        JComboBox<?> listCombo = UIBindings.processListAnnotation(component, field);
         if (listCombo != null) {
-            listCombo.addActionListener(event -> notifyObservers());
+            listCombo.addActionListener(event -> notifyObservers(key, field, listCombo.getSelectedItem()));
             comp = listCombo;
         }
 
-        JComboBox<?> enumCombo = UIBindings.processEnumAnnotation(obj, field);
+        JComboBox<?> enumCombo = UIBindings.processEnumAnnotation(component, field);
         if (enumCombo != null) {
-            enumCombo.addActionListener(event -> notifyObservers());
+            enumCombo.addActionListener(event -> notifyObservers(key, field, enumCombo.getSelectedItem()));
             comp = enumCombo;
         }
 

@@ -37,6 +37,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.world.viewer.layers.FacetLayer;
 import org.terasology.world.viewer.layers.FacetLayerConfig;
 import org.terasology.worldviewer.gui.UIBindings;
@@ -47,6 +49,8 @@ import org.terasology.worldviewer.gui.UIBindings;
 public class FacetPanel extends JPanel {
 
     private static final long serialVersionUID = -4395448394330407251L;
+
+    private static final Logger logger = LoggerFactory.getLogger(FacetPanel.class);
 
     private final JPanel configPanel;
 
@@ -134,25 +138,60 @@ public class FacetPanel extends JPanel {
 
         JSpinner spinner = UIBindings.processRangeAnnotation(config, field);
         if (spinner != null) {
-            spinner.addChangeListener(event -> layer.notifyObservers());
+            spinner.addChangeListener(event -> {
+                Number v = (Number) spinner.getValue();
+                try {
+                    if (field.getType().equals(int.class) || field.getType().equals(Integer.class)) {
+                        field.setInt(config, v.intValue());
+                    } else {
+                        field.setFloat(config, v.floatValue());
+                    }
+                    layer.notifyObservers();
+                } catch (IllegalAccessException e) {
+                    logger.warn("Could not set field '{}:{}'", layer, field, e);
+                }
+            });
             comp = spinner;
         }
 
         JCheckBox checkbox = UIBindings.processCheckboxAnnotation(config, field, "visible");
         if (checkbox != null) {
-            checkbox.addChangeListener(event -> layer.notifyObservers());
+            checkbox.addChangeListener(event -> {
+                try {
+                    field.setBoolean(config, checkbox.isSelected());
+                    layer.notifyObservers();
+                } catch (IllegalAccessException e) {
+                    logger.warn("Could not set field '{}:{}'", layer, field, e);
+                }
+            });
             comp = checkbox;
         }
 
         JComboBox<?> listCombo = UIBindings.processListAnnotation(config, field);
         if (listCombo != null) {
-            listCombo.addActionListener(event -> layer.notifyObservers());
+            listCombo.addActionListener(event -> {
+                String v = listCombo.getSelectedItem().toString(); // this should be a String already
+                try {
+                    field.set(config, v);
+                    layer.notifyObservers();
+                } catch (IllegalAccessException e) {
+                    logger.warn("Could not set field '{}:{}'", layer, field, e);
+                }
+            });
             comp = listCombo;
         }
 
         JComboBox<?> enumCombo = UIBindings.processEnumAnnotation(config, field);
         if (enumCombo != null) {
-            enumCombo.addActionListener(event -> layer.notifyObservers());
+            enumCombo.addActionListener(event -> {
+                String v = enumCombo.getSelectedItem().toString(); // this should be a String already
+                try {
+                    field.set(config, v);
+                    layer.notifyObservers();
+                } catch (IllegalAccessException e) {
+                    logger.warn("Could not set field '{}:{}'", layer, field, e);
+                }
+            });
             comp = enumCombo;
         }
 
