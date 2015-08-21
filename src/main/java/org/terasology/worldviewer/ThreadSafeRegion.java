@@ -16,6 +16,9 @@
 
 package org.terasology.worldviewer;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.terasology.math.Region3i;
 import org.terasology.world.generation.Region;
 import org.terasology.world.generation.WorldFacet;
@@ -28,6 +31,7 @@ import org.terasology.world.generation.WorldFacet;
 public class ThreadSafeRegion implements Region {
 
     private final Region base;
+    private final Lock lock = new ReentrantLock();
 
     /**
      * @param base the underlying original region this implementation uses
@@ -37,8 +41,15 @@ public class ThreadSafeRegion implements Region {
     }
 
     @Override
-    public synchronized <T extends WorldFacet> T getFacet(Class<T> dataType) {
-        return base.getFacet(dataType);
+    public <T extends WorldFacet> T getFacet(Class<T> dataType) {
+        try {
+            lock.lockInterruptibly();
+            return base.getFacet(dataType);
+        } catch (InterruptedException e) {
+            return null;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

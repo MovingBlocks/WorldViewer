@@ -369,24 +369,46 @@ public final class Viewer extends JComponent {
         return region;
     }
 
+    private ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(2, 2,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
+
     private String getTooltip(BaseVector2i world) {
         Region region = getRegion(world);
 
-        StringBuffer sb = new StringBuffer();
-        for (FacetLayer layer : facetLayers) {
-            if (layer.isVisible()) {
-                try {
-                    String layerText = layer.getWorldText(region, world.getX(), world.getY());
-                    if (layerText != null) {
-                        sb.append("\n").append(layerText);
+        Future<String> layerTextFuture = threadPool2.submit(new Callable<String>() {
+
+            @Override
+            public String call() {
+                StringBuffer sb = new StringBuffer();
+                for (FacetLayer layer : facetLayers) {
+                    if (layer.isVisible()) {
+                        try {
+                            String layerText = layer.getWorldText(region, world.getX(), world.getY());
+                            if (layerText != null) {
+                                sb.append("\n").append(layerText);
+                            }
+                        } catch (Exception e) {
+                            sb.append("\n<failed>");
+                        }
                     }
-                } catch (Exception e) {
-                    sb.append("\n<failed>");
                 }
+                return sb.toString();
             }
+        });
+
+        String layerText;
+        try {
+            layerText = layerTextFuture.get(250, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            layerText = "\n<not available>";
+            layerTextFuture.cancel(true);
+            // maybe in debug mode?
         }
 
-        String tooltip = String.format("%d / %d%s", world.getX(), world.getY(), sb.toString());
+        System.out.println(threadPool2.getTaskCount());
+
+        String tooltip = String.format("%d / %d%s", world.getX(), world.getY(), layerText.toString());
         return tooltip;
     }
 
