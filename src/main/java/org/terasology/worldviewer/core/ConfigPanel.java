@@ -19,6 +19,7 @@ package org.terasology.worldviewer.core;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -218,9 +219,15 @@ public class ConfigPanel extends JPanel {
         if (comp != null) {
             gbc.insets.left = 5;
             gbc.insets.right = 5;
+            gbc.insets.bottom = 2;
             gbc.gridx = 0;
             JLabel label = new JLabel(comp.getName());
             label.setToolTipText(comp.getToolTipText());
+
+            // TODO: find a better way to configure the max. width of the labels
+            comp.setPreferredSize(new Dimension(60, 23));
+            label.setPreferredSize(new Dimension(100, 23));
+
             parent.add(label, gbc.clone());
             gbc.insets.left = 5;
             gbc.insets.right = 5;

@@ -42,6 +42,7 @@ import org.terasology.context.internal.ContextImpl;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.engine.subsystem.headless.assets.HeadlessTexture;
 import org.terasology.entitySystem.entity.EntityManager;
+import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.internal.PojoEntityManager;
 import org.terasology.entitySystem.prefab.Prefab;
 import org.terasology.entitySystem.prefab.PrefabData;
@@ -57,8 +58,10 @@ import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.AttachedToSurfaceFamilyFactory;
+import org.terasology.world.block.family.BlockFamily;
 import org.terasology.world.block.family.DefaultBlockFamilyFactoryRegistry;
 import org.terasology.world.block.family.HorizontalBlockFamilyFactory;
+import org.terasology.world.block.family.SymmetricFamily;
 import org.terasology.world.block.loader.BlockFamilyDefinition;
 import org.terasology.world.block.loader.BlockFamilyDefinitionData;
 import org.terasology.world.block.loader.BlockFamilyDefinitionFormat;
@@ -202,8 +205,11 @@ public final class TinyEnvironment {
         air.setDisplayName("Air");
         air.setUri(BlockManager.AIR_ID);
 
+        BlockFamily airFamily = new SymmetricFamily(BlockManager.AIR_ID, air);
+
         Mockito.when(blockManager.getBlock(Matchers.<BlockUri>any())).thenReturn(air);
         Mockito.when(blockManager.getBlock(Matchers.<String>any())).thenReturn(air);
+        Mockito.when(blockManager.getBlockFamily(Matchers.<String>any())).thenReturn(airFamily);
 
         CoreRegistry.put(BlockManager.class, blockManager);
     }
