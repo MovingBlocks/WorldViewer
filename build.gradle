@@ -68,7 +68,7 @@ task createVersionFile(type:Copy) {
     inputs.property('version', version)    // trigger executing by setting a property
 
     from ('src/main/resources/VersionInfo.template')
-    into ('src/main/java/org/terasology/worldviewer/version')
+    into ('src/main/java/org/terasology/world/viewer/version')
     rename '(.*).template', '$1.java'
 
     def (major, minor, patch, sha) = getVersionInfo()

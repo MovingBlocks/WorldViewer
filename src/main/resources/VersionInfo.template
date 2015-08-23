@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.worldviewer.version;
+package org.terasology.world.viewer.version;
 
 import java.time.ZonedDateTime;
 

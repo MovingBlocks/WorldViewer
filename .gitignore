@@ -16,4 +16,4 @@
 /.pmd
 /.ruleset
 
-/src/main/java/org/terasology/worldviewer/version/
+/src/main/java/org/terasology/world/viewer/version/
