@@ -103,16 +103,15 @@ dependencies {
 
     compile (group: 'args4j', name: 'args4j', version: '2.32')
 
-    compile (group: 'org.terasology.engine', name: 'engine', version: '0.54.2-SNAPSHOT')
     compile (group: 'org.terasology', name: 'splash-screen', version: '1.0.3')
 
     compile (group: 'org.terasology.modules', name: 'Core', version: '0.54.2-SNAPSHOT')
-    compile (group: 'org.terasology.modules', name: 'Cities', version: '0.4.2')
-    compile (group: 'org.terasology.modules', name: 'Pathfinding', version: '+')
-    compile (group: 'org.terasology.modules', name: 'TutorialWorldGeneration', version: '+')
-    compile (group: 'org.terasology.modules', name: 'LightAndShadow', version: '+')
+//    compile (group: 'org.terasology.modules', name: 'Cities', version: '+')
+//    compile (group: 'org.terasology.modules', name: 'Pathfinding', version: '+')
+//    compile (group: 'org.terasology.modules', name: 'TutorialWorldGeneration', version: '+')
+//    compile (group: 'org.terasology.modules', name: 'LightAndShadow', version: '+')
 //    compile (group: 'org.terasology.modules', name: 'WoodAndStone', version: '+')
-    compile (group: 'org.terasology.modules', name: 'PolyWorld', version: '+')
+//    compile (group: 'org.terasology.modules', name: 'PolyWorld', version: '+')
 
     // Mockups for Environments
     compile (group: 'org.mockito', name: 'mockito-all', version: '1.10.19')
