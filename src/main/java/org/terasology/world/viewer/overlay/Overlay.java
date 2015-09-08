@@ -22,7 +22,7 @@ import org.terasology.math.geom.ImmutableVector2i;
 import org.terasology.math.geom.Rect2i;
 
 /**
- * Overlays are rendered live on top of the world.
+ * Overlays are rendered live on top of the 2D world.
  */
 public interface Overlay {
 

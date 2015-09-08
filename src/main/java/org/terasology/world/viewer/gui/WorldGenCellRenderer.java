@@ -33,7 +33,7 @@ public class WorldGenCellRenderer extends DefaultListCellRenderer {
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        String text = ((WorldGeneratorInfo) value).getDisplayName();
+        String text = (value == null) ? null : ((WorldGeneratorInfo) value).getDisplayName();
         return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
     }
 }

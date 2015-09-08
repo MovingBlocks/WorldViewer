@@ -17,8 +17,8 @@ version = getFullVersion()
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-mainClassName = 'org.terasology.worldviewer.WorldViewer'
-applicationDefaultJvmArgs = ["-Xmx3g", "-splash:${sourceSets.main.output.resourcesDir}/splash/splash.jpg"]
+mainClassName = 'org.terasology.world.viewer.WorldViewer'
+applicationDefaultJvmArgs = ["-Xmx3g"]
 
 // We use both Maven Central and our own Artifactory instance, which contains module builds, extra libs, and so on
 repositories {
@@ -104,7 +104,7 @@ dependencies {
     compile (group: 'args4j', name: 'args4j', version: '2.32')
 
     compile (group: 'org.terasology.engine', name: 'engine', version: '0.54.2-SNAPSHOT')
-    compile (group: 'org.terasology', name: 'splash-screen', version: '1.0.1')
+    compile (group: 'org.terasology', name: 'splash-screen', version: '1.0.3')
 
     compile (group: 'org.terasology.modules', name: 'Core', version: '0.54.2-SNAPSHOT')
     compile (group: 'org.terasology.modules', name: 'Cities', version: '0.4.2')
@@ -144,7 +144,6 @@ jar {
         attributes("Class-Path" : configurations.runtime.collect { it.getName() }.join(" "))
         attributes("Implementation-Title": "WorldViewer")
         attributes("Implementation-Version": version)
-        attributes("SplashScreen-Image": "splash/splash.jpg")
     }
 }
 
