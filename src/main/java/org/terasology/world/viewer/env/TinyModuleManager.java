@@ -28,7 +28,10 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -133,13 +136,18 @@ public class TinyModuleManager implements ModuleManager {
     }
 
     private void loadModules() throws IOException {
-        String[] cpEntries = getClassPath();
+        Collection<String> cpEntries = getClassPath();
 
         for (String pathStr : cpEntries) {
             try {
-                Path modulePath = Paths.get(pathStr);
+                // the path normalization is critical. Otherwise the module classpath is not unique
+                // and world gens. cannot be resolved.
+                // Example: getModuleProviding uses getCodeSource().getLocation() to find the right module
+                Path modulePath = Paths.get(pathStr).normalize();
+
                 // The eclipse JUnit runner adds src/test/resources even if it doesn't exist
                 if (Files.exists(modulePath, LinkOption.NOFOLLOW_LINKS)) {
+                    logger.debug("Checking entry {}", modulePath);
                     Path codeLoc = moduleLoader.getDirectoryCodeLocation();
                     if (modulePath.endsWith(codeLoc)) {
                         for (int i = 0; i < codeLoc.getNameCount(); i++) {
@@ -151,6 +159,8 @@ public class TinyModuleManager implements ModuleManager {
                         logger.info("Loading module: {}", mod);
                         registry.add(mod);
                     }
+                } else {
+                    logger.debug("Ignoring non-existing entry {}", modulePath);
                 }
             } catch (InvalidPathException e) {
                 logger.warn("Ignoring invalid path: {}", pathStr);
@@ -158,26 +168,29 @@ public class TinyModuleManager implements ModuleManager {
         }
     }
 
-    private static String[] getClassPath() throws IOException {
+    private static Collection<String> getClassPath() throws IOException {
         // If the application is launched from the command line through java -jar
         // the classpath attribute is ignored and read from the jar's MANIFEST.MF file
         // instead. The classpath will then just contain WorldViewer.jar. We need to
         // manually parse the entries in that case :-(
 
-        // Use the classloader for this class, not the default one to ensure that
-        // only MANIFEST.MF from this jar is loaded (if it exists).
-        ClassLoader classLoader = TinyEnvironment.class.getClassLoader();
-        URL manifestResource = classLoader.getResource("/META-INF/MANIFEST.MF");
-        if (manifestResource != null) {
-            try (InputStream is = manifestResource.openStream()) {
+        Collection<String> entries = new LinkedHashSet<>();
+
+        String className = TinyModuleManager.class.getSimpleName() + ".class";
+        String classPath = TinyModuleManager.class.getResource(className).toString();
+        if (classPath.startsWith("jar")) {
+            String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+            try (InputStream is = new URL(manifestPath).openStream()) {
                 Manifest manifest = new Manifest(is);
                 String classpath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-                return classpath.split(" ");
+                entries.addAll(Arrays.asList(classpath.split(" ")));
             }
-        } else {
-            String classpath = System.getProperty("java.class.path");
-            return classpath.split(File.pathSeparator);
         }
+
+        String classpath = System.getProperty("java.class.path");
+        entries.addAll(Arrays.asList(classpath.split(File.pathSeparator)));
+
+        return entries;
     }
 
     public Module load(Path path) throws IOException {
