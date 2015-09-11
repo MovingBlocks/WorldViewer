@@ -24,16 +24,19 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SwingConstants;
@@ -42,12 +45,17 @@ import javax.swing.border.MatteBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.context.Context;
 import org.terasology.engine.Observer;
+import org.terasology.engine.SimpleUri;
 import org.terasology.entitySystem.Component;
+import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generator.WorldConfigurator;
 import org.terasology.world.generator.WorldGenerator;
-import org.terasology.world.viewer.WorldGenerators;
+import org.terasology.world.generator.internal.WorldGeneratorManager;
+import org.terasology.world.viewer.SelectWorldGenDialog;
 import org.terasology.world.viewer.config.Config;
+import org.terasology.world.viewer.config.WorldConfig;
 import org.terasology.world.viewer.gui.UIBindings;
 
 import com.google.common.collect.Lists;
@@ -63,39 +71,47 @@ public class ConfigPanel extends JPanel {
 
     private final List<Observer<WorldGenerator>> observers = Lists.newArrayList();
 
-    private final WorldGenerator worldGen;
+    private Context context;
+    private Config config;
 
-    public ConfigPanel(WorldGenerator worldGen, Config config) {
+    private WorldGenerator worldGen;
+
+    private JLabel worldGenLabel = new JLabel();
+    private JLabel seedLabel = new JLabel();
+    private JLabel seaLevelLabel = new JLabel();
+
+    private JPanel configPanel;
+
+    public ConfigPanel(Context context, Config config) {
 
         setLayout(new BorderLayout());
         setBorder(new EmptyBorder(5, 5, 5, 5));
 
+        this.context = context;
+        this.config = config;
+
         JPanel wgSelectPanel = new JPanel(new GridBagLayout());
         wgSelectPanel.setBorder(BorderFactory.createTitledBorder("World Generator"));
 
-        this.worldGen = worldGen;
-
-        String worldSeed = worldGen.getWorldSeed();
-        String wgName = WorldGenerators.getAnnotatedDisplayName(worldGen.getClass());
-        int seaLevel = worldGen.getWorld().getSeaLevel();
+        reloadWorldGen(config.getWorldConfig());
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridy = 0;
         wgSelectPanel.add(new JLabel("Generator Type:"), gbc.clone());
-        wgSelectPanel.add(new JLabel(wgName), gbc.clone());
+        wgSelectPanel.add(worldGenLabel, gbc.clone());
         gbc.gridy = 1;
         wgSelectPanel.add(new JLabel("World Seed:"), gbc.clone());
-        wgSelectPanel.add(new JLabel(worldSeed), gbc.clone());
+        wgSelectPanel.add(seedLabel, gbc.clone());
         gbc.gridy = 2;
         wgSelectPanel.add(new JLabel("Sea Level Height:"), gbc.clone());
-        wgSelectPanel.add(new JLabel(seaLevel + " blocks"), gbc.clone());
-
+        wgSelectPanel.add(seaLevelLabel, gbc.clone());
         add(wgSelectPanel, BorderLayout.NORTH);
 
-        JPanel configPanel = createConfigPanel();
-        add(configPanel, BorderLayout.CENTER);
+        JButton button = new JButton("Change World Generator");
+        button.addActionListener(this::editWorldGen);
+        add(button, BorderLayout.SOUTH);
     }
 
     /**
@@ -108,6 +124,50 @@ public class ConfigPanel extends JPanel {
 
     public void removeObserver(Observer<WorldGenerator> obs) {
         observers.remove(obs);
+    }
+
+    private void editWorldGen(ActionEvent event) {
+        WorldConfig wgConfig = config.getWorldConfig();
+        SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+        dialog.dispose();
+        if (dialog.getAnswer() == JOptionPane.OK_OPTION) {
+            reloadWorldGen(config.getWorldConfig());
+        }
+    }
+
+    private void reloadWorldGen(WorldConfig wgConfig) {
+        SimpleUri worldGenUri = wgConfig.getWorldGen();
+        String worldSeed = wgConfig.getWorldSeed();
+        WorldGeneratorManager worldGeneratorManager = CoreRegistry.get(WorldGeneratorManager.class);
+        try {
+            worldGen = worldGeneratorManager.createGenerator(worldGenUri, context);
+            worldGen.setWorldSeed(worldSeed);
+            worldGen.initialize();
+
+            String wgName = worldGeneratorManager.getWorldGeneratorInfo(worldGenUri).getDisplayName();
+            int seaLevel = worldGen.getWorld().getSeaLevel();
+            worldGenLabel.setText(wgName);
+            seedLabel.setText(worldSeed);
+            seaLevelLabel.setText(seaLevel + " blocks");
+
+            if (configPanel != null) {
+                remove(configPanel);
+            }
+            configPanel = createConfigPanel(worldGen.getConfigurator());
+            add(configPanel, BorderLayout.CENTER);
+
+            // then notify all observers
+            for (Observer<WorldGenerator> obs : observers) {
+                obs.update(worldGen);
+            }
+        } catch (Exception ex) {
+            String message = "<html>Could not create world generator<br>" + ex + "</html>";
+            logger.error("Could not create world generator {}", worldGenUri, ex);
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void notifyObservers(String group, Field field, Object value) {
@@ -133,9 +193,9 @@ public class ConfigPanel extends JPanel {
         return clone;
     }
 
-    private JPanel createConfigPanel() {
-        JPanel configPanel = new JPanel();
-        configPanel.setLayout(new GridBagLayout());
+    private JPanel createConfigPanel(WorldConfigurator configurator) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -146,7 +206,6 @@ public class ConfigPanel extends JPanel {
         gbc.insets.top = 10;
         gbc.insets.bottom = 5;
 
-        WorldConfigurator configurator = worldGen.getConfigurator();
         for (Entry<String, Component> entry : configurator.getProperties().entrySet()) {
             String label = entry.getKey();
             Component ccomp = entry.getValue();
@@ -154,12 +213,12 @@ public class ConfigPanel extends JPanel {
             JLabel caption = new JLabel(" " + label, SwingConstants.LEADING); // add a little space for the label text
             caption.setFont(caption.getFont().deriveFont(Font.BOLD));
             caption.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
-            configPanel.add(caption, gbc.clone());
+            panel.add(caption, gbc.clone());
 
-            processComponent(configPanel, label, ccomp);
+            processComponent(panel, label, ccomp);
         }
 
-        return configPanel;
+        return panel;
     }
 
     private void processComponent(Container panel, String key, Component ccomp) {
@@ -234,5 +293,9 @@ public class ConfigPanel extends JPanel {
             gbc.gridx = 1;
             parent.add(comp, gbc.clone());
         }
+    }
+
+    public WorldGenerator getWorldGen() {
+        return worldGen;
     }
 }

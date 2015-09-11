@@ -31,6 +31,8 @@ import javax.swing.border.EmptyBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.context.Context;
+import org.terasology.engine.Observer;
 import org.terasology.engine.module.ModuleManager;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.generation.WorldFacet;
@@ -54,49 +56,48 @@ public class MainFrame extends JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
 
+    private static final int MAX_TILES = 3000;
+
     private final Config config;
     private final Timer statusBarTimer;
-
-    private final WorldGenerator worldGen;
 
     /**
      * A thread-safe list (required for parallel tile rendering)
      */
-    private final List<FacetLayer> layerList;
+    private List<FacetLayer> layerList;
 
     private final Viewer viewer;
     private final FacetPanel layerPanel;
     private final ConfigPanel configPanel;
     private final JPanel statusBar = new JPanel();
 
-    public MainFrame(WorldGenerator worldGen, Config config) {
 
-        this.worldGen = worldGen;
+    public MainFrame(Context context, Config config) {
+
         this.config = config;
 
-        ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
+        configPanel = new ConfigPanel(context, config);
+        WorldGenerator worldGen = configPanel.getWorldGen();
 
-        Set<Class<? extends WorldFacet>> facets = worldGen.getWorld().getAllFacets();
+        configPanel.addObserver(new Observer<WorldGenerator>() {
 
-        // Create with default values first
-        List<FacetLayer> loadedLayers = FacetLayers.createLayersFor(facets, moduleManager.getEnvironment());
+            private WorldGenerator oldWorldGen = worldGen;
 
-        // Then try to replace them with those from the config file
-        try {
-            loadedLayers = config.loadLayers(worldGen.getUri(), loadedLayers);
-        } catch (RuntimeException e) {
-            logger.warn("Could not load layers - using default", e);
-        }
+            @Override
+            public void update(WorldGenerator wg) {
+                if (wg != oldWorldGen) {
+                    config.storeLayers(oldWorldGen.getUri(), layerList);
+                    reload(wg);
+                    oldWorldGen = wg;
+                }
+            }
+        });
 
-        // assign to thread-safe implementation
-        // do it outside the try/catch clause to allow for making it final
-        layerList = Lists.newCopyOnWriteArrayList(loadedLayers);
+        layerPanel = new FacetPanel();
 
-        configPanel = new ConfigPanel(worldGen, config);
+        viewer = new Viewer(config.getViewConfig(), MAX_TILES);
 
-        int maxTiles = 3000;
-        viewer = new Viewer(worldGen, layerList, config.getViewConfig(), maxTiles);
-        layerPanel = new FacetPanel(layerList);
+        reload(worldGen);
 
         configPanel.addObserver(wg -> viewer.invalidateWorld());
 
@@ -120,7 +121,7 @@ public class MainFrame extends JFrame {
 
             int pendingTiles = viewer.getPendingTiles();
             int cachedTiles = viewer.getCachedTiles();
-            tileCountLabel.setText(String.format("Tiles: %d/%d cached, %d queued", cachedTiles, maxTiles, pendingTiles));
+            tileCountLabel.setText(String.format("Tiles: %d/%d cached, %d queued", cachedTiles, MAX_TILES, pendingTiles));
 
             Runtime runtime = Runtime.getRuntime();
             long maxMem = runtime.maxMemory();
@@ -146,6 +147,30 @@ public class MainFrame extends JFrame {
         setMinimumSize(new Dimension(850, 530));
     }
 
+    private void reload(WorldGenerator worldGen) {
+
+        Set<Class<? extends WorldFacet>> facets = worldGen.getWorld().getAllFacets();
+
+        ModuleManager moduleManager = CoreRegistry.get(ModuleManager.class);
+
+        // Create with default values first
+        List<FacetLayer> loadedLayers = FacetLayers.createLayersFor(facets, moduleManager.getEnvironment());
+
+        // Then try to replace them with those from the config file
+        try {
+            loadedLayers = config.loadLayers(worldGen.getUri(), loadedLayers);
+        } catch (RuntimeException e) {
+            logger.warn("Could not load layers - using default", e);
+        }
+
+        // assign to thread-safe implementation
+        layerList = Lists.newCopyOnWriteArrayList(loadedLayers);
+
+        viewer.setWorldGen(worldGen, layerList);
+
+        layerPanel.setLayers(layerList);
+    }
+
     @Override
     public void dispose() {
         super.dispose();
@@ -154,7 +179,7 @@ public class MainFrame extends JFrame {
 
         viewer.close();
 
-        config.storeLayers(worldGen.getUri(), layerList);
+        config.storeLayers(config.getWorldConfig().getWorldGen(), layerList);
     }
 
 }

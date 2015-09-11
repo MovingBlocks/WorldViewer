@@ -33,27 +33,19 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.context.Context;
-import org.terasology.engine.SimpleUri;
-import org.terasology.registry.CoreRegistry;
 import org.terasology.splash.SplashScreen;
 import org.terasology.splash.SplashScreenBuilder;
 import org.terasology.splash.overlay.AnimatedBoxRowOverlay;
 import org.terasology.splash.overlay.RectOverlay;
 import org.terasology.splash.overlay.TextOverlay;
-import org.terasology.world.generator.WorldGenerator;
-import org.terasology.world.generator.internal.WorldGeneratorManager;
 import org.terasology.world.viewer.config.Config;
-import org.terasology.world.viewer.config.WorldConfig;
 import org.terasology.world.viewer.env.TinyEnvironment;
 import org.terasology.world.viewer.version.VersionInfo;
 
@@ -77,16 +69,7 @@ public final class WorldViewer {
 
         logStatus();
 
-        CmdLineConfigs cmdLineOpts = new CmdLineConfigs();
-        CmdLineParser parser = new CmdLineParser(cmdLineOpts);
-
         try {
-            parser.parseArgument(args);
-            if (cmdLineOpts.help) {
-                System.out.println("WorldViewer - Version " + VersionInfo.getVersion());
-                parser.printUsage(System.out);
-                return;
-            }
 
             SplashScreen splashScreen = createSplashScreen();
             splashScreen.post("Loading ...");
@@ -99,12 +82,8 @@ public final class WorldViewer {
             splashScreen.close();
             SwingUtilities.invokeLater(() -> {
                 setupLookAndFeel();
-                createAndShowGUI(context, config, cmdLineOpts);
+                createAndShowMainFrame(context, config);
             });
-        } catch (CmdLineException e) {
-            System.err.println("Could not parse command line arguments: " + e.getMessage());
-            parser.printUsage(System.out);
-            return;
         } catch (IOException e) {
             System.err.println("Could not load modules: " + e.getMessage());
             return;
@@ -158,47 +137,8 @@ public final class WorldViewer {
       }
     }
 
-    private static void createAndShowGUI(Context context, Config config, CmdLineConfigs cmdLineOpts) {
-
-        WorldConfig wgConfig = config.getWorldConfig();
-
-        if (!cmdLineOpts.skipSelect && cmdLineOpts.worldGen == null && cmdLineOpts.seed == null) {
-            SelectWorldGenDialog dialog = new SelectWorldGenDialog(wgConfig);
-            dialog.pack();
-            dialog.setLocationRelativeTo(null);
-            dialog.setVisible(true);
-            dialog.dispose();
-            if (dialog.getAnswer() != JOptionPane.OK_OPTION) {
-                return;
-            }
-        }
-
-        SimpleUri worldGenUri = wgConfig.getWorldGen();
-        String worldSeed = wgConfig.getWorldSeed();
-
-        if (cmdLineOpts.worldGen != null) {
-            worldGenUri = new SimpleUri(cmdLineOpts.worldGen);
-        }
-
-        if (cmdLineOpts.seed != null) {
-            worldSeed = cmdLineOpts.seed;
-        }
-
-        try {
-            WorldGeneratorManager worldGeneratorManager = CoreRegistry.get(WorldGeneratorManager.class);
-            WorldGenerator worldGen = worldGeneratorManager.createGenerator(worldGenUri, context);
-            worldGen.setWorldSeed(worldSeed);
-            worldGen.initialize();
-            createAndShowMainFrame(worldGen, config);
-        } catch (Exception ex) {
-            String message = "<html>Could not create world generator<br>" + ex + "</html>";
-            logger.error("Could not create world generator {}", worldGenUri, ex);
-            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private static void createAndShowMainFrame(WorldGenerator worldGen, Config config) {
-        JFrame frame = new MainFrame(worldGen, config);
+    private static void createAndShowMainFrame(Context context, Config config) {
+        JFrame frame = new MainFrame(context, config);
         frame.setIconImages(loadIcons());
         frame.setTitle("WorldViewer " + VersionInfo.getVersion());
         frame.setSize(1280, 720);

@@ -68,6 +68,10 @@ import org.terasology.world.generation.Region;
 import org.terasology.world.generation.World;
 import org.terasology.world.generator.WorldGenerator;
 import org.terasology.world.viewer.ThreadSafeRegion;
+import org.terasology.world.viewer.camera.Camera;
+import org.terasology.world.viewer.camera.CameraKeyController;
+import org.terasology.world.viewer.camera.CameraMouseController;
+import org.terasology.world.viewer.camera.RepaintingCameraListener;
 import org.terasology.world.viewer.color.ColorModels;
 import org.terasology.world.viewer.config.ViewConfig;
 import org.terasology.world.viewer.gui.CursorPositionListener;
@@ -79,10 +83,6 @@ import org.terasology.world.viewer.overlay.ScreenOverlay;
 import org.terasology.world.viewer.overlay.TextOverlay;
 import org.terasology.world.viewer.overlay.TooltipOverlay;
 import org.terasology.world.viewer.overlay.WorldOverlay;
-import org.terasology.world.viewer.camera.Camera;
-import org.terasology.world.viewer.camera.CameraKeyController;
-import org.terasology.world.viewer.camera.CameraMouseController;
-import org.terasology.world.viewer.camera.RepaintingCameraListener;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
@@ -117,7 +117,6 @@ public final class Viewer extends JComponent {
     private final LoadingCache<ImmutableVector2i, BufferedImage> imageCache;
 
     private final Camera camera = new Camera();
-    private final WorldGenerator worldGen;
 
     private final CursorPositionListener curPosListener;
 
@@ -126,18 +125,15 @@ public final class Viewer extends JComponent {
     private final Deque<WorldOverlay> worldOverlays = Lists.newLinkedList();
     private final Deque<ScreenOverlay> screenOverlays = Lists.newLinkedList();
 
-    private final List<FacetLayer> facetLayers;
+    private WorldGenerator worldGen;
+    private List<FacetLayer> facetLayers;
 
     /**
-     * @param wg the world generator to use
-     * @param facetLayers the facet config
      * @param viewConfig the view config
      * @param cacheSize maximum number of cached tiles
      */
-    public Viewer(WorldGenerator wg, List<FacetLayer> facetLayers, ViewConfig viewConfig, int cacheSize) {
-        this.worldGen = wg;
+    public Viewer(ViewConfig viewConfig, int cacheSize) {
         this.viewConfig = viewConfig;
-        this.facetLayers = facetLayers;
 
         int minThreads = Runtime.getRuntime().availableProcessors() * 2;
         int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -214,11 +210,6 @@ public final class Viewer extends JComponent {
 
         dummyImg = createStaticImage(TILE_SIZE_X, TILE_SIZE_Y, null);
         failedImg = createStaticImage(TILE_SIZE_X, TILE_SIZE_Y, "FAILED");
-
-        // clear tile cache and repaint if any of the facet configs has changed
-        for (FacetLayer layer : facetLayers) {
-            layer.addObserver(l -> updateImageCache());
-        }
     }
 
     private static BufferedImage createStaticImage(int width, int height, String text) {
@@ -306,6 +297,22 @@ public final class Viewer extends JComponent {
         int wx = visWorld.minX() + TeraMath.floorToInt(screen.getX() / camera.getZoom());
         int wy = visWorld.minY() + TeraMath.floorToInt(screen.getY() / camera.getZoom());
         return new ImmutableVector2i(wx, wy);
+    }
+
+    /**
+     * @param wg the world generator to use
+     * @param newLayers the facet config
+     */
+    public void setWorldGen(WorldGenerator wg, List<FacetLayer> newLayers) {
+        this.worldGen = wg;
+        this.facetLayers = newLayers;
+
+        // clear tile cache and repaint if any of the facet configs has changed
+        for (FacetLayer layer : newLayers) {
+            layer.addObserver(l -> updateImageCache());
+        }
+
+        invalidateWorld();
     }
 
     public void invalidateWorld() {

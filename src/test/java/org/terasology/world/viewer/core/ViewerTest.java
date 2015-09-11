@@ -60,7 +60,8 @@ public class ViewerTest {
         Set<Class<? extends WorldFacet>> facets = worldGen.getWorld().getAllFacets();
         List<FacetLayer> loadedLayers = FacetLayers.createLayersFor(facets, moduleManager.getEnvironment());
 
-        Viewer viewer = new Viewer(worldGen, loadedLayers, new ViewConfig(), 100);
+        Viewer viewer = new Viewer(new ViewConfig(), 100);
+        viewer.setWorldGen(worldGen, loadedLayers);
         viewer.setSize(300, 300);
         Graphics2D g = Mockito.mock(Graphics2D.class);
         viewer.paint(g);

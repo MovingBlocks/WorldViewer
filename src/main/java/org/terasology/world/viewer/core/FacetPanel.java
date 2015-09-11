@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.DropMode;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -54,7 +55,9 @@ public class FacetPanel extends JPanel {
 
     private final JPanel configPanel;
 
-    public FacetPanel(List<FacetLayer> facets) {
+    private JTable facetList;
+
+    public FacetPanel() {
         setBorder(BorderFactory.createEtchedBorder());
         setLayout(new GridBagLayout());
 
@@ -63,19 +66,12 @@ public class FacetPanel extends JPanel {
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        TableModel listModel = new FacetTableModel(facets);
-        JTable facetList = new JTable(listModel);
-
-        for (FacetLayer facetLayer : facets) {
-            facetLayer.addObserver(layer -> facetList.repaint());
-        }
+        facetList = new JTable();
 
         facetList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         facetList.setTransferHandler(new TableRowTransferHandler(facetList));
         facetList.setDropMode(DropMode.INSERT_ROWS);
         facetList.setDragEnabled(true);
-        facetList.getColumnModel().getColumn(0).setMaxWidth(25);
-        facetList.getColumnModel().getColumn(0).setResizable(false);
         facetList.getTableHeader().setReorderingAllowed(false);
         add(facetList.getTableHeader(), gbc.clone());
         gbc.gridy++;
@@ -88,14 +84,27 @@ public class FacetPanel extends JPanel {
 
         configPanel = new JPanel();
         configPanel.setBorder(BorderFactory.createTitledBorder("Config"));
-        CardLayout cardLayout = new CardLayout();
-        configPanel.setLayout(cardLayout);
         gbc.gridy++;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets.top = 10;
         add(configPanel, gbc.clone());
+    }
 
+    public void setLayers(List<FacetLayer> facets) {
+        TableModel listModel = new FacetTableModel(facets);
+        facetList.setModel(listModel);
+        facetList.setSelectionModel(new DefaultListSelectionModel());
+        facetList.getColumnModel().getColumn(0).setMaxWidth(30);
+        facetList.getColumnModel().getColumn(0).setResizable(false);
+
+        for (FacetLayer facetLayer : facets) {
+            facetLayer.addObserver(layer -> facetList.repaint());
+        }
+
+        CardLayout cardLayout = new CardLayout();
+        configPanel.setLayout(cardLayout);
+        configPanel.removeAll();
         for (FacetLayer layer : facets) {
             configPanel.add(createConfigs(layer), Integer.toString(System.identityHashCode(layer)));
         }
