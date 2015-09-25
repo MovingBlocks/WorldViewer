@@ -101,9 +101,7 @@ dependencies {
     pmd ('net.sourceforge.pmd:pmd-core:5.3.3')
     pmd ('net.sourceforge.pmd:pmd-java:5.3.3')
 
-    compile (group: 'org.terasology', name: 'splash-screen', version: '1.0.3')
-
-    compile (group: 'org.terasology.modules', name: 'Core', version: '0.54.2-SNAPSHOT')
+    compile (group: 'org.terasology.modules', name: 'Core', version: '0.54.3-SNAPSHOT')
 //    compile (group: 'org.terasology.modules', name: 'Cities', version: '+')
 //    compile (group: 'org.terasology.modules', name: 'Pathfinding', version: '+')
 //    compile (group: 'org.terasology.modules', name: 'TutorialWorldGeneration', version: '+')
