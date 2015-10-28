@@ -68,7 +68,6 @@ public class FacetPanel extends JPanel {
 
         facetList = new JTable();
 
-        facetList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         facetList.setTransferHandler(new TableRowTransferHandler(facetList));
         facetList.setDropMode(DropMode.INSERT_ROWS);
         facetList.setDragEnabled(true);
@@ -97,6 +96,7 @@ public class FacetPanel extends JPanel {
         facetList.setSelectionModel(new DefaultListSelectionModel());
         facetList.getColumnModel().getColumn(0).setMaxWidth(30);
         facetList.getColumnModel().getColumn(0).setResizable(false);
+        facetList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         for (FacetLayer facetLayer : facets) {
             facetLayer.addObserver(layer -> facetList.repaint());
