@@ -79,6 +79,7 @@ import org.terasology.world.viewer.gui.RepaintingMouseListener;
 import org.terasology.world.viewer.layers.FacetLayer;
 import org.terasology.world.viewer.overlay.GridOverlay;
 import org.terasology.world.viewer.overlay.Overlay;
+import org.terasology.world.viewer.overlay.PixelOverlay;
 import org.terasology.world.viewer.overlay.ScreenOverlay;
 import org.terasology.world.viewer.overlay.TextOverlay;
 import org.terasology.world.viewer.overlay.TooltipOverlay;
@@ -169,8 +170,8 @@ public final class Viewer extends JComponent {
         camera.setZoom(viewConfig.getZoomFactor());
         camera.addListener(new RepaintingCameraListener(this));
 
-        GridOverlay gridOverlay = new GridOverlay(TILE_SIZE_X, TILE_SIZE_Y);
-        worldOverlays.addLast(gridOverlay);
+        worldOverlays.addLast(new GridOverlay(TILE_SIZE_X, TILE_SIZE_Y));
+        worldOverlays.addLast(new PixelOverlay(10));
 
         TextOverlay zoomOverlay = new TextOverlay(() -> String.format("Zoom: %3d%%", (int) (camera.getZoom() * 100)));
         zoomOverlay.setHorizontalAlign(HorizontalAlign.RIGHT);
