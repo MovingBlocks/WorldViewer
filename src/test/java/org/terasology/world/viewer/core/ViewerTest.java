@@ -17,13 +17,13 @@
 package org.terasology.world.viewer.core;
 
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.terasology.context.Context;
 import org.terasology.engine.SimpleUri;
 import org.terasology.engine.module.ModuleManager;
@@ -60,10 +60,12 @@ public class ViewerTest {
         Set<Class<? extends WorldFacet>> facets = worldGen.getWorld().getAllFacets();
         List<FacetLayer> loadedLayers = FacetLayers.createLayersFor(facets, moduleManager.getEnvironment());
 
+        BufferedImage img = new BufferedImage(300, 300, BufferedImage.TYPE_INT_RGB);
         Viewer viewer = new Viewer(new ViewConfig(), 100);
         viewer.setWorldGen(worldGen, loadedLayers);
         viewer.setSize(300, 300);
-        Graphics2D g = Mockito.mock(Graphics2D.class);
+        Graphics2D g = img.createGraphics();
         viewer.paint(g);
+        g.dispose();
     }
 }
