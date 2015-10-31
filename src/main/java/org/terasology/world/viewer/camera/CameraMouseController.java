@@ -37,9 +37,20 @@ public class CameraMouseController extends MouseAdapter {
     private Point draggedPoint;
     private final Camera camera;
 
+    /**
+     * zoom = 2 ^ (zoomLevel * zoomDelta)
+     */
     private int zoomLevel;
+
+    /**
+     * 2^(-8 * 0.25) =   25%
+     */
     private int minZoomLevel = -8;
-    private int maxZoomLevel = 16;
+
+    /**
+     * 2^(20 * 0.25) = 3200%
+     */
+    private int maxZoomLevel = 20;
 
     private final float zoomDelta = 0.25f;
 
