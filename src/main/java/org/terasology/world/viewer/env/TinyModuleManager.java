@@ -16,6 +16,25 @@
 
 package org.terasology.world.viewer.env;
 
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.terasology.engine.TerasologyConstants;
+import org.terasology.engine.module.ModuleExtension;
+import org.terasology.engine.module.ModuleManager;
+import org.terasology.engine.module.StandardModuleExtension;
+import org.terasology.module.ClasspathModule;
+import org.terasology.module.DependencyInfo;
+import org.terasology.module.Module;
+import org.terasology.module.ModuleEnvironment;
+import org.terasology.module.ModuleLoader;
+import org.terasology.module.ModuleMetadata;
+import org.terasology.module.ModuleMetadataJsonAdapter;
+import org.terasology.module.ModuleRegistry;
+import org.terasology.module.TableModuleRegistry;
+import org.terasology.module.sandbox.BytecodeInjector;
+import org.terasology.module.sandbox.PermissionProviderFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,32 +56,12 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.terasology.engine.TerasologyConstants;
-import org.terasology.engine.module.ModuleExtension;
-import org.terasology.engine.module.ModuleManager;
-import org.terasology.engine.module.StandardModuleExtension;
-import org.terasology.module.ClasspathModule;
-import org.terasology.module.DependencyInfo;
-import org.terasology.module.Module;
-import org.terasology.module.ModuleEnvironment;
-import org.terasology.module.ModuleLoader;
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataReader;
-import org.terasology.module.ModuleRegistry;
-import org.terasology.module.TableModuleRegistry;
-import org.terasology.module.sandbox.BytecodeInjector;
-import org.terasology.module.sandbox.PermissionProviderFactory;
-
-import com.google.common.collect.Sets;
-
 public class TinyModuleManager implements ModuleManager {
 
     private static final Logger logger = LoggerFactory.getLogger(TinyModuleManager.class);
 
     private final ModuleRegistry registry = new TableModuleRegistry();
-    private final ModuleMetadataReader metadataReader = new ModuleMetadataReader();
+    private final ModuleMetadataJsonAdapter metadataReader = new ModuleMetadataJsonAdapter();
     private final ModuleLoader moduleLoader = new ModuleLoader(metadataReader);
     private final PermissionProviderFactory securityManager = new DummyPermissionProviderFactory();
 
@@ -126,7 +125,7 @@ public class TinyModuleManager implements ModuleManager {
     }
 
     @Override
-    public ModuleMetadataReader getModuleMetadataReader() {
+    public ModuleMetadataJsonAdapter getModuleMetadataReader() {
         return metadataReader;
     }
 
@@ -203,4 +202,3 @@ public class TinyModuleManager implements ModuleManager {
         return module;
     }
 }
-
