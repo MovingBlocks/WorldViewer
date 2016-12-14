@@ -2,6 +2,11 @@
 /.gradle
 /build
 
+# IntelliJ project files
+*.iml
+*.ipr
+*.iws
+
 # Eclipse project files
 .classpath
 .project
